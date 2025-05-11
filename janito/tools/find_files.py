@@ -1,8 +1,8 @@
-from janito.agent.tool_base import ToolBase
-from janito.agent.tools_utils.action_type import ActionType
-from janito.agent.tool_registry import register_tool
-from janito.agent.tools_utils.utils import pluralize, display_path
-from janito.agent.tools_utils.dir_walk_utils import walk_dir_with_gitignore
+from janito.tool_base import ToolBase
+from janito.action_type import ActionType
+from janito.tool_registry import register_tool
+from janito.tool_utils import pluralize, display_path
+from janito.dir_walk_utils import walk_dir_with_gitignore
 from janito.i18n import tr
 import fnmatch
 import os

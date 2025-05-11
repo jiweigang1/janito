@@ -1,11 +1,11 @@
-from janito.agent.tool_registry import register_tool
+from janito.tool_registry import register_tool
 from .python_outline import parse_python_outline
 from .markdown_outline import parse_markdown_outline
-from janito.agent.tools_utils.formatting import OutlineFormatter
+from janito.formatting import OutlineFormatter
 import os
-from janito.agent.tool_base import ToolBase
-from janito.agent.tools_utils.action_type import ActionType
-from janito.agent.tools_utils.utils import display_path, pluralize
+from janito.tool_base import ToolBase
+from janito.action_type import ActionType
+from janito.tool_utils import display_path, pluralize
 from janito.i18n import tr
 
 

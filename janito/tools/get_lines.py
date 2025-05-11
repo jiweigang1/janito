@@ -1,7 +1,7 @@
-from janito.agent.tool_base import ToolBase
-from janito.agent.tools_utils.action_type import ActionType
-from janito.agent.tool_registry import register_tool
-from janito.agent.tools_utils.utils import pluralize
+from janito.tool_base import ToolBase
+from janito.action_type import ActionType
+from janito.tool_registry import register_tool
+from janito.tool_utils import pluralize
 from janito.i18n import tr
 
 
@@ -26,7 +26,7 @@ class GetLinesTool(ToolBase):
     """
 
     def run(self, file_path: str, from_line: int = None, to_line: int = None) -> str:
-        from janito.agent.tools_utils.utils import display_path
+        from janito.tool_utils import display_path
 
         disp_path = display_path(file_path)
         self._report_read_info(disp_path, from_line, to_line)

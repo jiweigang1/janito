@@ -1,5 +1,5 @@
 import os
-from janito.agent.tools_utils.gitignore_utils import GitignoreFilter
+from janito.gitignore_utils import GitignoreFilter
 from .match_lines import match_line, should_limit, read_file_lines
 
 

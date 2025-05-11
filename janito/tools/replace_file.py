@@ -1,12 +1,12 @@
 import os
 import shutil
-from janito.agent.tool_registry import register_tool
-from janito.agent.tools_utils.utils import display_path
-from janito.agent.tool_base import ToolBase
-from janito.agent.tools_utils.action_type import ActionType
+from janito.tool_registry import register_tool
+from janito.tool_utils import display_path
+from janito.tool_base import ToolBase
+from janito.action_type import ActionType
 from janito.i18n import tr
 
-from janito.agent.tools.validate_file_syntax.core import validate_file_syntax
+from janito.tools.validate_file_syntax.core import validate_file_syntax
 
 
 @register_tool(name="replace_file")
@@ -24,7 +24,7 @@ class ReplaceFileTool(ToolBase):
     """
 
     def run(self, file_path: str, content: str) -> str:
-        from janito.agent.tool_use_tracker import ToolUseTracker
+        from janito.tool_use_tracker import ToolUseTracker
 
         expanded_file_path = file_path  # Using file_path as is
         disp_path = display_path(expanded_file_path)

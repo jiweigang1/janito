@@ -1,14 +1,14 @@
 import os
-from janito.agent.tool_registry import register_tool
+from janito.tool_registry import register_tool
 
 # from janito.agent.tools_utils.expand_path import expand_path
-from janito.agent.tools_utils.utils import display_path
-from janito.agent.tool_base import ToolBase
-from janito.agent.tools_utils.action_type import ActionType
+from janito.tool_utils import display_path
+from janito.tool_base import ToolBase
+from janito.action_type import ActionType
 from janito.i18n import tr
 
 
-from janito.agent.tools.validate_file_syntax.core import validate_file_syntax
+from janito.tools.validate_file_syntax.core import validate_file_syntax
 
 
 @register_tool(name="create_file")

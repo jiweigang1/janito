@@ -1,6 +1,6 @@
-from janito.agent.tool_base import ToolBase
-from janito.agent.tools_utils.action_type import ActionType
-from janito.agent.tool_registry import register_tool
+from janito.tool_base import ToolBase
+from janito.action_type import ActionType
+from janito.tool_registry import register_tool
 
 
 @register_tool(name="search_outline")
@@ -10,7 +10,7 @@ class SearchOutlineTool(ToolBase):
     """
 
     def run(self, file_path: str) -> str:
-        from janito.agent.tools_utils.utils import display_path
+        from janito.tool_utils import display_path
         from janito.i18n import tr
 
         self.report_info(

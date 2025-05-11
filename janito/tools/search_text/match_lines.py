@@ -1,5 +1,5 @@
 import re
-from janito.agent.tools_utils.gitignore_utils import GitignoreFilter
+from janito.gitignore_utils import GitignoreFilter
 import os
 
 

@@ -1,5 +1,5 @@
-from janito.agent.tool_base import ToolBase
-from janito.agent.tool_registry import register_tool
+from janito.tool_base import ToolBase
+from janito.tool_registry import register_tool
 from janito.i18n import tr
 
 
@@ -25,7 +25,7 @@ class DeleteTextInFileTool(ToolBase):
         backup: bool = False,
     ) -> str:
         import shutil
-        from janito.agent.tools_utils.utils import display_path
+        from janito.tool_utils import display_path
 
         disp_path = display_path(file_path)
         backup_path = file_path + ".bak"

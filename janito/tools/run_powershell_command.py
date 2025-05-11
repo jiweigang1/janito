@@ -1,6 +1,6 @@
-from janito.agent.tool_base import ToolBase
-from janito.agent.tools_utils.action_type import ActionType
-from janito.agent.tool_registry import register_tool
+from janito.tool_base import ToolBase
+from janito.action_type import ActionType
+from janito.tool_registry import register_tool
 from janito.i18n import tr
 import subprocess
 import os
@@ -142,7 +142,7 @@ class RunPowerShellCommandTool(ToolBase):
             command, require_confirmation, requires_user_input
         ):
             return tr("\u274c Command execution cancelled by user.")
-        from janito.agent.platform_discovery import PlatformDiscovery
+        from janito.platform_discovery import PlatformDiscovery
 
         pd = PlatformDiscovery()
         shell_exe = "powershell.exe" if pd.is_windows() else "pwsh"
