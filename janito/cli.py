@@ -9,13 +9,58 @@ from janito.version import __version__ as VERSION
 from janito.provider_registry import list_providers, select_provider
 from janito.prompt_handler import handle_prompt
 from janito.provider_config import ProviderConfigManager
-
 from rich.console import Console
 from rich.pretty import Pretty
 
 def log_event_to_console(event):
     console = Console()
     console.print(f"[EVENT] [bold cyan]{event.__class__.__name__}[/]:", Pretty(event.__dict__, expand_all=True))
+
+def handle_list_tools():
+    from janito.tool_registry import ToolRegistry
+    import janito.tools  # Ensure all tools are registered
+    registry = ToolRegistry()
+    tools = registry.list_tools()
+    if tools:
+        print("Registered tools:")
+        for tool in tools:
+            print(f"- {tool}")
+    else:
+        print("No tools registered.")
+    sys.exit(0)
+
+def handle_set_api_key(args, mgr):
+    provider, api_key = args.set_api_key
+    mgr.set_api_key(provider, api_key)
+    print(f"API key set for provider '{provider}'.")
+
+def handle_set_provider(args, mgr):
+    mgr.set_default_provider(args.set_provider)
+    print(f"Current provider set to '{args.set_provider}' in {mgr.get_config_path()}.")
+
+def handle_set_config(args, mgr):
+    provider, key, value = args.set_config
+    mgr.set_provider_config(provider, key, value)
+    print(f"Set config for provider '{provider}': {key} = {value}")
+
+def handle_list_providers():
+    list_providers()
+
+def handle_user_prompt(args):
+    prompt = ' '.join(args.user_prompt).strip()
+    if not prompt:
+        return False
+    setattr(args, 'user_prompt', prompt)
+    if args.event_log:
+        from janito.event_bus.bus import event_bus
+        from janito.event_types import (
+            RequestStarted, RequestFinished, ResponseReceived, RequestError, ToolCallStarted, ToolCallFinished, ContentPartFound
+        )
+        # Subscribe to all relevant event types
+        for event_type in [RequestStarted, RequestFinished, ResponseReceived, RequestError, ToolCallStarted, ToolCallFinished, ContentPartFound]:
+            event_bus.subscribe(event_type, log_event_to_console)
+    handle_prompt(args)
+    return True
 
 def main():
     """
@@ -39,49 +84,20 @@ def main():
 
     args = parser.parse_args()
 
-    # Handle --list-tools
-    if args.list_tools:
-        from janito.tool_registry import ToolRegistry
-        import janito.tools  # Ensure all tools are registered
-        registry = ToolRegistry()
-        tools = registry.list_tools()
-        if tools:
-            print("Registered tools:")
-            for tool in tools:
-                print(f"- {tool}")
-        else:
-            print("No tools registered.")
-        sys.exit(0)
-
+    # Dispatch table for argument handlers
     mgr = ProviderConfigManager()
-    if args.set_api_key:
-        provider, api_key = args.set_api_key
-        mgr.set_api_key(provider, api_key)
+    if args.list_tools:
+        handle_list_tools()
+    elif args.set_api_key:
+        handle_set_api_key(args, mgr)
     elif args.set_provider:
-        mgr.set_default_provider(args.set_provider)
-        print(f"Current provider set to '{args.set_provider}' in {mgr.get_config_path()}.")
+        handle_set_provider(args, mgr)
     elif args.set_config:
-        provider, key, value = args.set_config
-        mgr.set_provider_config(provider, key, value)
-        print(f"Set config for provider '{provider}': {key} = {value}")
+        handle_set_config(args, mgr)
     elif args.list_providers:
-        list_providers()
+        handle_list_providers()
     elif args.user_prompt:
-        # Join all remaining arguments as the prompt
-        prompt = ' '.join(args.user_prompt).strip()
-        if prompt:
-            # Attach prompt to args for handle_prompt compatibility
-            setattr(args, 'user_prompt', prompt)
-            if args.event_log:
-                from janito.event_bus.bus import event_bus
-                from janito.event_types import (
-                    RequestStarted, RequestFinished, ResponseReceived, RequestError, ToolCallStarted, ToolCallFinished, ContentPartFound
-                )
-                # Subscribe to all relevant event types
-                for event_type in [RequestStarted, RequestFinished, ResponseReceived, RequestError, ToolCallStarted, ToolCallFinished, ContentPartFound]:
-                    event_bus.subscribe(event_type, log_event_to_console)
-            handle_prompt(args)
-        else:
+        if not handle_user_prompt(args):
             parser.print_help()
     else:
         parser.print_help()
