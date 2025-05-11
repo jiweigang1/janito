@@ -1,5 +1,5 @@
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.tool_registry import register_tool
 
 
@@ -14,7 +14,7 @@ class SearchOutlineTool(ToolBase):
         from janito.i18n import tr
 
         self.report_info(
-            ActionType.READ,
+            ReportAction.READ,
             tr(
                 "🔍 Searching for outline in '{disp_path}'",
                 disp_path=display_path(file_path),

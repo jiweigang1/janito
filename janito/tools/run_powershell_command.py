@@ -1,5 +1,5 @@
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.tool_registry import register_tool
 from janito.i18n import tr
 import subprocess
@@ -132,7 +132,7 @@ class RunPowerShellCommandTool(ToolBase):
         encoding_prefix = "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; "
         command_with_encoding = encoding_prefix + command
         self.report_info(
-            ActionType.EXECUTE,
+            ReportAction.EXECUTE,
             tr(
                 "\U0001f5a5\ufe0f Running PowerShell command: {command} ...\n",
                 command=command,
@@ -189,7 +189,7 @@ class RunPowerShellCommandTool(ToolBase):
                     return_code = process.wait(timeout=timeout)
                 except subprocess.TimeoutExpired:
                     process.kill()
-                    self.report_error(
+                    self.report_error(ReportAction.RUN, 
                         tr(
                             " \u274c Timed out after {timeout} seconds.",
                             timeout=timeout,
@@ -209,5 +209,5 @@ class RunPowerShellCommandTool(ToolBase):
                     requires_user_input, return_code, stdout_file, stderr_file
                 )
         except Exception as e:
-            self.report_error(tr(" \u274c Error: {error}", error=e))
+            self.report_error(ReportAction.RUN, tr(" \u274c Error: {error}", error=e))
             return tr("Error running command: {error}", error=e)

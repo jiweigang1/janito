@@ -1,4 +1,4 @@
-from janito.event_types import ReportEvent, ReportSubtype, ReportAction
+from janito.report_events import ReportEvent, ReportSubtype, ReportAction
 from janito.event_bus.bus import event_bus
 
 class ToolBase:
@@ -17,7 +17,7 @@ class ToolBase:
         :param context: Optional dictionary with extra context or metadata.
         """
         event_bus.publish(ReportEvent(
-            subtype=ReportSubtype.INFO,
+            subtype=ReportSubtype.ACTION_INFO,
             message=message,
             action=action,
             tool=self.name,

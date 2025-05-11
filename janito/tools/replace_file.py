@@ -3,7 +3,7 @@ import shutil
 from janito.tool_registry import register_tool
 from janito.tool_utils import display_path
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.i18n import tr
 
 from janito.tools.validate_file_syntax.core import validate_file_syntax
@@ -38,7 +38,7 @@ class ReplaceFileTool(ToolBase):
         tracker = ToolUseTracker()
         if not tracker.last_operation_is_full_read_or_replace(file_path):
             self.report_info(
-                ActionType.WRITE,
+                ReportAction.WRITE,
                 tr("📝 Replace file '{disp_path}' ...", disp_path=disp_path),
             )
             self.report_warning(tr("ℹ️ Missing full view."))
@@ -53,7 +53,7 @@ class ReplaceFileTool(ToolBase):
                 f"{current_content}"
             )
         self.report_info(
-            ActionType.WRITE,
+            ReportAction.WRITE,
             tr("📝 Replace file '{disp_path}' ...", disp_path=disp_path),
         )
         backup_path = file_path + ".bak"
@@ -61,7 +61,7 @@ class ReplaceFileTool(ToolBase):
         with open(file_path, "w", encoding="utf-8", errors="replace") as f:
             f.write(content)
         new_lines = content.count("\n") + 1 if content else 0
-        self.report_success(tr("✅ {new_lines} lines", new_lines=new_lines))
+        self.report_success(tr("✅ {new_lines} lines", new_lines=new_lines), ReportAction.WRITE)
         msg = tr(
             "✅ Replaced file ({new_lines} lines, backup at {backup_path}).",
             new_lines=new_lines,

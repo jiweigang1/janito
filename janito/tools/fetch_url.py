@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from janito.tool_registry import register_tool
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.i18n import tr
 from janito.tool_utils import pluralize
 
@@ -25,7 +25,7 @@ class FetchUrlTool(ToolBase):
         if not url.strip():
             self.report_warning(tr("ℹ️ Empty URL provided."))
             return tr("Warning: Empty URL provided. Operation skipped.")
-        self.report_info(ActionType.READ, tr("🌐 Fetch URL '{url}' ...", url=url))
+        self.report_info(tr("🌐 Fetch URL '{url}' ...", url=url), ReportAction.READ)
         try:
             response = requests.get(url, timeout=10)
             response.raise_for_status()
@@ -37,7 +37,8 @@ class FetchUrlTool(ToolBase):
                         "❗ HTTP {status_code} error for URL: {url}",
                         status_code=status_code,
                         url=url,
-                    )
+                    ),
+                    ReportAction.FETCH,
                 )
                 return tr(
                     "Warning: HTTP {status_code} error for URL: {url}",
@@ -50,7 +51,8 @@ class FetchUrlTool(ToolBase):
                         "❗ HTTP error for URL: {url}: {err}",
                         url=url,
                         err=str(http_err),
-                    )
+                    ),
+                    ReportAction.FETCH,
                 )
                 return tr(
                     "Warning: HTTP error for URL: {url}: {err}",
@@ -59,7 +61,8 @@ class FetchUrlTool(ToolBase):
                 )
         except Exception as err:
             self.report_error(
-                tr("❗ Error fetching URL: {url}: {err}", url=url, err=str(err))
+                tr("❗ Error fetching URL: {url}: {err}", url=url, err=str(err)),
+                ReportAction.FETCH,
             )
             return tr(
                 "Warning: Error fetching URL: {url}: {err}", url=url, err=str(err)

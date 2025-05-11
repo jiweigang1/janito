@@ -14,8 +14,8 @@ from janito.providers.openai.schema_generator import generate_tool_schemas
 import json
 import time
 from janito.event_bus.bus import event_bus
-from janito.event_types import (
-    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, ResponseReceived, RequestError, ToolCallStarted, ToolCallFinished, ContentPartFound
+from janito.driver_events import (
+    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, ResponseReceived, RequestError, ContentPartFound
 )
 from janito.utils import kwargs_from_locals
 
@@ -39,27 +39,15 @@ class OpenAIModelDriver(LLMDriver):
                     arguments = json.loads(arguments)
                 except Exception:
                     arguments = {}
-            self._publish_event(ToolCallStarted(**kwargs_from_locals('tool_name', 'request_id', 'arguments')))
-            try:
-                result = self._tool_executor.execute_by_name(tool_name, **(arguments or {}))
-                tool_result_msg = {
-                    "role": "tool",
-                    "tool_call_id": getattr(tool_call, 'id', None),
-                    "name": tool_name,
-                    "content": str(result)
-                }
-                tool_results.append(tool_result_msg)
-                self._publish_event(ToolCallFinished(**kwargs_from_locals('tool_name', 'request_id', 'result')))
-            except Exception as e:
-                error_msg = {
-                    "role": "tool",
-                    "tool_call_id": getattr(tool_call, 'id', None),
-                    "name": tool_name,
-                    "content": f"Tool execution error: {str(e)}"
-                }
-                tool_results.append(error_msg)
-                driver_name = self.get_name()
-                self._publish_event(RequestError(**kwargs_from_locals('driver_name', 'request_id'), error=str(e), exception=e))
+            result = self._tool_executor.execute_by_name(tool_name, **(arguments or {}))
+            tool_result_msg = {
+                "role": "tool",
+                "tool_call_id": getattr(tool_call, 'id', None),
+                "name": tool_name,
+                "content": str(result)
+            }
+            tool_results.append(tool_result_msg)
+
         messages.extend(tool_results)
         return tool_results
 

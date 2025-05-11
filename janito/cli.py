@@ -53,12 +53,9 @@ def handle_user_prompt(args):
     setattr(args, 'user_prompt', prompt)
     if args.event_log:
         from janito.event_bus.bus import event_bus
-        from janito.event_types import (
-            RequestStarted, RequestFinished, ResponseReceived, RequestError, ToolCallStarted, ToolCallFinished, ContentPartFound
-        )
-        # Subscribe to all relevant event types
-        for event_type in [RequestStarted, RequestFinished, ResponseReceived, RequestError, ToolCallStarted, ToolCallFinished, ContentPartFound]:
-            event_bus.subscribe(event_type, log_event_to_console)
+        from janito.event_bus.event import Event
+        # Subscribe to all events (catch-all)
+        event_bus.subscribe(Event, log_event_to_console)
     result = handle_prompt(args)
     if args.raw and result is not None:
         print(result)

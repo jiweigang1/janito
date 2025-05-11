@@ -1,5 +1,5 @@
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.tool_registry import register_tool
 from janito.tool_utils import pluralize, display_path
 from janito.i18n import tr
@@ -25,8 +25,8 @@ class RemoveDirectoryTool(ToolBase):
     def run(self, file_path: str, recursive: bool = False) -> str:
         disp_path = display_path(file_path)
         self.report_info(
-            ActionType.WRITE,
             tr("🗃️ Remove directory '{disp_path}' ...", disp_path=disp_path),
+            ReportAction.WRITE,
         )
         backup_zip = None
         try:
@@ -53,5 +53,5 @@ class RemoveDirectoryTool(ToolBase):
                 msg += tr(" (backup at {backup_zip})", backup_zip=backup_zip)
             return msg
         except Exception as e:
-            self.report_error(tr(" ❌ Error removing directory: {error}", error=e))
+            self.report_error(tr(" ❌ Error removing directory: {error}", error=e), ReportAction.REMOVE)
             return tr("Error removing directory: {error}", error=e)

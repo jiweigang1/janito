@@ -1,5 +1,5 @@
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.tool_registry import register_tool
 from janito.tool_utils import pluralize, display_path
 from janito.dir_walk_utils import walk_dir_with_gitignore
@@ -59,13 +59,13 @@ class FindFilesTool(ToolBase):
                 else ""
             )
             self.report_info(
-                ActionType.READ,
                 tr(
                     "🔍 Search for files '{pattern}' in '{disp_path}'{depth_msg} ...",
                     pattern=pattern,
                     disp_path=disp_path,
                     depth_msg=depth_msg,
                 ),
+                ReportAction.READ,
             )
             dir_output = set()
             for root, dirs, files in walk_dir_with_gitignore(
@@ -84,7 +84,8 @@ class FindFilesTool(ToolBase):
                     " ✅ {count} {file_word}",
                     count=len(dir_output),
                     file_word=pluralize("file", len(dir_output)),
-                )
+                ),
+                ReportAction.READ
             )
             if directory.strip() == ".":
                 dir_output = {

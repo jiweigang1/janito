@@ -1,5 +1,5 @@
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.tool_registry import register_tool
 from janito.tool_utils import pluralize
 from janito.i18n import tr
@@ -22,7 +22,7 @@ class GetLinesTool(ToolBase):
             - "---\nFile: /path/to/file.py | Lines: 1-10 (of 100)\n---\n<lines...>"
             - "---\nFile: /path/to/file.py | All lines (total: 100 (all))\n---\n<all lines...>"
             - "Error reading file: <error message>"
-            - "\u2757 not found"
+            - "❗ not found"
     """
 
     def run(self, file_path: str, from_line: int = None, to_line: int = None) -> str:
@@ -40,25 +40,29 @@ class GetLinesTool(ToolBase):
                 disp_path, from_line, to_line, selected_len, total_lines
             )
             return header + "".join(selected)
+        except FileNotFoundError as e:
+            self.report_warning(tr("❗ not found"), ReportAction.READ)
+            return f"Error reading file: {e}"
         except Exception as e:
-            return self._handle_read_error(e)
+            self.report_error(tr(" ❌ Error: {error}", error=e), ReportAction.READ)
+            return tr("Error reading file: {error}", error=e)
 
     def _report_read_info(self, disp_path, from_line, to_line):
         """Report the info message for reading lines."""
         if from_line and to_line:
             self.report_info(
-                ActionType.READ,
                 tr(
                     "📖 Read file '{disp_path}' {from_line}-{to_line}",
                     disp_path=disp_path,
                     from_line=from_line,
                     to_line=to_line,
                 ),
+                ReportAction.READ,
             )
         else:
             self.report_info(
-                ActionType.READ,
                 tr("📖 Read file '{disp_path}'", disp_path=disp_path),
+                ReportAction.READ,
             )
 
     def _read_file_lines(self, file_path):
@@ -83,27 +87,30 @@ class GetLinesTool(ToolBase):
             if at_end:
                 self.report_success(
                     tr(
-                        " \u2705 {selected_len} {line_word} (end)",
+                        " ✅ {selected_len} {line_word} (end)",
                         selected_len=selected_len,
                         line_word=pluralize("line", selected_len),
-                    )
+                    ),
+                    ReportAction.READ,
                 )
             elif to_line < total_lines:
                 self.report_success(
                     tr(
-                        " \u2705 {selected_len} {line_word} ({remaining} to end)",
+                        " ✅ {selected_len} {line_word} ({remaining} to end)",
                         selected_len=selected_len,
                         line_word=pluralize("line", selected_len),
                         remaining=total_lines - to_line,
-                    )
+                    ),
+                    ReportAction.READ,
                 )
         else:
             self.report_success(
                 tr(
-                    " \u2705 {selected_len} {line_word} (all)",
+                    " ✅ {selected_len} {line_word} (all)",
                     selected_len=selected_len,
                     line_word=pluralize("line", selected_len),
-                )
+                ),
+                ReportAction.READ,
             )
 
     def _format_header(self, disp_path, from_line, to_line, selected_len, total_lines):
@@ -143,7 +150,7 @@ class GetLinesTool(ToolBase):
     def _handle_read_error(self, e):
         """Handle file read errors and report appropriately."""
         if isinstance(e, FileNotFoundError):
-            self.report_error(tr("\u2757 not found"))
-            return tr("\u2757 not found")
-        self.report_error(tr(" \u274c Error: {error}", error=e))
+            self.report_error(tr("❗ not found"), ReportAction.READ)
+            return tr("❗ not found")
+        self.report_error(tr(" ❌ Error: {error}", error=e), ReportAction.READ)
         return tr("Error reading file: {error}", error=e)

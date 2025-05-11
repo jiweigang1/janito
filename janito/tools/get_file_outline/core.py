@@ -4,10 +4,9 @@ from .markdown_outline import parse_markdown_outline
 from janito.formatting import OutlineFormatter
 import os
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.tool_utils import display_path, pluralize
 from janito.i18n import tr
-
 
 @register_tool(name="get_file_outline")
 class GetFileOutlineTool(ToolBase):
@@ -21,7 +20,7 @@ class GetFileOutlineTool(ToolBase):
     def run(self, file_path: str) -> str:
         try:
             self.report_info(
-                ActionType.READ,
+                ReportAction.READ,
                 tr(
                     "📄 Outline file '{disp_path}' ...",
                     disp_path=display_path(file_path),
@@ -35,6 +34,7 @@ class GetFileOutlineTool(ToolBase):
                 outline_type = "python"
                 table = OutlineFormatter.format_outline_table(outline_items)
                 self.report_success(
+                    ReportAction.READ,
                     tr(
                         "✅ Outlined {count} {item_word}",
                         count=len(outline_items),
@@ -54,6 +54,7 @@ class GetFileOutlineTool(ToolBase):
                 outline_type = "markdown"
                 table = OutlineFormatter.format_markdown_outline_table(outline_items)
                 self.report_success(
+                    ReportAction.READ,
                     tr(
                         "✅ Outlined {count} {item_word}",
                         count=len(outline_items),
@@ -70,12 +71,15 @@ class GetFileOutlineTool(ToolBase):
                 )
             else:
                 outline_type = "default"
-                self.report_success(tr("✅ Outlined {count} items", count=len(lines)))
+                self.report_success(
+                    ReportAction.READ,
+                    tr("✅ Outlined {count} items", count=len(lines))
+                )
                 return tr(
                     "Outline: {count} lines ({outline_type})\nFile has {count} lines.",
                     count=len(lines),
                     outline_type=outline_type,
                 )
         except Exception as e:
-            self.report_error(tr("❌ Error reading file: {error}", error=e))
+            self.report_error(ReportAction.OUTLINE, tr("❌ Error reading file: {error}", error=e))
             return tr("Error reading file: {error}", error=e)

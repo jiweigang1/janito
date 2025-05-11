@@ -1,9 +1,7 @@
 import pytest
 from janito.event_bus.bus import EventBus
-from janito.event_types import (
-    RequestStarted, RequestFinished, ResponseReceived, RequestError,
-    ToolCallStarted, ToolCallFinished
-)
+from janito.driver_events import RequestStarted, RequestFinished, ResponseReceived, RequestError
+from janito.tool_events import ToolCallStarted, ToolCallFinished
 from janito.utils import kwargs_from_locals
 
 class HandlerRecorder:

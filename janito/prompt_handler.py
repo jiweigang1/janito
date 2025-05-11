@@ -8,16 +8,16 @@ from janito.provider_config import ProviderConfigManager
 from janito.performance_tracker import PerformanceTracker
 import janito.tools  # Ensure all tools are registered
 
-# Keep a global reference to RichUIManager to ensure event handling for Rich console output.
-from janito.rich_ui_manager import RichUIManager
-_rich_ui_manager = None
+# Keep a global reference to RichTerminalReporter to ensure event handling for Rich console output.
+from janito.rich_terminal_reporter import RichTerminalReporter
+_rich_ui_manager = RichTerminalReporter()
 
 class PromptHandler:
     def __init__(self, args):
         self.args = args
         global _rich_ui_manager
         if _rich_ui_manager is None:
-            _rich_ui_manager = RichUIManager(raw_mode=getattr(args, 'raw', False))
+            _rich_ui_manager = RichTerminalReporter(raw_mode=getattr(args, 'raw', False))
         self.provider_registry = ProviderRegistry()
         self.provider_config_mgr = ProviderConfigManager()
         self.provider_name = None

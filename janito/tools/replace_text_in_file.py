@@ -1,5 +1,5 @@
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.tool_registry import register_tool
 from janito.i18n import tr
 import shutil
@@ -51,7 +51,7 @@ class ReplaceTextInFileTool(ToolBase):
             replacement_text,
             file_path,
         )
-        self.report_info(ActionType.WRITE, info_msg)
+        self.report_info(info_msg, ReportAction.WRITE)
         try:
             content = self._read_file_content(file_path)
             match_lines = self._find_match_lines(content, search_text)
@@ -86,7 +86,7 @@ class ReplaceTextInFileTool(ToolBase):
                 file_path, warning, backup_path, match_info, details
             )
         except Exception as e:
-            self.report_error(tr(" \u274c Error"))
+            self.report_error(tr(" \u274c Error"), ReportAction.REPLACE)
             return tr("Error replacing text: {error}", error=e)
 
     def _read_file_content(self, file_path):
@@ -156,10 +156,10 @@ class ReplaceTextInFileTool(ToolBase):
         if match_lines:
             lines_str = ", ".join(str(line_no) for line_no in match_lines)
             self.report_success(
-                tr(" \u2705 replaced at {lines_str}", lines_str=lines_str)
+                tr(" \u2705 replaced at {lines_str}", lines_str=lines_str), ReportAction.WRITE
             )
         else:
-            self.report_success(tr(" \u2705 replaced (lines unknown)"))
+            self.report_success(tr(" \u2705 replaced (lines unknown)"), ReportAction.WRITE)
 
     def _get_line_delta_str(self, content, new_content):
         """Return a string describing the net line change after replacement."""
@@ -186,7 +186,7 @@ class ReplaceTextInFileTool(ToolBase):
         """Format the info message for the operation."""
         if replace_lines == 0:
             return tr(
-                "📝 Replace in {disp_path} del {search_lines} lines {action}",
+                "[35m📝 Replace in {disp_path} del {search_lines} lines {action}",
                 disp_path=disp_path,
                 search_lines=search_lines,
                 action=action,
@@ -210,7 +210,7 @@ class ReplaceTextInFileTool(ToolBase):
             else:
                 delta_str = "+0"
             return tr(
-                "📝 Replace in {disp_path} {delta_str} {action}",
+                "[35m📝 Replace in {disp_path} {delta_str} {action}",
                 disp_path=disp_path,
                 delta_str=delta_str,
                 action=action,

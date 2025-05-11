@@ -3,7 +3,7 @@ import shutil
 from janito.tool_registry import register_tool
 from janito.tool_utils import display_path
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.i18n import tr
 
 
@@ -48,15 +48,15 @@ class MoveFileTool(ToolBase):
 
         try:
             self.report_info(
-                ActionType.WRITE,
                 tr(
                     "📝 Moving from '{disp_src}' to '{disp_dest}' ...",
                     disp_src=disp_src,
                     disp_dest=disp_dest,
                 ),
+                ReportAction.WRITE,
             )
             shutil.move(src, dest)
-            self.report_success(tr("✅ Move complete."))
+            self.report_success(tr("✅ Move complete."), ReportAction.WRITE)
             msg = tr("✅ Move complete.")
             if backup_path:
                 msg += tr(
@@ -65,13 +65,14 @@ class MoveFileTool(ToolBase):
                 )
             return msg
         except Exception as e:
-            self.report_error(tr("❌ Error moving: {error}", error=e))
+            self.report_error(tr("❌ Error moving: {error}", error=e), ReportAction.MOVE)
             return tr("❌ Error moving: {error}", error=e)
 
     def _validate_source(self, src, disp_src):
         if not os.path.exists(src):
             self.report_error(
-                tr("❌ Source '{disp_src}' does not exist.", disp_src=disp_src)
+                tr("❌ Source '{disp_src}' does not exist.", disp_src=disp_src),
+                ReportAction.MOVE,
             )
             return (
                 False,
@@ -86,7 +87,8 @@ class MoveFileTool(ToolBase):
                 tr(
                     "❌ Source path '{disp_src}' is neither a file nor a directory.",
                     disp_src=disp_src,
-                )
+                ),
+                ReportAction.MOVE,
             )
             return (
                 False,
@@ -107,7 +109,8 @@ class MoveFileTool(ToolBase):
                     tr(
                         "❗ Destination '{disp_dest}' exists and overwrite is False.",
                         disp_dest=disp_dest,
-                    )
+                    ),
+                    ReportAction.MOVE,
                 )
                 return None, tr(
                     "❗ Destination '{disp_dest}' already exists and overwrite is False.",
@@ -127,7 +130,8 @@ class MoveFileTool(ToolBase):
                     shutil.rmtree(dest)
             except Exception as e:
                 self.report_error(
-                    tr("❌ Error removing destination before move: {error}", error=e)
+                    tr("❌ Error removing destination before move: {error}", error=e),
+                    ReportAction.MOVE,
                 )
                 return None, tr(
                     "❌ Error removing destination before move: {error}", error=e

@@ -1,7 +1,7 @@
 import os
 from janito.i18n import tr
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.tool_registry import register_tool
 from janito.tool_utils import display_path
 
@@ -86,7 +86,7 @@ class ValidateFileSyntaxTool(ToolBase):
     def run(self, file_path: str) -> str:
         disp_path = display_path(file_path)
         self.report_info(
-            ActionType.READ,
+            ReportAction.READ,
             tr(
                 "\U0001f50e Validate syntax for file '{disp_path}' ...",
                 disp_path=disp_path,
@@ -99,7 +99,7 @@ class ValidateFileSyntaxTool(ToolBase):
             report_success=self.report_success,
         )
         if result.startswith("\u2705"):
-            self.report_success(result)
+            self.report_success(result, ReportAction.READ)
         elif result.startswith("\u26a0\ufe0f"):
             self.report_warning(tr("\u26a0\ufe0f ") + result.lstrip("\u26a0\ufe0f "))
         return result

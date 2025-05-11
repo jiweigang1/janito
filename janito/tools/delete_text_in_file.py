@@ -34,12 +34,12 @@ class DeleteTextInFileTool(ToolBase):
             with open(file_path, "r", encoding="utf-8", errors="replace") as f:
                 content = f.read()
         except Exception as e:
-            self.report_error(tr(" ❌ Error reading file: {error}", error=e))
+            self.report_error(tr(" ❌ Error reading file: {error}", error=e), ReportAction.DELETE)
             return tr("Error reading file: {error}", error=e)
 
         start_count = content.count(start_marker)
         if start_count > 1:
-            self.report_error("Need more context for start_marker")
+            self.report_error("Need more context for start_marker", ReportAction.DELETE)
             return (
                 f"Error: start_marker is not unique in {disp_path}. "
                 "Try including the next line(s) for more context."
@@ -47,7 +47,7 @@ class DeleteTextInFileTool(ToolBase):
 
         end_count = content.count(end_marker)
         if end_count > 1:
-            self.report_error("Need more context for end_marker")
+            self.report_error("Need more context for end_marker", ReportAction.DELETE)
             return (
                 f"Error: end_marker is not unique in {disp_path}. "
                 "Try including the previous line(s) for more context."

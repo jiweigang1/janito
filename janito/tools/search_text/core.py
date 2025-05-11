@@ -1,5 +1,5 @@
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.tool_registry import register_tool
 from janito.tool_utils import pluralize, display_path
 from janito.i18n import tr
@@ -86,7 +86,7 @@ class SearchTextTool(ToolBase):
             info_str += tr(" [max_depth={max_depth}]", max_depth=max_depth)
         if count_only:
             info_str += " [count]"
-        self.report_info(ActionType.READ, info_str)
+        self.report_info(ReportAction.READ, info_str)
         if os.path.isfile(search_path):
             dir_output, dir_limit_reached, per_file_counts = self._handle_file(
                 search_path,
@@ -124,6 +124,7 @@ class SearchTextTool(ToolBase):
         count = sum(count for _, count in per_file_counts)
         file_word = pluralize("match", count)
         self.report_success(
+            ReportAction.READ,
             tr(" \u2705 {count} {file_word}", count=count, file_word=file_word)
         )
         return info_str, dir_output, dir_limit_reached, per_file_counts

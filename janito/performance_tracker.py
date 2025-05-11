@@ -1,6 +1,6 @@
 from datetime import timedelta
 from janito.event_bus.handler import EventHandlerBase
-import janito.event_types as driver_events
+import janito.report_events as driver_events
 
 class PerformanceTracker(EventHandlerBase):
     """

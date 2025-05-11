@@ -4,7 +4,7 @@ import sys
 import tempfile
 import threading
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.tool_registry import register_tool
 from janito.i18n import tr
 
@@ -25,7 +25,8 @@ class PythonCommandRunnerTool(ToolBase):
             self.report_warning(tr("\u2139\ufe0f Empty code provided."))
             return tr("Warning: Empty code provided. Operation skipped.")
         self.report_info(
-            ActionType.EXECUTE, tr("🐍 Running: python -c ...\n{code}\n", code=code)
+            tr("🐍 Running: python -c ...\n{code}\n", code=code),
+            ReportAction.EXECUTE
         )
         try:
             with (
@@ -69,7 +70,7 @@ class PythonCommandRunnerTool(ToolBase):
                     stdout_file.name, stderr_file.name, return_code
                 )
         except Exception as e:
-            self.report_error(tr("\u274c Error: {error}", error=e))
+            self.report_error(tr("\u274c Error: {error}", error=e), ReportAction.RUN)
             return tr("Error running code: {error}", error=e)
 
     def _stream_process_output(self, process, stdout_file, stderr_file):
@@ -106,9 +107,7 @@ class PythonCommandRunnerTool(ToolBase):
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             process.kill()
-            self.report_error(
-                tr("\u274c Timed out after {timeout} seconds.", timeout=timeout)
-            )
+            self.report_error(tr("\u274c Timed out after {timeout} seconds.", timeout=timeout), ReportAction.RUN)
             return None
 
     def _format_result(self, stdout_file_name, stderr_file_name, return_code):

@@ -3,7 +3,7 @@ from janito.tool_registry import register_tool
 # from janito.agent.tools_utils.expand_path import expand_path
 from janito.tool_utils import display_path
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.i18n import tr
 import os
 
@@ -25,8 +25,8 @@ class CreateDirectoryTool(ToolBase):
         # Using file_path as is
         disp_path = display_path(file_path)
         self.report_info(
-            ActionType.WRITE,
             tr("📁 Create directory '{disp_path}' ...", disp_path=disp_path),
+            ReportAction.WRITE,
         )
         try:
             if os.path.exists(file_path):
@@ -35,7 +35,8 @@ class CreateDirectoryTool(ToolBase):
                         tr(
                             "❌ Path '{disp_path}' exists and is not a directory.",
                             disp_path=disp_path,
-                        )
+                        ),
+                        ReportAction.CREATE,
                     )
                     return tr(
                         "❌ Path '{disp_path}' exists and is not a directory.",
@@ -45,14 +46,15 @@ class CreateDirectoryTool(ToolBase):
                     tr(
                         "❗ Directory '{disp_path}' already exists.",
                         disp_path=disp_path,
-                    )
+                    ),
+                    ReportAction.CREATE,
                 )
                 return tr(
                     "❗ Cannot create directory: '{disp_path}' already exists.",
                     disp_path=disp_path,
                 )
             os.makedirs(file_path, exist_ok=True)
-            self.report_success(tr("✅ Directory created"))
+            self.report_success(tr("✅ Directory created"), ReportAction.WRITE)
             return tr(
                 "✅ Successfully created the directory at '{disp_path}'.",
                 disp_path=disp_path,
@@ -63,6 +65,7 @@ class CreateDirectoryTool(ToolBase):
                     "❌ Error creating directory '{disp_path}': {error}",
                     disp_path=disp_path,
                     error=e,
-                )
+                ),
+                ReportAction.CREATE,
             )
             return tr("❌ Cannot create directory: {error}", error=e)

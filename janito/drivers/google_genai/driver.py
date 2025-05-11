@@ -13,8 +13,8 @@ from janito.drivers.google_genai.schema_generator import generate_tool_declarati
 import json
 from janito.providers.google.errors import EmptyResponseError
 from janito.event_bus.bus import event_bus
-from janito.event_types import (
-    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, ResponseReceived, RequestError, ToolCallStarted, ToolCallFinished, ContentPartFound
+from janito.driver_events import (
+    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, ResponseReceived, RequestError, ContentPartFound
 )
 from janito.utils import kwargs_from_locals
 
@@ -69,13 +69,7 @@ class GoogleGenaiModelDriver(LLMDriver):
                 arguments = function_call.args
                 if isinstance(arguments, str):
                     arguments = json.loads(arguments)
-                self._publish_event(ToolCallStarted(**kwargs_from_locals('tool_name', 'request_id', 'arguments')))
-                try:
-                    result = self._tool_executor.execute_by_name(tool_name, **(arguments or {}))
-                    self._publish_event(ToolCallFinished(**kwargs_from_locals('tool_name', 'request_id', 'result')))
-                except Exception as e:
-                    self._publish_event(RequestError(**kwargs_from_locals('driver_name', 'request_id'), error=str(e), exception=e))
-                    result = None
+                result = self._tool_executor.execute_by_name(tool_name, **(arguments or {}))
                 contents.append(types.Content(role="model", parts=[part]))
                 function_response_part = types.Part.from_function_response(
                     name=tool_name,

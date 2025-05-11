@@ -1,5 +1,5 @@
 from janito.tool_base import ToolBase
-from janito.action_type import ActionType
+from janito.report_events import ReportAction
 from janito.tool_registry import register_tool
 from janito.i18n import tr
 import subprocess
@@ -33,7 +33,7 @@ class RunBashCommandTool(ToolBase):
             self.report_warning(tr("\u2139\ufe0f Empty command provided."))
             return tr("Warning: Empty command provided. Operation skipped.")
         self.report_info(
-            ActionType.EXECUTE,
+            ReportAction.EXECUTE,
             tr("🖥️ Run bash command: {command} ...\n", command=command),
         )
         if requires_user_input:
@@ -71,7 +71,7 @@ class RunBashCommandTool(ToolBase):
                     )
                 except subprocess.TimeoutExpired:
                     process.kill()
-                    self.report_error(
+                    self.report_error(ReportAction.RUN, 
                         tr(
                             " \u274c Timed out after {timeout} seconds.",
                             timeout=timeout,
@@ -124,5 +124,5 @@ class RunBashCommandTool(ToolBase):
                     )
                     return result
         except Exception as e:
-            self.report_error(tr(" \u274c Error: {error}", error=e))
+            self.report_error(ReportAction.RUN, tr(" \u274c Error: {error}", error=e))
             return tr("Error running command: {error}", error=e)

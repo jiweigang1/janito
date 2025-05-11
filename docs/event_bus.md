@@ -35,7 +35,7 @@ The event bus is a central mechanism for publish/subscribe (pub/sub) communicati
 To listen for events, subscribe a callback to an event type:
 ```python
 from janito.event_bus.bus import event_bus
-from janito.event_types import RequestStarted
+from janito.driver_events import RequestStarted
 
 def on_request_started(event):
     print(f"Request started: {event}")
@@ -52,7 +52,7 @@ event_bus.unsubscribe(RequestStarted, on_request_started)
 ## Publishing Events
 To notify subscribers of an event:
 ```python
-from janito.event_types import RequestStarted
+from janito.driver_events import RequestStarted
 from janito.event_bus.bus import event_bus
 
 my_event = RequestStarted(driver_name="driver1", request_id="abc123", payload={...})
@@ -69,7 +69,7 @@ event_bus.publish(my_event)
 
 ## Example
 ```python
-from janito.event_types import RequestStarted
+from janito.driver_events import RequestStarted
 from janito.event_bus.bus import event_bus
 
 def log_event(event):
