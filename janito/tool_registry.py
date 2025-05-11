@@ -1,0 +1,47 @@
+from typing import Type, Dict, Any
+
+class ToolRegistry:
+    _instance = None
+    _tools: Dict[str, Dict[str, Any]] = {}
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def register_tool(self, tool_class: Type, name: str = None):
+        instance = tool_class()
+        if not hasattr(instance, "run") or not callable(instance.run):
+            raise TypeError(f"Tool '{tool_class.__name__}' must implement a callable 'run' method.")
+        tool_name = name or getattr(instance, 'name', tool_class.__name__)
+        # Set required attributes for downstream use
+        tool_class._tool_run_method = instance.run
+        tool_class._tool_name = tool_name
+        if tool_name in self._tools:
+            raise ValueError(f"Tool '{tool_name}' is already registered.")
+        self._tools[tool_name] = {
+            "function": instance.run,
+            "class": tool_class,
+            "instance": instance,
+        }
+
+    def unregister_tool(self, name: str):
+        if name in self._tools:
+            del self._tools[name]
+
+    def get_tool(self, name: str):
+        return self._tools[name]["instance"] if name in self._tools else None
+
+    def list_tools(self):
+        return list(self._tools.keys())
+
+    def get_tool_classes(self):
+        return [entry["class"] for entry in self._tools.values()]
+
+def register_tool(tool=None, *, name: str = None):
+    def decorator(cls):
+        ToolRegistry().register_tool(cls, name=name)
+        return cls
+    if tool is None:
+        return decorator
+    return decorator(tool)

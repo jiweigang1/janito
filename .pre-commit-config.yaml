@@ -1,0 +1,11 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.9  # Updated to latest version after autoupdate
+    hooks:
+      - id: ruff
+        args: ["--fix"]  # Optional: auto-fix issues if possible
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0  # Use the latest stable version or specify as needed
+    hooks:
+      - id: detect-secrets
