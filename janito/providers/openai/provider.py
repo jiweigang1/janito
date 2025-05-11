@@ -3,6 +3,7 @@ from janito.llm_provider import LLMProvider
 from janito.llm_auth_manager import LLMAuthManager
 from janito.providers.openai.driver import OpenAIModelDriver
 from janito.tool_executor import ToolExecutor
+from janito.providers.registry import LLMProviderRegistry
 
 class OpenAIProvider(LLMProvider):
     DEFAULT_MODEL = "gpt-4.1"
@@ -38,5 +39,4 @@ class OpenAIProvider(LLMProvider):
         executor = ToolExecutor()
         return executor.execute_by_name(tool_name, *args, **kwargs)
 
-from janito.providers.registry import LLMProviderRegistry
 LLMProviderRegistry.register("openai", OpenAIProvider)

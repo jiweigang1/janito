@@ -3,6 +3,7 @@ from janito.llm_provider import LLMProvider
 from janito.llm_auth_manager import LLMAuthManager
 from janito.providers.google_gemini.driver import GoogleGeminiModelDriver
 from janito.tool_executor import ToolExecutor
+from janito.providers.registry import LLMProviderRegistry
 
 class GoogleGeminiProvider(LLMProvider):
     """
@@ -44,5 +45,4 @@ class GoogleGeminiProvider(LLMProvider):
         from janito.llm_agent import LLMAgent
         return LLMAgent(driver, system_prompt=system_prompt)
 
-from janito.providers.registry import LLMProviderRegistry
 LLMProviderRegistry.register("google_gemini", GoogleGeminiProvider)

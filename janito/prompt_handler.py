@@ -10,11 +10,14 @@ import janito.tools  # Ensure all tools are registered
 
 # Keep a global reference to RichUIManager to ensure event handling for Rich console output.
 from janito.rich_ui_manager import RichUIManager
-_rich_ui_manager = RichUIManager()
+_rich_ui_manager = None
 
 class PromptHandler:
     def __init__(self, args):
         self.args = args
+        global _rich_ui_manager
+        if _rich_ui_manager is None:
+            _rich_ui_manager = RichUIManager(raw_mode=getattr(args, 'raw', False))
         self.provider_registry = ProviderRegistry()
         self.provider_config_mgr = ProviderConfigManager()
         self.provider_name = None
@@ -35,6 +38,10 @@ class PromptHandler:
         end_time = time.perf_counter()
         content = self._extract_content(response)
         self._print_performance(start_time, end_time)
+        if getattr(self.args, 'raw', False):
+            return response
+        else:
+            return content
 
     def _setup_provider(self):
         from janito.providers.registry import LLMProviderRegistry
@@ -100,7 +107,7 @@ class PromptHandler:
                     pprint(detailed_usage)
                 else:
                     token_usage = self.performance_tracker.get_last_token_usage()
-                    if token_usage:
+                    if token_usage and any(count > 0 for count in token_usage.values()):
                         token_str = ', '.join(f'{category}={count}' for category, count in token_usage.items())
                         rich_print(f"[cyan]Usage: {token_str}[/cyan]")
             else:

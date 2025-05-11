@@ -1,8 +1,8 @@
-from dataclasses import dataclass, field
-from typing import Any, Optional, ClassVar
+import attr
+from typing import Any, ClassVar
 from janito.event_bus.event import Event
 
-@dataclass
+@attr.s(auto_attribs=True, kw_only=True)
 class DriverEvent(Event):
     """
     Base class for events related to a driver (e.g., LLM, API provider).
@@ -12,7 +12,7 @@ class DriverEvent(Event):
     driver_name: str
     request_id: str
 
-@dataclass
+@attr.s(auto_attribs=True, kw_only=True)
 class ToolEvent(Event):
     """
     Base class for events related to tool calls (external or internal tools).
@@ -22,7 +22,7 @@ class ToolEvent(Event):
     tool_name: str
     request_id: str
 
-@dataclass
+@attr.s(auto_attribs=True, kw_only=True)
 class GenerationStarted(DriverEvent):
     """
     Event indicating that a new content generation process has started.
@@ -30,7 +30,7 @@ class GenerationStarted(DriverEvent):
     """
     prompt: Any
 
-@dataclass
+@attr.s(auto_attribs=True, kw_only=True)
 class GenerationFinished(DriverEvent):
     """
     Event indicating that content generation has finished.
@@ -39,7 +39,7 @@ class GenerationFinished(DriverEvent):
     prompt: Any
     total_turns: int
 
-@dataclass
+@attr.s(auto_attribs=True, kw_only=True)
 class RequestStarted(DriverEvent):
     """
     Event indicating that a request (e.g., API call, user action) has started.
@@ -48,27 +48,28 @@ class RequestStarted(DriverEvent):
     """
     payload: Any
 
-@dataclass
+@attr.s(auto_attribs=True, kw_only=True)
 class RequestFinished(DriverEvent):
     """
     Event indicating that a request has completed.
     Contains the response, duration, and status (e.g., success or failure).
     This event may be emitted multiple times if the system retries a request due to errors or failures before a final response is received.
     """
-    response: Any = field(hash=False, compare=False)
+    response: Any
     duration: float
     status: str
+    usage: Any = None
 
-@dataclass
+@attr.s(auto_attribs=True, kw_only=True)
 class ResponseReceived(DriverEvent):
     """
     Event indicating that a response has been received from a driver or service.
     This event is emitted only after the request has been validated—meaning any necessary retries, error handling, or recovery mechanisms have completed successfully.
     'Response' is the result returned for a request, which may be partial or final.
     """
-    response: Any = field(hash=False, compare=False)
+    response: Any
 
-@dataclass
+@attr.s(auto_attribs=True, kw_only=True)
 class RequestError(DriverEvent):
     """
     Event indicating that an error occurred during a request.
@@ -78,7 +79,7 @@ class RequestError(DriverEvent):
     error: str
     exception: Exception
 
-@dataclass
+@attr.s(auto_attribs=True, kw_only=True)
 class ContentPartFound(DriverEvent):
     """
     Event indicating that a part of the generated content was found or produced.
@@ -86,15 +87,15 @@ class ContentPartFound(DriverEvent):
     """
     content_part: Any
 
-@dataclass
+@attr.s(auto_attribs=True, kw_only=True)
 class ToolCallStarted(ToolEvent):
     """
     Event indicating that a tool call has started.
     Contains the arguments passed to the tool.
     """
-    args: Any
+    arguments: Any
 
-@dataclass
+@attr.s(auto_attribs=True, kw_only=True)
 class ToolCallFinished(ToolEvent):
     """
     Event indicating that a tool call has finished.

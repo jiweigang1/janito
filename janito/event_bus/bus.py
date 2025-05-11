@@ -1,5 +1,5 @@
 from collections import defaultdict
-import time
+from datetime import datetime
 
 class EventBus:
     """
@@ -21,9 +21,7 @@ class EventBus:
     def publish(self, event):
         """
         Publish an event to all relevant subscribers.
-        Automatically sets event.timestamp to the current time (UNIX epoch seconds).
         """
-        event.timestamp = time.time()
         for event_type, callbacks in self._subscribers.items():
             if isinstance(event, event_type):
                 for callback in callbacks:

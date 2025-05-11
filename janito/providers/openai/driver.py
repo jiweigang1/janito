@@ -1,3 +1,12 @@
+"""
+OpenAI LLM driver.
+
+This driver manages interaction with the OpenAI API, supporting both standard chat completions and tool/function calls.
+
+Event Handling:
+----------------
+When a model response contains both content and tool calls, the driver always publishes the content event (ContentPartFound) first, followed by any tool call events (ToolCallStarted, ToolCallFinished, etc.), regardless of their order in the API response. This is different from the Google Gemini driver, which preserves the original order of parts. This approach ensures that the main content is delivered before any tool execution events for downstream consumers.
+"""
 import openai
 from typing import List, Optional
 from janito.llm_driver import LLMDriver
@@ -8,6 +17,7 @@ from janito.event_bus.bus import event_bus
 from janito.event_types import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, ResponseReceived, RequestError, ToolCallStarted, ToolCallFinished, ContentPartFound
 )
+from janito.utils import kwargs_from_locals
 
 class OpenAIModelDriver(LLMDriver):
     def __init__(self, provider_name: str, model_name: str, api_key: str, tool_executor):
@@ -29,7 +39,7 @@ class OpenAIModelDriver(LLMDriver):
                     arguments = json.loads(arguments)
                 except Exception:
                     arguments = {}
-            self._publish_event(ToolCallStarted(tool_name, request_id, arguments))
+            self._publish_event(ToolCallStarted(**kwargs_from_locals('tool_name', 'request_id', 'arguments')))
             try:
                 result = self._tool_executor.execute_by_name(tool_name, **(arguments or {}))
                 tool_result_msg = {
@@ -39,7 +49,7 @@ class OpenAIModelDriver(LLMDriver):
                     "content": str(result)
                 }
                 tool_results.append(tool_result_msg)
-                self._publish_event(ToolCallFinished(tool_name, request_id, result))
+                self._publish_event(ToolCallFinished(**kwargs_from_locals('tool_name', 'request_id', 'result')))
             except Exception as e:
                 error_msg = {
                     "role": "tool",
@@ -48,20 +58,23 @@ class OpenAIModelDriver(LLMDriver):
                     "content": f"Tool execution error: {str(e)}"
                 }
                 tool_results.append(error_msg)
-                self._publish_event(RequestError(self.get_name(), request_id, str(e), e))
+                driver_name = self.get_name()
+                self._publish_event(RequestError(**kwargs_from_locals('driver_name', 'request_id'), error=str(e), exception=e))
         messages.extend(tool_results)
         return tool_results
 
     def _handle_content(self, content, request_id):
         if content is not None:
-            self._publish_event(ContentPartFound(self.get_name(), request_id, content))
+            driver_name = self.get_name()
+            self._publish_event(ContentPartFound(**kwargs_from_locals('driver_name', 'request_id'), content_part=content))
         return content
 
-    def generate(self, prompt: str, system_prompt: Optional[str] = None, tools=None, **kwargs):
+    def generate(self, prompt: str, system_prompt: Optional[str] = None, tools=None, **kwargs) -> None:
         import uuid, datetime
         request_id = str(uuid.uuid4())
-        self._publish_event(GenerationStarted(self.get_name(), request_id, prompt))
-        self._publish_event(RequestStarted(self.get_name(), request_id, prompt))
+        driver_name = self.get_name()
+        self._publish_event(GenerationStarted(**kwargs_from_locals('driver_name', 'request_id', 'prompt')))
+        self._publish_event(RequestStarted(**kwargs_from_locals('driver_name', 'request_id'), payload=prompt))
         if tools:
             schemas = generate_tool_schemas(tools)
             kwargs['tools'] = schemas
@@ -76,13 +89,13 @@ class OpenAIModelDriver(LLMDriver):
             while True:
                 response = self._call_openai(None, None, messages=messages, **kwargs)
                 duration = time.time() - start_time
-                self._publish_event(RequestFinished(self.get_name(), request_id, response, duration, 'success'))
-                self._publish_event(ResponseReceived(self.get_name(), request_id, response))
+                usage_dict = self._extract_usage(response)
+                self._publish_event(RequestFinished(**kwargs_from_locals('driver_name', 'request_id', 'response', 'duration'), status='success', usage=usage_dict))
+                self._publish_event(ResponseReceived(**kwargs_from_locals('driver_name', 'request_id', 'response')))
                 message = response.choices[0].message
                 content = message.content
                 self._handle_content(content, request_id)
                 tool_calls = getattr(message, 'tool_calls', None)
-                usage_dict = self._extract_usage(response)
                 if tool_calls:
                     assistant_msg = {
                         "role": "assistant",
@@ -92,10 +105,11 @@ class OpenAIModelDriver(LLMDriver):
                     messages.append(assistant_msg)
                     self._handle_tool_calls(tool_calls, messages, request_id)
                     continue  # Continue the loop for the next model response
-                self._publish_event(GenerationFinished(self.get_name(), request_id, prompt, 1))
+                self._publish_event(GenerationFinished(**kwargs_from_locals('driver_name', 'request_id', 'prompt'), total_turns=1))
                 return content
         except Exception as e:
-            self._publish_event(RequestError(self.get_name(), request_id, str(e), e))
+            driver_name = self.get_name()
+            self._publish_event(RequestError(**kwargs_from_locals('driver_name', 'request_id'), error=str(e), exception=e))
             raise e
 
     def _call_openai(self, prompt, system_prompt, **kwargs):

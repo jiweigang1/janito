@@ -59,7 +59,9 @@ def handle_user_prompt(args):
         # Subscribe to all relevant event types
         for event_type in [RequestStarted, RequestFinished, ResponseReceived, RequestError, ToolCallStarted, ToolCallFinished, ContentPartFound]:
             event_bus.subscribe(event_type, log_event_to_console)
-    handle_prompt(args)
+    result = handle_prompt(args)
+    if args.raw and result is not None:
+        print(result)
     return True
 
 def main():
@@ -79,7 +81,7 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true', help='Print extra information before answering')
     parser.add_argument('-r', '--raw', action='store_true', help='Print the raw JSON response from the OpenAI API (if applicable)')
     parser.add_argument('--tb', '--thinking_budget', dest='thinking_budget', type=int, default=None, help='Set thinking_budget for this prompt (Gemini only)')
-    parser.add_argument('--event-log', action='store_true', help='Log events to the console as they are published')
+    parser.add_argument('-e', '--event-log', action='store_true', help='Log events to the console as they are published')
     parser.add_argument('user_prompt', nargs=argparse.REMAINDER, help='Prompt to submit (if no other command is used)')
 
     args = parser.parse_args()

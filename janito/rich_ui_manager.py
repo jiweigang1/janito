@@ -6,10 +6,15 @@ import janito.event_types as driver_events
 
 class RichUIManager(EventHandlerBase):
     """
-    Listens for ContentPartFound and ResponseReceived events and renders content using Rich.
+    Handles UI rendering for janito events using Rich.
+
+    - Regular (non-raw) output is printed only for ContentPartFound events.
+    - For ResponseReceived events, output is printed only if raw mode is enabled (using Pretty formatting).
+    - If raw mode is not enabled, ResponseReceived events produce no output.
     """
-    def __init__(self):
+    def __init__(self, raw_mode=False):
         self.console = Console()
+        self.raw_mode = raw_mode
         super().__init__(driver_events)
 
     def on_ContentPartFound(self, event):
@@ -20,13 +25,9 @@ class RichUIManager(EventHandlerBase):
             self.console.print("[No content part to display]")
 
     def on_ResponseReceived(self, event):
-        # This method now handles what was previously handled by on_RawResponseReceived
-        # If you need to distinguish between raw and processed responses, add logic here
-        pass
-
         response = getattr(event, 'response', None)
         if response is not None:
-            self.console.print("[bold green]Response:[/bold green]")
-            self.console.print(Pretty(response, expand_all=True))
-        else:
-            self.console.print("[yellow]No response to display.[/yellow]")
+            if self.raw_mode:
+                self.console.print(Pretty(response, expand_all=True))
+        # No output if not raw_mode or if response is None
+

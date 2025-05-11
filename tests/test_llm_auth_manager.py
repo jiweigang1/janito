@@ -1,6 +1,7 @@
 import os
 import tempfile
 import json
+import pytest
 from janito.llm_auth_manager import LLMAuthManager
 
 def test_set_and_get_credentials():
@@ -17,8 +18,6 @@ def test_remove_credentials():
         manager.set_credentials('openai', 'key2')
         manager.remove_credentials('openai')
         assert manager.get_credentials('openai') is None
-
-import pytest
 
 def test_set_credentials_unknown_provider():
     from janito.llm_auth_manager import LLMAuthManager
