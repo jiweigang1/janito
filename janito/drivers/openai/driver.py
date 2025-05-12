@@ -15,7 +15,7 @@ import json
 import time
 from janito.event_bus.bus import event_bus
 from janito.driver_events import (
-    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, ResponseReceived, RequestError, ContentPartFound
+    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
 )
 from janito.utils import kwargs_from_locals
 
@@ -79,7 +79,6 @@ class OpenAIModelDriver(LLMDriver):
                 duration = time.time() - start_time
                 usage_dict = self._extract_usage(response)
                 self._publish_event(RequestFinished(**kwargs_from_locals('driver_name', 'request_id', 'response', 'duration'), status='success', usage=usage_dict))
-                self._publish_event(ResponseReceived(**kwargs_from_locals('driver_name', 'request_id', 'response')))
                 message = response.choices[0].message
                 content = message.content
                 self._handle_content(content, request_id)

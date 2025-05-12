@@ -51,15 +51,6 @@ class RequestFinished(DriverEvent):
     usage: Any = None
 
 @attr.s(auto_attribs=True, kw_only=True)
-class ResponseReceived(DriverEvent):
-    """
-    Event indicating that a response has been received from a driver or service.
-    This event is emitted only after the request has been validated—meaning any necessary retries, error handling, or recovery mechanisms have completed successfully.
-    'Response' is the result returned for a request, which may be partial or final.
-    """
-    response: Any
-
-@attr.s(auto_attribs=True, kw_only=True)
 class RequestError(DriverEvent):
     """
     Event indicating that an error occurred during a request.
