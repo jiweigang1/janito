@@ -6,7 +6,7 @@ from janito.version import __version__ as VERSION
 from janito.cli.provider_setup import setup_provider, setup_agent
 from janito.cli.utils import format_tokens, format_generation_time
 from janito.performance_collector import PerformanceCollector
-from janito.cli.output import print_verbose_header, print_performance, handle_exception
+from janito.cli.one_shot_run.output import print_verbose_header, print_performance, handle_exception
 import janito.tools  # Ensure all tools are registered
 from rich.status import Status
 from rich.console import Console
