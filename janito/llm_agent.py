@@ -1,14 +1,22 @@
 from janito.llm_driver import LLMDriver
 from janito.conversation_history import LLMConversationHistory
 from janito.tool_registry import ToolRegistry
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Tuple
+import threading
+import concurrent.futures
 
 class LLMAgent:
+    _event_lock: threading.Lock
+    _latest_event: Optional[str]
+
     """
     Represents an agent that interacts with an LLM driver to generate responses and manage conversation state.
     The agent's performance data (execution time, token usage, etc.) can be accessed via the get_performance_data() method or performance property.
     """
+
     def __init__(self, driver: LLMDriver, agent_name: Optional[str] = None, history: Optional[LLMConversationHistory] = None, system_prompt: Optional[str] = None, tools: Optional[List[dict]] = None, **kwargs: Any):
+        self._event_lock = threading.Lock()
+        self._latest_event = None
         self.driver = driver
         self.agent_name = agent_name or driver.get_name()
         self.state = {}
@@ -43,6 +51,48 @@ class LLMAgent:
         if response is not None:
             self.history.add_message("assistant", response)
         return response
+
+    def chat_async(self, prompt: str, role: str = "user", **kwargs: Any) -> Tuple[concurrent.futures.Future, threading.Event]:
+        """
+        Start a chat in a background thread with cooperative cancellation support.
+        Returns a tuple (future, cancel_event):
+          - future: concurrent.futures.Future for the result
+          - cancel_event: threading.Event to request cancellation
+        The driver and its generate method must periodically check cancel_event.is_set() and abort if set.
+        """
+        self.history.add_message(role, prompt)
+        generate_kwargs = dict(
+            prompt=prompt,
+            system_prompt=self.system_prompt,
+            **kwargs
+        )
+        if self.tools:
+            generate_kwargs['tools'] = self.tools
+        cancel_event = threading.Event()
+        future = concurrent.futures.Future()
+
+        def run_generate():
+            try:
+                generate_kwargs_with_cancel = dict(generate_kwargs)
+                generate_kwargs_with_cancel['cancel_event'] = cancel_event
+                response = self.driver.generate(**generate_kwargs_with_cancel)
+                if response is not None:
+                    self.history.add_message("assistant", response)
+                future.set_result(response)
+            except Exception as e:
+                future.set_exception(e)
+
+        thread = threading.Thread(target=run_generate, daemon=True)
+        thread.start()
+        return future, cancel_event
+
+    def set_latest_event(self, event: str) -> None:
+        with self._event_lock:
+            self._latest_event = event
+
+    def get_latest_event(self) -> Optional[str]:
+        with self._event_lock:
+            return self._latest_event
 
     def get_name(self) -> str:
         return self.agent_name

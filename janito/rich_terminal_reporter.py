@@ -13,12 +13,13 @@ class RichTerminalReporter(EventHandlerBase):
     Handles UI rendering for janito events using Rich.
 
     - Regular (non-raw) output is printed only for ContentPartFound events.
-    - For ResponseReceived events, output is printed only if raw mode is enabled (using Pretty formatting).
-    - If raw mode is not enabled, ResponseReceived events produce no output.
+    - For RequestFinished events, output is printed only if raw mode is enabled (using Pretty formatting).
+    - If raw mode is not enabled, RequestFinished events produce no output.
     - Report events (info, success, error, etc.) are always printed with appropriate styling.
     """
     def __init__(self, raw_mode=False):
-        self.console = Console()
+        from janito.console import shared_console
+        self.console = shared_console
         self.raw_mode = raw_mode
         import janito.report_events as report_events
         super().__init__(driver_events, report_events)
@@ -30,11 +31,21 @@ class RichTerminalReporter(EventHandlerBase):
         else:
             self.console.print("[No content part to display]")
 
-    def on_ResponseReceived(self, event):
+    def on_RequestFinished(self, event):
         response = getattr(event, 'response', None)
         if response is not None:
             if self.raw_mode:
                 self.console.print(Pretty(response, expand_all=True))
+            # Check for 'code' and 'event' fields in the response
+            code = None
+            event_field = None
+            if isinstance(response, dict):
+                code = response.get('code')
+                event_field = response.get('event')
+            if code is not None:
+                self.console.print(f"[bold yellow]Code:[/] {code}")
+            if event_field is not None:
+                self.console.print(f"[bold yellow]Event:[/] {event_field}")
         # No output if not raw_mode or if response is None
 
     def on_ReportEvent(self, event):

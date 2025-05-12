@@ -24,9 +24,8 @@ class GenerationStarted(DriverEvent):
 class GenerationFinished(DriverEvent):
     """
     Event indicating that content generation has finished.
-    Contains the original prompt and total number of turns (steps) taken.
+    Contains the total number of turns (steps) taken.
     """
-    prompt: Any
     total_turns: int
 
 @attr.s(auto_attribs=True, kw_only=True)
@@ -48,7 +47,7 @@ class RequestFinished(DriverEvent):
     response: Any
     duration: float
     status: str
-    usage: Any = None
+    usage: dict = None
 
 @attr.s(auto_attribs=True, kw_only=True)
 class RequestError(DriverEvent):

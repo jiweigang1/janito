@@ -28,9 +28,11 @@ class OpenAIModelDriver(LLMDriver):
     def _publish_event(self, event):
         event_bus.publish(event)
 
-    def _handle_tool_calls(self, tool_calls, messages, request_id):
+    def _handle_tool_calls(self, tool_calls, messages, request_id, cancel_event=None):
         tool_results = []
         for tool_call in tool_calls:
+            if cancel_event is not None and cancel_event.is_set():
+                break  # Abort tool execution if cancelled
             func = getattr(tool_call, 'function', None)
             tool_name = getattr(func, 'name', None) if func else None
             arguments = getattr(func, 'arguments', None) if func else None
@@ -60,7 +62,9 @@ class OpenAIModelDriver(LLMDriver):
     def generate(self, prompt: str, system_prompt: Optional[str] = None, tools=None, **kwargs) -> None:
         import uuid, datetime
         request_id = str(uuid.uuid4())
+        cancel_event = kwargs.pop('cancel_event', None)
         driver_name = self.get_name()
+        self._set_latest_event("Sending request to OpenAI...")
         self._publish_event(GenerationStarted(**kwargs_from_locals('driver_name', 'request_id', 'prompt')))
         self._publish_event(RequestStarted(**kwargs_from_locals('driver_name', 'request_id'), payload=prompt))
         if tools:
@@ -75,8 +79,10 @@ class OpenAIModelDriver(LLMDriver):
         start_time = time.time()
         try:
             while True:
+                self._set_latest_event("Waiting for OpenAI response...")
                 response = self._call_openai(None, None, messages=messages, **kwargs)
                 duration = time.time() - start_time
+                self._set_latest_event("Received response from OpenAI.")
                 usage_dict = self._extract_usage(response)
                 self._publish_event(RequestFinished(**kwargs_from_locals('driver_name', 'request_id', 'response', 'duration'), status='success', usage=usage_dict))
                 message = response.choices[0].message
@@ -84,15 +90,19 @@ class OpenAIModelDriver(LLMDriver):
                 self._handle_content(content, request_id)
                 tool_calls = getattr(message, 'tool_calls', None)
                 if tool_calls:
+                    self._set_latest_event("Processing tool calls...")
                     assistant_msg = {
                         "role": "assistant",
                         "content": content,
                         "tool_calls": [tc.to_dict() if hasattr(tc, 'to_dict') else dict(tc.__dict__) for tc in tool_calls]
                     }
                     messages.append(assistant_msg)
-                    self._handle_tool_calls(tool_calls, messages, request_id)
+                    self._handle_tool_calls(tool_calls, messages, request_id, cancel_event=cancel_event)
+                    if cancel_event is not None and cancel_event.is_set():
+                        self._set_latest_event("Request cancelled.")
+                        return None  # Abort if cancelled
                     continue  # Continue the loop for the next model response
-                self._publish_event(GenerationFinished(**kwargs_from_locals('driver_name', 'request_id', 'prompt'), total_turns=1))
+                self._publish_event(GenerationFinished(**kwargs_from_locals('driver_name', 'request_id'), total_turns=1))
                 return content
         except Exception as e:
             driver_name = self.get_name()
@@ -103,6 +113,7 @@ class OpenAIModelDriver(LLMDriver):
         openai.api_key = self._api_key
         client = openai.OpenAI(api_key=self._api_key)
         messages = kwargs.pop('messages', None)
+        kwargs.pop('cancel_event', None)
         if messages is None:
             messages = []
             if system_prompt:
@@ -121,7 +132,13 @@ class OpenAIModelDriver(LLMDriver):
         usage_obj = getattr(response, 'usage', None)
         usage_dict = {}
         if usage_obj is not None:
-            for attr in ('completion_tokens', 'prompt_tokens', 'total_tokens'):
-                if hasattr(usage_obj, attr):
-                    usage_dict[attr] = getattr(usage_obj, attr)
+            for attr in dir(usage_obj):
+                if attr.startswith('_') or attr == '__class__':
+                    continue
+                value = getattr(usage_obj, attr)
+                if isinstance(value, (str, int, float, bool, type(None))):
+                    usage_dict[attr] = value
+                elif isinstance(value, list):
+                    if all(isinstance(i, (str, int, float, bool, type(None))) for i in value):
+                        usage_dict[attr] = value
         return usage_dict

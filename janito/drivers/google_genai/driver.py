@@ -14,7 +14,7 @@ import json
 from janito.providers.google.errors import EmptyResponseError
 from janito.event_bus.bus import event_bus
 from janito.driver_events import (
-    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, ResponseReceived, RequestError, ContentPartFound
+    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestFinished, RequestError, ContentPartFound
 )
 from janito.utils import kwargs_from_locals
 
@@ -56,13 +56,16 @@ class GoogleGenaiModelDriver(LLMDriver):
     def _publish_event(self, event):
         event_bus.publish(event)
 
-    def _handle_parts_interleaved(self, parts, request_id, types, contents):
+    def _handle_parts_interleaved(self, parts, request_id, types, contents, cancel_event=None):
         """
         Process parts in order, interleaving tool calls and content events as they appear.
+        Checks cancel_event if provided.
         """
         driver_name = self.get_name()
         had_function_call = False
         for part in parts:
+            if cancel_event is not None and cancel_event.is_set():
+                return had_function_call  # Early exit if cancelled
             if hasattr(part, 'function_call') and part.function_call:
                 function_call = part.function_call
                 tool_name = function_call.name
@@ -81,8 +84,7 @@ class GoogleGenaiModelDriver(LLMDriver):
                 self._publish_event(ContentPartFound(**kwargs_from_locals('driver_name', 'request_id'), content_part=part.text))
         return had_function_call
 
-
-    def generate(self, prompt: str, system_prompt: Optional[str] = None, tools=None, **kwargs) -> None:
+    def generate(self, prompt: str, system_prompt: Optional[str] = None, tools=None, **kwargs) -> Optional[str]:
         import uuid, datetime, time
         if genai is None or genai_types is None:
             raise ImportError("google-genai package is not installed.")
@@ -90,41 +92,48 @@ class GoogleGenaiModelDriver(LLMDriver):
         types = genai_types
         request_id = str(uuid.uuid4())
         driver_name = self.get_name()
+        self._set_latest_event("Sending request to Google GenAI...")
         self._publish_event(GenerationStarted(**kwargs_from_locals('driver_name', 'request_id', 'prompt')))
         self._publish_event(RequestStarted(**kwargs_from_locals('driver_name', 'request_id'), payload=prompt))
         if tools:
             declarations = generate_tool_declarations(tools)
             config_dict = {
                 "tools": declarations,
-                "automatic_function_calling": {"disable": True},
             }
             if system_prompt:
                 config_dict["system_instruction"] = system_prompt
             kwargs['config'] = types.GenerateContentConfig(**config_dict)
         contents = []
         contents.append(types.Content(role="user", parts=[types.Part(text=prompt)]))
+        cancel_event = kwargs.pop('cancel_event', None)
         try:
             raw = kwargs.pop('raw', False)
             turn_count = 0
             start_time = time.time()
             while True:
+                if cancel_event is not None and cancel_event.is_set():
+                    self._set_latest_event("Request cancelled.")
+                    self._publish_event(RequestFinished(**kwargs_from_locals('driver_name', 'request_id', 'response', 'duration'), status='cancelled', usage={}))
+                    return None
                 turn_count += 1
                 if turn_count > 3:
                     break
+                self._set_latest_event("Waiting for Google GenAI response...")
                 response = self._generate_content(client, contents, **kwargs)
                 duration = time.time() - start_time
+                self._set_latest_event("Received response from Google GenAI.")
                 usage_obj = getattr(response, 'usage_metadata', None)
                 usage_dict = extract_usage_metadata_native(usage_obj)
                 self._publish_event(RequestFinished(**kwargs_from_locals('driver_name', 'request_id', 'response', 'duration'), status='success', usage=usage_dict))
-                self._publish_event(ResponseReceived(**kwargs_from_locals('driver_name', 'request_id', 'response')))
                 candidates = getattr(response, 'candidates', None)
                 if not candidates or not hasattr(candidates[0], 'content') or not hasattr(candidates[0].content, 'parts'):
                     raise EmptyResponseError("Gemini API returned an empty or incomplete response.")
                 parts = candidates[0].content.parts
-                had_function_call = self._handle_parts_interleaved(parts, request_id, types, contents)
+                had_function_call = self._handle_parts_interleaved(parts, request_id, types, contents, cancel_event=cancel_event)
                 if had_function_call:
+                    self._set_latest_event("Processing function call...")
                     continue  # Continue the loop for the next model response
-                self._publish_event(GenerationFinished(**kwargs_from_locals('driver_name', 'request_id', 'prompt'), total_turns=turn_count))
+                self._publish_event(GenerationFinished(**kwargs_from_locals('driver_name', 'request_id'), total_turns=turn_count))
                 break
         except Exception as e:
             driver_name = self.get_name()
@@ -133,6 +142,7 @@ class GoogleGenaiModelDriver(LLMDriver):
 
     def _generate_content(self, client, contents, **kwargs):
         kwargs.pop('raw', None)
+        kwargs.pop('cancel_event', None)
         return client.models.generate_content(
             model=self._model_name,
             contents=contents,
