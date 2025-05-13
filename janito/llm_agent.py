@@ -1,9 +1,10 @@
 from janito.llm_driver import LLMDriver
 from janito.conversation_history import LLMConversationHistory
 from janito.tool_registry import ToolRegistry
-from typing import Any, Optional, List, Tuple
+from typing import Any, Optional, List, Tuple, Iterator
 import threading
 import concurrent.futures
+import logging
 
 class LLMAgent:
     _event_lock: threading.Lock
@@ -40,6 +41,8 @@ class LLMAgent:
 
     def chat(self, prompt: str, role: str = "user", **kwargs: Any) -> str:
         self.history.add_message(role, prompt)
+        # Remove 'raw' if present in kwargs
+        kwargs.pop('raw', None)
         generate_kwargs = dict(
             prompt=prompt,
             system_prompt=self.system_prompt,
@@ -52,15 +55,17 @@ class LLMAgent:
             self.history.add_message("assistant", response)
         return response
 
-    def chat_async(self, prompt: str, role: str = "user", **kwargs: Any) -> Tuple[concurrent.futures.Future, threading.Event]:
+    def chat_async(self, prompt: str, role: str = "user", **kwargs: Any) -> Iterator[Any]:
         """
         Start a chat in a background thread with cooperative cancellation support.
-        Returns a tuple (future, cancel_event):
-          - future: concurrent.futures.Future for the result
-          - cancel_event: threading.Event to request cancellation
+        Returns an iterator that yields events from the QueueEventBus as they are produced, and also publishes them to the system event bus.
         The driver and its generate method must periodically check cancel_event.is_set() and abort if set.
         """
+        from janito.event_bus.queue_bus import QueueEventBus, QueueEventBusSentinel
+        from janito.event_bus.bus import event_bus as system_event_bus
         self.history.add_message(role, prompt)
+        # Remove 'raw' if present in kwargs
+        kwargs.pop('raw', None)
         generate_kwargs = dict(
             prompt=prompt,
             system_prompt=self.system_prompt,
@@ -69,22 +74,30 @@ class LLMAgent:
         if self.tools:
             generate_kwargs['tools'] = self.tools
         cancel_event = threading.Event()
-        future = concurrent.futures.Future()
+        event_bus = QueueEventBus()
 
         def run_generate():
-            try:
-                generate_kwargs_with_cancel = dict(generate_kwargs)
-                generate_kwargs_with_cancel['cancel_event'] = cancel_event
-                response = self.driver.generate(**generate_kwargs_with_cancel)
-                if response is not None:
-                    self.history.add_message("assistant", response)
-                future.set_result(response)
-            except Exception as e:
-                future.set_exception(e)
+            generate_kwargs_with_cancel = dict(generate_kwargs)
+            generate_kwargs_with_cancel['cancel_event'] = cancel_event
+            generate_kwargs_with_cancel['event_bus'] = event_bus
+            response = self.driver.generate(**generate_kwargs_with_cancel)
+            if response is not None:
+                self.history.add_message("assistant", response)
+            # Signal the end of event publishing
+            event_bus.publish(QueueEventBusSentinel())
 
         thread = threading.Thread(target=run_generate, daemon=True)
         thread.start()
-        return future, cancel_event
+
+        def event_iterator():
+            while True:
+                event = event_bus.fetch_event()
+                if event is None:
+                    break
+                system_event_bus.publish(event)
+                yield event
+
+        return event_iterator()
 
     def set_latest_event(self, event: str) -> None:
         with self._event_lock:

@@ -69,7 +69,7 @@ class ReplaceTextInFileTool(ToolBase):
                 replaced_count, file_changed, occurrences
             )
             if warning:
-                self.report_warning(warning)
+                self.report_warning(warning, ReportAction.WRITE)
             if concise_warning:
                 return concise_warning
             self._report_success(match_lines)
@@ -140,12 +140,12 @@ class ReplaceTextInFileTool(ToolBase):
         if replaced_count == 0:
             warning = tr(" [Warning: Search text not found in file]")
         if not file_changed:
-            self.report_warning(tr(" \u2139\ufe0f No changes made. [not found]"))
+            self.report_warning(tr(" \u2139\ufe0f No changes made. [not found]"), ReportAction.WRITE)
             concise_warning = tr(
                 "No changes made. The search text was not found. Expand your search context with surrounding lines if needed."
             )
         if occurrences > 1 and replaced_count == 0:
-            self.report_warning(tr(" \u2139\ufe0f No changes made. [not unique]"))
+            self.report_warning(tr(" \u2139\ufe0f No changes made. [not unique]"), ReportAction.WRITE)
             concise_warning = tr(
                 "No changes made. The search text is not unique. Expand your search context with surrounding lines to ensure uniqueness."
             )

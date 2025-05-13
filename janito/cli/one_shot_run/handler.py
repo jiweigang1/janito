@@ -10,9 +10,14 @@ from janito.cli.one_shot_run.output import print_verbose_header, print_performan
 import janito.tools  # Ensure all tools are registered
 from rich.status import Status
 from rich.console import Console
-import concurrent.futures
-from types import SimpleNamespace
 from typing import Any, Optional
+from janito.driver_events import GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
+import janito.driver_events as driver_events
+import threading
+
+class StatusRef:
+    def __init__(self):
+        self.status = None
 
 class PromptHandler:
     args: Any
@@ -40,21 +45,24 @@ class PromptHandler:
         self.agent = setup_agent(self.provider_cls, self.args, self.thinking_budget)
         print_verbose_header(self.agent, self.args)
         start_time = time.perf_counter()
-        future, cancel_event = self.agent.chat_async(self.args.user_prompt, raw=getattr(self.args, 'raw', False))
-        with Status("[bold cyan]Waiting for LLM response...[/bold cyan]", console=self.console, spinner="dots") as status:
-            last_event = None
-            try:
-                while not future.done():
-                    current_event = self.agent.driver.get_latest_event()
-                    if current_event and current_event != last_event:
-                        status.update(f"[bold cyan]{current_event}[/bold cyan]")
-                        last_event = current_event
-                    time.sleep(0.1)
-            except KeyboardInterrupt:
-                cancel_event.set()
-                self.console.print("[red]Request cancelled.[/red]")
-                return
+        try:
+            event_iter = self.agent.chat_async(self.args.user_prompt, raw=getattr(self.args, 'raw', False))
+            event_iter = iter(event_iter)
+            for event in event_iter:
+                if isinstance(event, RequestStarted):
+                    with Status("[bold cyan]Waiting for LLM response...[/bold cyan]", console=self.console, spinner="dots") as status:
+                        status.update("[bold cyan]Waiting for LLM response...[/bold cyan]")
+                        for inner_event in event_iter:
+                            if isinstance(inner_event, RequestFinished):
+                                status.update("[bold green]Received response![/bold green]")
+                                break
+                            elif isinstance(inner_event, RequestError):
+                                status.update(f"[bold red]Error: {getattr(inner_event, 'error', 'Unknown error')}[/bold red]")
+                                break
+                        # After exiting spinner, continue with next events (if any)
+                # You can handle other event types outside the spinner here if needed
+        except KeyboardInterrupt:
+            self.console.print("[red]Request cancelled.[/red]")
+            return
         end_time = time.perf_counter()
-        response = future.result()
         print_performance(start_time, end_time, self.performance_collector, self.args)
-        return

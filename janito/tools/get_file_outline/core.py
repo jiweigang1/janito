@@ -20,11 +20,8 @@ class GetFileOutlineTool(ToolBase):
     def run(self, file_path: str) -> str:
         try:
             self.report_info(
+                tr("\ud83d\udcc4 Outline file '{disp_path}' ...", disp_path=display_path(file_path)),
                 ReportAction.READ,
-                tr(
-                    "📄 Outline file '{disp_path}' ...",
-                    disp_path=display_path(file_path),
-                ),
             )
             ext = os.path.splitext(file_path)[1].lower()
             with open(file_path, "r", encoding="utf-8", errors="replace") as f:
@@ -34,12 +31,12 @@ class GetFileOutlineTool(ToolBase):
                 outline_type = "python"
                 table = OutlineFormatter.format_outline_table(outline_items)
                 self.report_success(
-                    ReportAction.READ,
                     tr(
-                        "✅ Outlined {count} {item_word}",
+                        "\u2705 Outlined {count} {item_word}",
                         count=len(outline_items),
                         item_word=pluralize("item", len(outline_items)),
-                    )
+                    ),
+                    ReportAction.READ,
                 )
                 return (
                     tr(
@@ -54,12 +51,12 @@ class GetFileOutlineTool(ToolBase):
                 outline_type = "markdown"
                 table = OutlineFormatter.format_markdown_outline_table(outline_items)
                 self.report_success(
-                    ReportAction.READ,
                     tr(
-                        "✅ Outlined {count} {item_word}",
+                        "\u2705 Outlined {count} {item_word}",
                         count=len(outline_items),
                         item_word=pluralize("item", len(outline_items)),
-                    )
+                    ),
+                    ReportAction.READ,
                 )
                 return (
                     tr(
@@ -72,8 +69,8 @@ class GetFileOutlineTool(ToolBase):
             else:
                 outline_type = "default"
                 self.report_success(
+                    tr("\u2705 Outlined {count} items", count=len(lines)),
                     ReportAction.READ,
-                    tr("✅ Outlined {count} items", count=len(lines))
                 )
                 return tr(
                     "Outline: {count} lines ({outline_type})\nFile has {count} lines.",
@@ -81,5 +78,8 @@ class GetFileOutlineTool(ToolBase):
                     outline_type=outline_type,
                 )
         except Exception as e:
-            self.report_error(ReportAction.OUTLINE, tr("❌ Error reading file: {error}", error=e))
+            self.report_error(
+                tr("\u274c Error reading file: {error}", error=e),
+                ReportAction.OUTLINE,
+            )
             return tr("Error reading file: {error}", error=e)

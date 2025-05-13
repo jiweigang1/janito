@@ -17,7 +17,7 @@ class OpenUrlTool(ToolBase):
 
     def run(self, url: str) -> str:
         if not url.strip():
-            self.report_warning(tr("ℹ️ Empty URL provided."))
+            self.report_warning(tr("ℹ️ Empty URL provided."), ReportAction.OPEN)
             return tr("Warning: Empty URL provided. Operation skipped.")
         self.report_info(tr("🌐 Opening URL '{url}' ...", url=url), ReportAction.READ)
         try:

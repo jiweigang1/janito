@@ -30,17 +30,18 @@ class RunBashCommandTool(ToolBase):
         requires_user_input: bool = False,
     ) -> str:
         if not command.strip():
-            self.report_warning(tr("\u2139\ufe0f Empty command provided."))
+            self.report_warning(tr("\u2139\ufe0f Empty command provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty command provided. Operation skipped.")
         self.report_info(
+            tr("\ud83d\udda5\ufe0f Run bash command: {command} ...\n", command=command),
             ReportAction.EXECUTE,
-            tr("🖥️ Run bash command: {command} ...\n", command=command),
         )
         if requires_user_input:
             self.report_warning(
                 tr(
                     "\u26a0\ufe0f  Warning: This command might be interactive, require user input, and might hang."
-                )
+                ),
+                ReportAction.EXECUTE
             )
             sys.stdout.flush()
         try:
@@ -71,11 +72,12 @@ class RunBashCommandTool(ToolBase):
                     )
                 except subprocess.TimeoutExpired:
                     process.kill()
-                    self.report_error(ReportAction.RUN, 
+                    self.report_error(
                         tr(
                             " \u274c Timed out after {timeout} seconds.",
                             timeout=timeout,
-                        )
+                        ),
+                        ReportAction.RUN
                     )
                     return tr(
                         "Command timed out after {timeout} seconds.", timeout=timeout
@@ -124,5 +126,8 @@ class RunBashCommandTool(ToolBase):
                     )
                     return result
         except Exception as e:
-            self.report_error(ReportAction.RUN, tr(" \u274c Error: {error}", error=e))
+            self.report_error(
+                tr(" \u274c Error: {error}", error=e),
+                ReportAction.RUN
+            )
             return tr("Error running command: {error}", error=e)

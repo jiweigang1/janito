@@ -22,7 +22,7 @@ class PythonCommandRunnerTool(ToolBase):
 
     def run(self, code: str, timeout: int = 60) -> str:
         if not code.strip():
-            self.report_warning(tr("\u2139\ufe0f Empty code provided."))
+            self.report_warning(tr("\u2139\ufe0f Empty code provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty code provided. Operation skipped.")
         self.report_info(
             tr("🐍 Running: python -c ...\n{code}\n", code=code),

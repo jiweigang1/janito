@@ -23,7 +23,7 @@ class FetchUrlTool(ToolBase):
 
     def run(self, url: str, search_strings: list[str] = None) -> str:
         if not url.strip():
-            self.report_warning(tr("ℹ️ Empty URL provided."))
+            self.report_warning(tr("ℹ️ Empty URL provided."), ReportAction.FETCH)
             return tr("Warning: Empty URL provided. Operation skipped.")
         self.report_info(tr("🌐 Fetch URL '{url}' ...", url=url), ReportAction.READ)
         try:

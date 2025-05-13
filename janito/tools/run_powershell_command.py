@@ -30,7 +30,8 @@ class RunPowerShellCommandTool(ToolBase):
             self.report_warning(
                 tr(
                     "\u26a0\ufe0f  Warning: This command might be interactive, require user input, and might hang."
-                )
+                ),
+                ReportAction.EXECUTE
             )
         if require_confirmation:
             confirmed = self.ask_user_confirmation(
@@ -40,7 +41,7 @@ class RunPowerShellCommandTool(ToolBase):
                 )
             )
             if not confirmed:
-                self.report_warning(tr("\u26a0\ufe0f Execution cancelled by user."))
+                self.report_warning(tr("\u26a0\ufe0f Execution cancelled by user."), ReportAction.EXECUTE)
                 return False
         return True
 
@@ -127,16 +128,13 @@ class RunPowerShellCommandTool(ToolBase):
         requires_user_input: bool = False,
     ) -> str:
         if not command.strip():
-            self.report_warning(tr("\u2139\ufe0f Empty command provided."))
+            self.report_warning(tr("\u2139\ufe0f Empty command provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty command provided. Operation skipped.")
         encoding_prefix = "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; "
         command_with_encoding = encoding_prefix + command
         self.report_info(
+            tr("\U0001f5a5\ufe0f Running PowerShell command: {command} ...\n", command=command),
             ReportAction.EXECUTE,
-            tr(
-                "\U0001f5a5\ufe0f Running PowerShell command: {command} ...\n",
-                command=command,
-            ),
         )
         if not self._confirm_and_warn(
             command, require_confirmation, requires_user_input
@@ -189,11 +187,12 @@ class RunPowerShellCommandTool(ToolBase):
                     return_code = process.wait(timeout=timeout)
                 except subprocess.TimeoutExpired:
                     process.kill()
-                    self.report_error(ReportAction.RUN, 
+                    self.report_error(
                         tr(
                             " \u274c Timed out after {timeout} seconds.",
                             timeout=timeout,
-                        )
+                        ),
+                        ReportAction.RUN
                     )
                     return tr(
                         "Command timed out after {timeout} seconds.", timeout=timeout
@@ -209,5 +208,8 @@ class RunPowerShellCommandTool(ToolBase):
                     requires_user_input, return_code, stdout_file, stderr_file
                 )
         except Exception as e:
-            self.report_error(ReportAction.RUN, tr(" \u274c Error: {error}", error=e))
+            self.report_error(
+                tr(" \u274c Error: {error}", error=e),
+                ReportAction.RUN
+            )
             return tr("Error running command: {error}", error=e)

@@ -28,14 +28,17 @@ class RichTerminalReporter(EventHandlerBase):
         content = event.content_part
         if content:
             self.console.print(Markdown(content))
+            self.console.file.flush()
         else:
             self.console.print("[No content part to display]")
+            self.console.file.flush()
 
     def on_RequestFinished(self, event):
         response = getattr(event, 'response', None)
         if response is not None:
             if self.raw_mode:
                 self.console.print(Pretty(response, expand_all=True))
+                self.console.file.flush()
             # Check for 'code' and 'event' fields in the response
             code = None
             event_field = None
@@ -44,8 +47,10 @@ class RichTerminalReporter(EventHandlerBase):
                 event_field = response.get('event')
             if code is not None:
                 self.console.print(f"[bold yellow]Code:[/] {code}")
+                self.console.file.flush()
             if event_field is not None:
                 self.console.print(f"[bold yellow]Event:[/] {event_field}")
+                self.console.file.flush()
         # No output if not raw_mode or if response is None
 
     def on_ReportEvent(self, event):
@@ -55,7 +60,10 @@ class RichTerminalReporter(EventHandlerBase):
             return
         if subtype == ReportSubtype.ACTION_INFO:
             self.console.print(msg, end="")
+            self.console.file.flush()
         elif subtype in (ReportSubtype.SUCCESS, ReportSubtype.ERROR, ReportSubtype.WARNING):
             self.console.print(msg)
+            self.console.file.flush()
         else:
             self.console.print(msg)
+            self.console.file.flush()
