@@ -18,7 +18,7 @@ class GenerationStarted(DriverEvent):
     Event indicating that a new content generation process has started.
     'Generation' refers to the process of producing content (e.g., by an LLM) in response to a prompt.
     """
-    prompt: Any
+    conversation_history: Any
 
 @attr.s(auto_attribs=True, kw_only=True)
 class GenerationFinished(DriverEvent):
@@ -58,6 +58,7 @@ class RequestError(DriverEvent):
     """
     error: str
     exception: Exception
+    traceback: str = None
 
 @attr.s(auto_attribs=True, kw_only=True)
 class ContentPartFound(DriverEvent):
@@ -66,3 +67,21 @@ class ContentPartFound(DriverEvent):
     Useful for streaming or incremental generation scenarios.
     """
     content_part: Any
+
+@attr.s(auto_attribs=True, kw_only=True)
+class ToolCallStarted(DriverEvent):
+    """
+    Event indicating that a tool/function call has started.
+    """
+    tool_call_id: str
+    name: str
+    arguments: Any
+
+@attr.s(auto_attribs=True, kw_only=True)
+class ToolCallFinished(DriverEvent):
+    """
+    Event indicating that a tool/function call has finished and returned a result.
+    """
+    tool_call_id: str
+    name: str
+    result: Any

@@ -22,7 +22,6 @@ class PromptHandler:
     provider_name: Optional[str]
     provider_cls: Any
     agent: Any
-    thinking_budget: Any
     performance_collector: PerformanceCollector
     console: Console
 
@@ -31,7 +30,6 @@ class PromptHandler:
         self.provider_name = None
         self.provider_cls = None
         self.agent = None
-        self.thinking_budget = None
         self.performance_collector = PerformanceCollector()
         self.console = Console()
 
@@ -39,8 +37,8 @@ class PromptHandler:
         self.provider_name = setup_provider(self.args)
         if not self.provider_name:
             return False
-        self.provider_cls, self.thinking_budget = setup_provider(self.args, return_class=True)
-        self.agent = setup_agent(self.provider_cls, self.args, self.thinking_budget)
+        self.provider_cls = setup_provider(self.args, return_class=True)[0]
+        self.agent = setup_agent(self.provider_cls, self.args)
         return True
 
     def _handle_inner_event(self, inner_event, on_event, status):
@@ -70,6 +68,11 @@ class PromptHandler:
 
     def _process_event_iter(self, event_iter, on_event):
         for event in event_iter:
+            # Handle exceptions from generation thread
+            if isinstance(event, dict) and event.get('type') == 'exception':
+                self.console.print("[red]Exception in generation thread:[/red]")
+                self.console.print(event.get('traceback', 'No traceback available'))
+                break
             if on_event:
                 on_event(event)
             if isinstance(event, RequestStarted):

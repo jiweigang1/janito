@@ -11,19 +11,34 @@ class GoogleProvider(LLMProvider):
     """
     DEFAULT_MODEL = "gemini-2.5-pro-preview-05-06"
 
-    def __init__(self):
+    @classmethod
+    def list_models(cls):
+        """
+        Return a list of supported Google models with table fields ("N/A" for unknowns).
+        """
+        model_names = [
+            "gemini-2.5-pro-preview-05-06"
+        ]
+        fields = ["name", "context", "max_input", "max_cot", "max_response", "thinking_supported"]
+        return [
+            {"name": name, "context": "N/A", "max_input": "N/A", "max_cot": "N/A", "max_response": "N/A", "thinking_supported": "N/A"}
+            for name in model_names
+        ]
+
+    def __init__(self, model_name: str = None):
         self._auth_manager = LLMAuthManager()
         self._api_key = self._auth_manager.get_credentials("google")
         self._tool_registry = ToolRegistry()
+        self._model_name = model_name if model_name else self.DEFAULT_MODEL
         self._driver = GoogleGenaiModelDriver(
             "google",
-            self.DEFAULT_MODEL,
+            self._model_name,
             self._api_key,
             self._tool_registry
         )
 
     def get_model_name(self) -> str:
-        return self.DEFAULT_MODEL
+        return self._model_name
 
     @property
     def driver(self) -> GoogleGenaiModelDriver:

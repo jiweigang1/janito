@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from janito.platform_discovery import PlatformDiscovery
+from janito.cli.runtime_config import runtime_config
 
 def setup_provider(args, return_class=False):
     provider_registry = ProviderRegistry()
@@ -16,16 +17,11 @@ def setup_provider(args, return_class=False):
         return None if not return_class else (None, None)
     from janito.providers.registry import LLMProviderRegistry
     provider_cls = LLMProviderRegistry.get(provider_name)
-    thinking_budget = getattr(args, 'thinking_budget', None)
-    if thinking_budget is None:
-        thinking_budget = provider_config_mgr.get_thinking_budget(provider_name)
-    else:
-        thinking_budget = int(thinking_budget)
     if return_class:
-        return provider_cls, thinking_budget
+        return provider_cls, None
     return provider_name
 
-def setup_agent(provider_cls, args, thinking_budget):
+def setup_agent(provider_cls, args):
     system_prompt = getattr(args, 'system', None)
     if system_prompt and os.path.isfile(system_prompt):
         if system_prompt.endswith('.j2'):
@@ -47,7 +43,14 @@ def setup_agent(provider_cls, args, thinking_budget):
         else:
             with open(system_prompt, 'r', encoding='utf-8') as f:
                 system_prompt = f.read()
-    return provider_cls().create_agent(
+    # Determine model name from args or runtime_config
+    model_name = getattr(args, 'model', None)
+    if not model_name:
+        model_name = runtime_config.get('model', None)
+    # Instantiate provider with model_name
+    think = getattr(args, 'think', False)
+    provider_instance = provider_cls(model_name=model_name, think=think)
+    return provider_instance.create_agent(
         system_prompt=system_prompt,
-        thinking_budget=thinking_budget
+        think=think
     )

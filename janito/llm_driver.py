@@ -3,6 +3,7 @@ from typing import Optional
 import threading
 import queue
 from janito.tool_registry import ToolRegistry
+from janito.conversation_history import LLMConversationHistory
 
 class LLMDriver(ABC):
     """
@@ -18,12 +19,17 @@ class LLMDriver(ABC):
         self.event_bus = None
         self.cancel_event = None
 
-    def stream_generate(self, prompt: str, system_prompt: Optional[str] = None, tools: Optional[list] = None, **kwargs):
+    def stream_generate(self, conversation_history: LLMConversationHistory, system_prompt: Optional[str] = None, tools: Optional[list] = None, **kwargs):
         """
         Stream generation events from the LLM driver in a thread-safe, cancellable manner.
         This method starts the generation process in a background thread, emits events to a thread-safe queue,
         and yields these events to the caller as they are produced.
-        Subclasses should implement _run_generation(prompt, system_prompt, tools, **kwargs).
+        Subclasses should implement _run_generation(conversation_history, system_prompt, tools, **kwargs).
+        Args:
+            conversation_history (LLMConversationHistory): The full conversation history object.
+            system_prompt (Optional[str]): An optional system prompt.
+            tools (Optional[list]): Optional list of tools/functions.
+            **kwargs: Additional driver-specific parameters.
         """
         event_queue = queue.Queue()
         cancel_event = kwargs.pop('cancel_event', None)
@@ -38,7 +44,11 @@ class LLMDriver(ABC):
         self.event_bus = QueueEventBus()
         def generation_thread():
             try:
-                self._run_generation(prompt, system_prompt, tools, **kwargs)
+                self._run_generation(conversation_history, system_prompt, tools, **kwargs)
+            except Exception as exc:
+                import traceback
+                tb_str = traceback.format_exc()
+                event_queue.put({'type': 'exception', 'exception': exc, 'traceback': tb_str})
             finally:
                 event_queue.put(None)  # Use None as the sentinel
                 self.event_bus = None
@@ -64,11 +74,11 @@ class LLMDriver(ABC):
             self.event_bus.publish(event)
 
     @abstractmethod
-    def _run_generation(self, prompt: str, system_prompt: Optional[str], tools: Optional[list], **kwargs):
+    def _run_generation(self, conversation_history: LLMConversationHistory, system_prompt: Optional[str], tools: Optional[list], **kwargs):
         """
         Provider-specific generation logic. Subclasses must implement this method.
         Args:
-            prompt (str): The prompt to send to the driver.
+            conversation_history (LLMConversationHistory): The full conversation history object.
             system_prompt (Optional[str]): An optional system prompt.
             tools (Optional[list]): Optional list of tools/functions.
             **kwargs: Additional driver-specific parameters.

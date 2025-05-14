@@ -5,11 +5,12 @@ This driver handles interaction with the Google Gemini API, including support fo
 
 Event Handling:
 ----------------
-When processing model responses, the driver iterates through the returned parts in their original order. Each part may represent a function call or a content segment. Events such as ToolCallStarted, ToolCallFinished, and ContentPartFound are published in the exact sequence they appear in the API response, preserving the interleaving of function calls and content. This ensures that downstream consumers receive events in the true order of model output, which is essential for correct conversational flow and tool execution.
+When processing model responses, the driver iterates through the returned parts in their original order. Each part may represent a function call or a content segment. Events such as ContentPartFound are published in the exact sequence they appear in the API response, preserving the interleaving of function calls and content. This ensures that downstream consumers receive events in the true order of model output, which is essential for correct conversational flow and tool execution.
 """
 import json
 import time
 import uuid
+import traceback
 from typing import Optional
 from janito.llm_driver import LLMDriver
 from janito.drivers.google_genai.schema_generator import generate_tool_declarations
@@ -21,6 +22,7 @@ from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 from google import genai
 from google.genai import types as genai_types
+from janito.conversation_history import LLMConversationHistory
 
 def extract_usage_metadata_native(usage_obj):
     if usage_obj is None:
@@ -38,6 +40,94 @@ def extract_usage_metadata_native(usage_obj):
     return result
 
 class GoogleGenaiModelDriver(LLMDriver):
+    def _run_generation(self, conversation_history: LLMConversationHistory, system_prompt: Optional[str]=None, tools=None, **kwargs):
+        """
+        Run a conversation using the provided conversation history (LLMConversationHistory).
+        The driver will not mutate the original conversation history.
+        """
+        request_id = str(uuid.uuid4())
+        tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
+        try:
+            self.publish(GenerationStarted, request_id, conversation_history=conversation_history)
+            genai_types_local = genai_types
+            declarations = generate_tool_declarations(tools) if tools else None
+            config_dict = {}
+            if declarations:
+                config_dict["tools"] = declarations
+            # Use a helper to convert generic history to driver messages and extract system prompt
+            conversation_contents, system_prompt = self._conversation_history_to_driver_messages(conversation_history)
+            if system_prompt:
+                config_dict["system_instruction"] = system_prompt
+            config = genai_types_local.GenerateContentConfig(**config_dict) if config_dict else None
+            client = genai.Client(api_key=self.api_key)
+            turn_count = 0
+            start_time = time.time()
+            while True:
+                if self.cancel_event is not None and self.cancel_event.is_set():
+                    self.publish(RequestFinished, request_id, response=None, duration=0, status='cancelled', usage={})
+                    self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
+                    break
+                had_function_call, _ = self._process_generation_turn(
+                    client, config, conversation_contents, tool_executor, tools, request_id, start_time, kwargs
+                )
+                turn_count += 1
+                if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):
+                    continue  # Continue the loop for the next model response
+                self.publish(GenerationFinished, request_id, total_turns=turn_count)
+                break
+        except Exception as e:
+            self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
+
+    def _conversation_history_to_driver_messages(self, conversation_history: LLMConversationHistory):
+        """
+        Convert LLMConversationHistory to Google GenAI Content/Part objects.
+        Returns (conversation_contents, system_prompt)
+        """
+        from google.genai import types as genai_types_local
+        history_msgs = list(conversation_history.get_history())
+        system_prompt = None
+        if history_msgs and isinstance(history_msgs[0], dict) and history_msgs[0].get('role') == 'system':
+            system_prompt = history_msgs.pop(0).get('content')
+        conversation_contents = []
+        for msg in history_msgs:
+            if msg.get("role") == "tool":
+                meta = msg.get("metadata", {})
+                # Tool call (arguments present, content is None)
+                if meta.get("arguments") is not None and msg.get("content") is None:
+                    # Gemini expects function call as Content with Part(function_call=...)
+                    conversation_contents.append(
+                        genai_types_local.Content(
+                            role="user",
+                            parts=[genai_types_local.Part(function_call={
+                                "name": meta.get("name"),
+                                "args": meta.get("arguments")
+                            })]
+                        )
+                    )
+                # Tool response (content present)
+                elif msg.get("content") is not None:
+                    conversation_contents.append(
+                        genai_types_local.Content(
+                            role="tool",
+                            parts=[genai_types_local.Part(
+                                text=msg.get("content"),
+                                function_response={
+                                    "name": meta.get("name"),
+                                    "response": {"result": msg.get("content")}
+                                }
+                            )]
+                        )
+                    )
+            else:
+                # user, assistant
+                conversation_contents.append(
+                    genai_types_local.Content(
+                        role=msg.get("role"),
+                        parts=[genai_types_local.Part(text=msg.get("content"))]
+                    )
+                )
+        return conversation_contents, system_prompt
+
     def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
         super().__init__(provider_name, model_name, api_key, tool_registry)
 
@@ -65,13 +155,11 @@ class GoogleGenaiModelDriver(LLMDriver):
             **api_kwargs
         )
 
-    def _process_generation_turn(self, client, config, conversation_contents, tool_executor, prompt, system_prompt, tools, request_id, start_time, kwargs):
+    def _process_generation_turn(self, client, config, conversation_contents, tool_executor, tools, request_id, start_time, kwargs):
         api_kwargs = dict(kwargs)
         if config:
             api_kwargs['config'] = config
         self.publish(RequestStarted, request_id, payload={
-            'prompt': prompt,
-            'system_prompt': system_prompt,
             'tools': tools
         })
         response = self.send_api_request(client, conversation_contents, **api_kwargs)
@@ -93,37 +181,3 @@ class GoogleGenaiModelDriver(LLMDriver):
             elif getattr(part, 'text', None) is not None:
                 self.handle_content_part(part, request_id)
         return had_function_call, duration
-
-    def _run_generation(self, prompt: str, system_prompt: Optional[str], tools=None, **kwargs):
-        request_id = str(uuid.uuid4())
-        tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
-        try:
-            self.publish(GenerationStarted, request_id, prompt=prompt)
-            genai_types_local = genai_types
-            declarations = generate_tool_declarations(tools) if tools else None
-            config_dict = {}
-            if declarations:
-                config_dict["tools"] = declarations
-            if system_prompt:
-                config_dict["system_instruction"] = system_prompt
-            config = genai_types_local.GenerateContentConfig(**config_dict) if config_dict else None
-            conversation_contents = [genai_types_local.Content(role="user", parts=[genai_types_local.Part(text=prompt)])]
-            client = genai.Client(api_key=self.api_key)
-            turn_count = 0
-            start_time = time.time()
-            while True:
-                if self.cancel_event is not None and self.cancel_event.is_set():
-                    self.publish(RequestFinished, request_id, response=None, duration=0, status='cancelled', usage={})
-                    self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
-                    break
-                had_function_call, _ = self._process_generation_turn(
-                    client, config, conversation_contents, tool_executor,
-                    prompt, system_prompt, tools, request_id, start_time, kwargs
-                )
-                turn_count += 1
-                if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):
-                    continue  # Continue the loop for the next model response
-                self.publish(GenerationFinished, request_id, total_turns=turn_count)
-                break
-        except Exception as e:
-            self.publish(RequestError, request_id, error=str(e), exception=e)

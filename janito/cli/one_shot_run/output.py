@@ -9,7 +9,10 @@ from janito.cli.utils import format_tokens
 
 def print_verbose_header(agent, args):
     if getattr(args, 'verbose', False):
-        rich_print(Panel(Align(f"[cyan]Janito {VERSION} | Driver: {agent.driver.get_name()}[/cyan]", align="center"), style="on grey11", expand=True))
+        info_line = f"Janito {VERSION} | Provider: {agent.driver.provider_name} | Model: {agent.driver.model_name} | Driver: {agent.driver.__class__.__module__.split('.')[-2]}"
+        if getattr(args, 'think', False):
+            info_line += " | Thinking ON"
+        rich_print(Panel(Align(f"[cyan]{info_line}[/cyan]", align="center"), style="on grey11", expand=True))
 
 def print_performance(start_time, end_time, performance_collector, args):
     if start_time is None or end_time is None:

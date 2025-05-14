@@ -45,9 +45,6 @@ class RichTerminalReporter(EventHandlerBase):
             if isinstance(response, dict):
                 code = response.get('code')
                 event_field = response.get('event')
-            if code is not None:
-                self.console.print(f"[bold yellow]Code:[/] {code}")
-                self.console.file.flush()
             if event_field is not None:
                 self.console.print(f"[bold yellow]Event:[/] {event_field}")
                 self.console.file.flush()

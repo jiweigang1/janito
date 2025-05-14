@@ -9,6 +9,7 @@ from janito.version import __version__ as VERSION
 from janito.provider_registry import list_providers, select_provider
 from janito.cli.one_shot_run.handler import PromptHandler
 from janito.provider_config import ProviderConfigManager
+from janito.cli.runtime_config import runtime_config
 from rich.console import Console
 from rich.pretty import Pretty
 
@@ -84,6 +85,117 @@ def set_default_system_prompt(args):
                 print(f"Error: Default system prompt template not found in source or installed package.", file=sys.stderr)
                 sys.exit(1)
 
+def validate_model_for_provider(provider_name, model_name):
+    """
+    Check if the given model is available for the provider.
+    Returns True if available, False otherwise.
+    """
+    try:
+        from janito.providers.registry import LLMProviderRegistry
+        provider_cls = LLMProviderRegistry.get(provider_name)
+        # Try to call list_models if implemented
+        if hasattr(provider_cls, 'list_models'):
+            available_models = provider_cls.list_models()
+            # Expecting a list of dicts with 'name' field
+            available_names = [m["name"] for m in available_models if isinstance(m, dict) and "name" in m]
+            if model_name in available_names:
+                return True
+            else:
+                print(f"Error: Model '{model_name}' is not available for provider '{provider_name}'.")
+                print(f"Available models: {', '.join(available_names)}")
+                return False
+        else:
+            print(f"Warning: Model validation is not supported for provider '{provider_name}'. Proceeding without validation.")
+            return True
+    except Exception as e:
+        print(f"Error validating model for provider '{provider_name}': {e}")
+        return False
+
+def handle_set_model(args):
+    provider_name = getattr(args, 'provider', None)
+    if not provider_name:
+        provider_name = ProviderConfigManager().get_default_provider()
+    if not provider_name:
+        print("Error: Provider must be specified with --provider or set as default before setting a model.")
+        sys.exit(1)
+    if not validate_model_for_provider(provider_name, args.set_model):
+        sys.exit(1)
+    ProviderConfigManager().set_provider_config(provider_name, "model", args.set_model)
+    print(f"Default model for provider '{provider_name}' set to '{args.set_model}' in {{ProviderConfigManager().get_config_path()}}.")
+    sys.exit(0)
+
+def handle_list_models(args):
+    provider_name = getattr(args, 'provider', None)
+    if not provider_name:
+        provider_name = ProviderConfigManager().get_default_provider()
+    if not provider_name:
+        print("Error: Provider must be specified with --provider or set as default before listing models.")
+        sys.exit(1)
+    try:
+        from janito.providers.registry import LLMProviderRegistry
+        provider_cls = LLMProviderRegistry.get(provider_name)
+        if hasattr(provider_cls, 'list_models'):
+            models = provider_cls.list_models()
+            # If models is a list of dicts with detailed info, print as table
+            if models and isinstance(models[0], dict):
+                from rich.table import Table
+                from rich.console import Console
+                headers = ["name", "open", "context", "max_input", "max_cot", "max_response", "thinking_supported"]
+                display_headers = ["Model Name", "Vendor", "context", "max_input", "max_cot", "max_response", "Thinking"]
+                table = Table(title=f"Supported models for provider '{provider_name}'")
+                for i, h in enumerate(display_headers):
+                    justify = "right" if i == 0 else "center"
+                    table.add_column(h, style="bold", justify=justify)
+                def format_k(val):
+                    try:
+                        n = int(val)
+                        if n >= 1000:
+                            return f"{n // 1000}k"
+                        return str(n)
+                    except Exception:
+                        return str(val)
+
+                num_fields = {"context", "max_input", "max_cot", "max_response"}
+                for m in models:
+                    row = [str(m.get("name", ""))]
+                    for h in headers[1:]:
+                        v = m.get(h, "")
+                        if h in num_fields and v not in ("", "N/A"):
+                            if h in ("context", "max_input") and isinstance(v, (list, tuple)) and len(v) == 2:
+                                row.append(f"{format_k(v[0])} / {format_k(v[1])}")
+                            else:
+                                row.append(format_k(v))
+                        elif h == "open":
+                            row.append("Open" if v is True or v == "Open" else "Locked")
+                        elif h == "thinking_supported":
+                            row.append("✔" if v is True or v == "True" else "")
+                        else:
+                            row.append(str(v))
+                    table.add_row(*row)
+                console = Console()
+                console.print(table)
+            else:
+                print(f"Supported models for provider '{provider_name}':")
+                for m in models:
+                    print(f"- {m}")
+        else:
+            print(f"Provider '{provider_name}' does not support model listing.")
+    except Exception as e:
+        print(f"Error listing models for provider '{provider_name}': {e}")
+    sys.exit(0)
+
+def handle_model_selection(args):
+    if getattr(args, 'model', None):
+        provider_name = getattr(args, 'provider', None)
+        if not provider_name:
+            provider_name = ProviderConfigManager().get_default_provider()
+        if not provider_name:
+            print("Error: Provider must be specified with --provider or set as default before selecting a model.")
+            sys.exit(1)
+        if not validate_model_for_provider(provider_name, args.model):
+            sys.exit(1)
+        runtime_config.set('model', args.model)
+
 def dispatch_command(args, mgr, parser):
     if args.list_tools:
         handle_list_tools()
@@ -112,14 +224,16 @@ def main():
     parser.add_argument('--version', action='version', version=f'%(prog)s {VERSION}')
     parser.add_argument('--list-tools', action='store_true', help='List all registered tools')
     parser.add_argument('--list-providers', action='store_true', help='List all supported LLM providers')
+    parser.add_argument('-l', '--list-models', action='store_true', help='List all supported models for the current or selected provider')
     parser.add_argument('--set-api-key', nargs=2, metavar=('PROVIDER', 'API_KEY'), help='Set API key for a provider')
     parser.add_argument('--set-provider', metavar='PROVIDER', help='Set the current LLM provider (stores in ~/janito/config.json)')
-    parser.add_argument('--set-config', nargs=3, metavar=('PROVIDER', 'KEY', 'VALUE'), help='Set a provider-specific config value (e.g., thinking_budget)')
+    parser.add_argument('--set-config', nargs=3, metavar=('PROVIDER', 'KEY', 'VALUE'), help='Set a provider-specific config value')
+    parser.add_argument('--set-model', metavar='MODEL', help='Set the default model for the current or selected provider (stores in ~/janito/config.json)')
     parser.add_argument('-s', '--system', metavar='SYSTEM_PROMPT', help='Set a system prompt for the LLM agent')
     parser.add_argument('-p', '--provider', metavar='PROVIDER', help='Select the LLM provider (overrides config)')
+    parser.add_argument('-m', '--model', metavar='MODEL', help='Select the model for the provider (overrides config)')
     parser.add_argument('-v', '--verbose', action='store_true', help='Print extra information before answering')
     parser.add_argument('-r', '--raw', action='store_true', help='Print the raw JSON response from the OpenAI API (if applicable)')
-    parser.add_argument('--tb', '--thinking_budget', dest='thinking_budget', type=int, default=None, help='Set thinking_budget for this prompt (Gemini only)')
     parser.add_argument('-e', '--event-log', action='store_true', help='Log events to the console as they are published')
     parser.add_argument('user_prompt', nargs=argparse.REMAINDER, help='Prompt to submit (if no other command is used)')
 
@@ -127,7 +241,14 @@ def main():
 
     set_default_system_prompt(args)
 
-    # Instantiate RichTerminalReporter with correct raw_mode before any prompt handling
+    if getattr(args, 'set_model', None):
+        handle_set_model(args)
+
+    if getattr(args, 'list_models', False):
+        handle_list_models(args)
+
+    handle_model_selection(args)
+
     from janito.rich_terminal_reporter import RichTerminalReporter
     _rich_ui_manager = RichTerminalReporter(raw_mode=args.raw)
 

@@ -65,7 +65,7 @@ class LLMAgent:
         self.history.add_message(role, prompt)
         kwargs.pop('raw', None)
         generate_kwargs = dict(
-            prompt=prompt,
+            conversation_history=self.history,
             system_prompt=self.system_prompt,
             **kwargs
         )
@@ -73,10 +73,10 @@ class LLMAgent:
             generate_kwargs['tools'] = self.tools
         cancel_event = generate_kwargs.get('cancel_event', None)
         event_iterator = self.driver.stream_generate(**generate_kwargs)
+        from janito.driver_events import ContentPartFound
         for event in event_iterator:
             system_event_bus.publish(event)
-            # Optionally update conversation history for ContentPartFound
-            from janito.driver_events import ContentPartFound
+            # Update conversation history for ContentPartFound
             if isinstance(event, ContentPartFound):
                 self.history.add_message("assistant", event.content_part)
             yield event

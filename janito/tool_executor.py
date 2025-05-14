@@ -26,6 +26,37 @@ class ToolExecutor:
             raise ValueError("ToolExecutor requires a non-None event_bus.")
         self._event_bus = bus
 
+    def _validate_arguments_against_schema(self, arguments: dict, schema: dict):
+        """
+        Validate arguments against the provided JSON schema (OpenAI-compatible).
+        Checks required fields and basic type validation.
+        Returns error message if validation fails, else None.
+        """
+        properties = schema.get('properties', {})
+        required = schema.get('required', [])
+        # Check required fields
+        missing = [field for field in required if field not in arguments]
+        if missing:
+            return f"Missing required argument(s): {', '.join(missing)}"
+        # Type validation
+        type_map = {
+            'string': str,
+            'integer': int,
+            'number': (int, float),
+            'boolean': bool,
+            'array': list,
+            'object': dict,
+        }
+        for key, value in arguments.items():
+            if key not in properties:
+                continue  # Ignore extra fields
+            expected_type = properties[key].get('type')
+            if expected_type and expected_type in type_map:
+                if not isinstance(value, type_map[expected_type]):
+                    return f"Argument '{key}' should be of type '{expected_type}', got '{type(value).__name__}'"
+        # Optionally: add more checks (enums, min/max, etc.) here
+        return None
+
     def execute(self, tool, *args, **kwargs):
         # If the tool is a ToolBase instance, propagate the event bus
         if isinstance(tool, ToolBase):
@@ -45,6 +76,13 @@ class ToolExecutor:
             error_msg = f"Tool '{tool_name}' not found in registry."
             self._event_bus.publish(ToolCallError(tool_name=tool_name, request_id=request_id, error=error_msg, arguments=arguments))
             raise ToolCallException(tool_name, error_msg, arguments=arguments)
+        # Schema-based validation before execution
+        schema = getattr(tool, 'schema', None)
+        if schema and arguments is not None:
+            validation_error = self._validate_arguments_against_schema(arguments, schema)
+            if validation_error:
+                self._event_bus.publish(ToolCallError(tool_name=tool_name, request_id=request_id, error=validation_error, arguments=arguments))
+                return validation_error
         self._event_bus.publish(ToolCallStarted(tool_name=tool_name, request_id=request_id, arguments=arguments))
         try:
             result = self.execute(tool, *(arguments or []), **kwargs)

@@ -10,7 +10,7 @@ class ProviderConfigManager:
     """
     Manages the provider configuration file for janito.
     By default, config is stored at ~/janito/config.json.
-    Supports provider-specific configuration (e.g., thinking_budget for Gemini).
+    Supports provider-specific configuration.
     """
     def __init__(self, config_path: Optional[str] = None):
         if config_path is None:
@@ -67,12 +67,3 @@ class ProviderConfigManager:
             config['providers'][provider] = {}
         config['providers'][provider][key] = value
         self._save_config(config)
-
-    def get_thinking_budget(self, provider: str) -> int:
-        """Get the thinking_budget for a provider (default 0 if unset)."""
-        provider_config = self.get_provider_config(provider)
-        return int(provider_config.get('thinking_budget', 0))
-
-    def set_thinking_budget(self, provider: str, budget: int) -> None:
-        """Set the thinking_budget for a provider."""
-        self.set_provider_config(provider, 'thinking_budget', int(budget))
