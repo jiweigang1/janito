@@ -1,0 +1,111 @@
+"""
+Generic PromptHandler: Handles prompt submission and response formatting for janito CLI.
+Supports both one-shot and multi-prompt scenarios.
+"""
+import time
+from janito.version import __version__ as VERSION
+from janito.cli.provider_setup import setup_provider, setup_agent
+from janito.performance_collector import PerformanceCollector
+from rich.status import Status
+from rich.console import Console
+from typing import Any, Optional, Callable
+from janito.driver_events import RequestStarted, RequestFinished, RequestError
+from janito.tool_events import ToolCallError
+import threading
+
+class StatusRef:
+    def __init__(self):
+        self.status = None
+
+class PromptHandler:
+    args: Any
+    provider_name: Optional[str]
+    provider_cls: Any
+    agent: Any
+    thinking_budget: Any
+    performance_collector: PerformanceCollector
+    console: Console
+
+    def __init__(self, args: Any) -> None:
+        self.args = args
+        self.provider_name = None
+        self.provider_cls = None
+        self.agent = None
+        self.thinking_budget = None
+        self.performance_collector = PerformanceCollector()
+        self.console = Console()
+
+    def setup(self):
+        self.provider_name = setup_provider(self.args)
+        if not self.provider_name:
+            return False
+        self.provider_cls, self.thinking_budget = setup_provider(self.args, return_class=True)
+        self.agent = setup_agent(self.provider_cls, self.args, self.thinking_budget)
+        return True
+
+    def _handle_inner_event(self, inner_event, on_event, status):
+        if on_event:
+            on_event(inner_event)
+        if isinstance(inner_event, RequestFinished):
+            status.update("[bold green]Received response![/bold green]")
+            return 'break'
+        elif isinstance(inner_event, RequestError):
+            error_msg = getattr(inner_event, 'error', 'Unknown error')
+            if (
+                'Status 429' in error_msg and
+                'Service tier capacity exceeded for this model' in error_msg
+            ):
+                status.update("[yellow]Service tier capacity exceeded, retrying...[/yellow]")
+                return 'break'
+            status.update(f"[bold red]Error: {error_msg}[/bold red]")
+            self.console.print(f"[red]Error: {error_msg}[/red]")
+            return 'break'
+        elif isinstance(inner_event, ToolCallError):
+            error_msg = getattr(inner_event, 'error', 'Unknown tool error')
+            tool_name = getattr(inner_event, 'tool_name', 'unknown')
+            status.update(f"[bold red]Tool Error in '{tool_name}': {error_msg}[/bold red]")
+            self.console.print(f"[red]Tool Error in '{tool_name}': {error_msg}[/red]")
+            return 'break'
+        return None
+
+    def _process_event_iter(self, event_iter, on_event):
+        for event in event_iter:
+            if on_event:
+                on_event(event)
+            if isinstance(event, RequestStarted):
+                with Status("[bold cyan]Waiting for LLM response...[/bold cyan]", console=self.console, spinner="dots") as status:
+                    status.update("[bold cyan]Waiting for LLM response...[/bold cyan]")
+                    for inner_event in event_iter:
+                        result = self._handle_inner_event(inner_event, on_event, status)
+                        if result == 'break':
+                            break
+                # After exiting spinner, continue with next events (if any)
+            # Handle other event types outside the spinner if needed
+
+    def run_prompt(self, user_prompt: str, raw: bool = False, on_event: Optional[Callable] = None) -> None:
+        """
+        Handles a single prompt, iterating through agent events using the streaming/event-driven chat interface.
+        Optionally takes an on_event callback for custom event handling.
+        """
+        import threading
+        start_time = time.perf_counter()
+        cancel_event = threading.Event()
+        try:
+            event_iter = self.agent.chat(user_prompt, raw=raw, cancel_event=cancel_event)
+            event_iter = iter(event_iter)
+            self._process_event_iter(event_iter, on_event)
+        except KeyboardInterrupt:
+            cancel_event.set()
+            self.console.print("[red]Request cancelled.[/red]")
+            return None, None
+        end_time = time.perf_counter()
+        return start_time, end_time
+
+    def run_prompts(self, prompts: list, raw: bool = False, on_event: Optional[Callable] = None) -> None:
+        """
+        Handles multiple prompts in sequence, collecting performance data for each.
+        """
+        times = []
+        for prompt in prompts:
+            times.append(self.run_prompt(prompt, raw=raw, on_event=on_event))
+        return times

@@ -22,7 +22,7 @@ class PythonStdinRunnerTool(ToolBase):
 
     def run(self, code: str, timeout: int = 60) -> str:
         if not code.strip():
-            self.report_warning(tr("\u2139\ufe0f Empty code provided."), ReportAction.EXECUTE)
+            self.report_warning(tr("ℹ️ Empty code provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty code provided. Operation skipped.")
         self.report_info(
             tr("⚡ Running: python (stdin mode) ...\n{code}\n", code=code),
@@ -65,13 +65,13 @@ class PythonStdinRunnerTool(ToolBase):
                 stdout_file.flush()
                 stderr_file.flush()
                 self.report_success(
-                    tr("\u2705 Return code {return_code}", return_code=return_code)
+                    tr("✅ Return code {return_code}", return_code=return_code)
                 )
                 return self._format_result(
                     stdout_file.name, stderr_file.name, return_code
                 )
         except Exception as e:
-            self.report_error(tr("\u274c Error: {error}", error=e), ReportAction.RUN)
+            self.report_error(tr("❌ Error: {error}", error=e), ReportAction.RUN)
             return tr("Error running code via stdin: {error}", error=e)
 
     def _stream_process_output(self, process, stdout_file, stderr_file, code):
@@ -110,7 +110,7 @@ class PythonStdinRunnerTool(ToolBase):
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             process.kill()
-            self.report_error(tr("\u274c Timed out after {timeout} seconds.", timeout=timeout), ReportAction.RUN)
+            self.report_error(tr("❌ Timed out after {timeout} seconds.", timeout=timeout), ReportAction.RUN)
             return None
 
     def _format_result(self, stdout_file_name, stderr_file_name, return_code):

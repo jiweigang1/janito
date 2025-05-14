@@ -29,7 +29,7 @@ class RunPowerShellCommandTool(ToolBase):
         if requires_user_input:
             self.report_warning(
                 tr(
-                    "\u26a0\ufe0f  Warning: This command might be interactive, require user input, and might hang."
+                    "⚠️  Warning: This command might be interactive, require user input, and might hang."
                 ),
                 ReportAction.EXECUTE
             )
@@ -41,7 +41,7 @@ class RunPowerShellCommandTool(ToolBase):
                 )
             )
             if not confirmed:
-                self.report_warning(tr("\u26a0\ufe0f Execution cancelled by user."), ReportAction.EXECUTE)
+                self.report_warning(tr("⚠️ Execution cancelled by user."), ReportAction.EXECUTE)
                 return False
         return True
 
@@ -70,7 +70,7 @@ class RunPowerShellCommandTool(ToolBase):
         for line in stream:
             file_obj.write(line)
             file_obj.flush()
-            report_func(line)
+            report_func(line, ReportAction.EXECUTE)
             if count_func == "stdout":
                 counter["stdout"] += 1
             else:
@@ -82,7 +82,7 @@ class RunPowerShellCommandTool(ToolBase):
         warning_msg = ""
         if requires_user_input:
             warning_msg = tr(
-                "\u26a0\ufe0f  Warning: This command might be interactive, require user input, and might hang.\n"
+                "⚠️  Warning: This command might be interactive, require user input, and might hang.\n"
             )
         with open(stdout_file.name, "r", encoding="utf-8", errors="replace") as out_f:
             stdout_content = out_f.read()
@@ -128,18 +128,18 @@ class RunPowerShellCommandTool(ToolBase):
         requires_user_input: bool = False,
     ) -> str:
         if not command.strip():
-            self.report_warning(tr("\u2139\ufe0f Empty command provided."), ReportAction.EXECUTE)
+            self.report_warning(tr("ℹ️ Empty command provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty command provided. Operation skipped.")
         encoding_prefix = "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; "
         command_with_encoding = encoding_prefix + command
         self.report_info(
-            tr("\U0001f5a5\ufe0f Running PowerShell command: {command} ...\n", command=command),
+            tr("🖥️ Running PowerShell command: {command} ...\n", command=command),
             ReportAction.EXECUTE,
         )
         if not self._confirm_and_warn(
             command, require_confirmation, requires_user_input
         ):
-            return tr("\u274c Command execution cancelled by user.")
+            return tr("❌ Command execution cancelled by user.")
         from janito.platform_discovery import PlatformDiscovery
 
         pd = PlatformDiscovery()
@@ -189,7 +189,7 @@ class RunPowerShellCommandTool(ToolBase):
                     process.kill()
                     self.report_error(
                         tr(
-                            " \u274c Timed out after {timeout} seconds.",
+                            " ❌ Timed out after {timeout} seconds.",
                             timeout=timeout,
                         ),
                         ReportAction.RUN
@@ -202,14 +202,14 @@ class RunPowerShellCommandTool(ToolBase):
                 stdout_file.flush()
                 stderr_file.flush()
                 self.report_success(
-                    tr(" \u2705 return code {return_code}", return_code=return_code)
+                    tr(" ✅ return code {return_code}", return_code=return_code)
                 )
                 return self._format_result(
                     requires_user_input, return_code, stdout_file, stderr_file
                 )
         except Exception as e:
             self.report_error(
-                tr(" \u274c Error: {error}", error=e),
+                tr(" ❌ Error: {error}", error=e),
                 ReportAction.RUN
             )
             return tr("Error running command: {error}", error=e)

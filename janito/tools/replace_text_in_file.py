@@ -86,7 +86,7 @@ class ReplaceTextInFileTool(ToolBase):
                 file_path, warning, backup_path, match_info, details
             )
         except Exception as e:
-            self.report_error(tr(" \u274c Error"), ReportAction.REPLACE)
+            self.report_error(tr(" ❌ Error"), ReportAction.REPLACE)
             return tr("Error replacing text: {error}", error=e)
 
     def _read_file_content(self, file_path):
@@ -140,12 +140,12 @@ class ReplaceTextInFileTool(ToolBase):
         if replaced_count == 0:
             warning = tr(" [Warning: Search text not found in file]")
         if not file_changed:
-            self.report_warning(tr(" \u2139\ufe0f No changes made. [not found]"), ReportAction.WRITE)
+            self.report_warning(tr(" ℹ️ No changes made. [not found]"), ReportAction.WRITE)
             concise_warning = tr(
                 "No changes made. The search text was not found. Expand your search context with surrounding lines if needed."
             )
         if occurrences > 1 and replaced_count == 0:
-            self.report_warning(tr(" \u2139\ufe0f No changes made. [not unique]"), ReportAction.WRITE)
+            self.report_warning(tr(" ℹ️ No changes made. [not unique]"), ReportAction.WRITE)
             concise_warning = tr(
                 "No changes made. The search text is not unique. Expand your search context with surrounding lines to ensure uniqueness."
             )
@@ -156,10 +156,10 @@ class ReplaceTextInFileTool(ToolBase):
         if match_lines:
             lines_str = ", ".join(str(line_no) for line_no in match_lines)
             self.report_success(
-                tr(" \u2705 replaced at {lines_str}", lines_str=lines_str), ReportAction.WRITE
+                tr(" ✅ replaced at {lines_str}", lines_str=lines_str), ReportAction.WRITE
             )
         else:
-            self.report_success(tr(" \u2705 replaced (lines unknown)"), ReportAction.WRITE)
+            self.report_success(tr(" ✅ replaced (lines unknown)"), ReportAction.WRITE)
 
     def _get_line_delta_str(self, content, new_content):
         """Return a string describing the net line change after replacement."""

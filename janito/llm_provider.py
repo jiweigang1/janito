@@ -36,5 +36,5 @@ class LLMProvider(ABC):
         Returns:
             LLMAgent: An instance of LLMAgent configured with the appropriate driver.
         """
-        from janito.llm_agent import LLMAgent
+        from janito.agent.llm_agent import LLMAgent
         return LLMAgent(self.driver, agent_name=agent_name, **kwargs)

@@ -1,10 +1,13 @@
 from janito.llm_driver import LLMDriver
 from janito.conversation_history import LLMConversationHistory
 from janito.tool_registry import ToolRegistry
-from typing import Any, Optional, List, Tuple, Iterator
+import queue
+from typing import Any, Optional, List, Iterator
 import threading
-import concurrent.futures
 import logging
+
+from jinja2 import Environment, FileSystemLoader, select_autoescape
+from pathlib import Path
 
 class LLMAgent:
     _event_lock: threading.Lock
@@ -12,7 +15,8 @@ class LLMAgent:
 
     """
     Represents an agent that interacts with an LLM driver to generate responses and manage conversation state.
-    The agent's performance data (execution time, token usage, etc.) can be accessed via the get_performance_data() method or performance property.
+    Only supports streaming/event-driven chat via the chat() method, which returns an iterator of events as they are produced.
+    The chat method supports cooperative cancellation and yields events from the driver's stream_generate method.
     """
 
     def __init__(self, driver: LLMDriver, agent_name: Optional[str] = None, history: Optional[LLMConversationHistory] = None, system_prompt: Optional[str] = None, tools: Optional[List[dict]] = None, **kwargs: Any):
@@ -36,35 +40,29 @@ class LLMAgent:
     def set_system_prompt(self, prompt: str) -> None:
         self.system_prompt = prompt
 
+    def set_system_using_template(self, template_file: str, **vars) -> None:
+        template_path = Path(template_file)
+        env = Environment(
+            loader=FileSystemLoader(str(template_path.parent)),
+            autoescape=select_autoescape(["txt", "j2"]),
+        )
+        template = env.get_template(template_path.name)
+        rendered_prompt = template.render(**vars)
+        self.set_system_prompt(rendered_prompt)
+
     def get_system_prompt(self) -> Optional[str]:
         return self.system_prompt
 
-    def chat(self, prompt: str, role: str = "user", **kwargs: Any) -> str:
-        self.history.add_message(role, prompt)
-        # Remove 'raw' if present in kwargs
-        kwargs.pop('raw', None)
-        generate_kwargs = dict(
-            prompt=prompt,
-            system_prompt=self.system_prompt,
-            **kwargs
-        )
-        if self.tools:
-            generate_kwargs['tools'] = self.tools
-        response = self.driver.generate(**generate_kwargs)
-        if response is not None:
-            self.history.add_message("assistant", response)
-        return response
-
-    def chat_async(self, prompt: str, role: str = "user", **kwargs: Any) -> Iterator[Any]:
+    def chat(self, prompt: str, role: str = "user", **kwargs: Any) -> Iterator[Any]:
         """
-        Start a chat in a background thread with cooperative cancellation support.
-        Returns an iterator that yields events from the QueueEventBus as they are produced, and also publishes them to the system event bus.
-        The driver and its generate method must periodically check cancel_event.is_set() and abort if set.
+        Start a streaming chat with the LLM driver.
+        Returns an iterator that yields events from the driver's stream_generate method as they are produced.
+        Supports cooperative cancellation via a threading.Event passed as 'cancel_event' in kwargs.
+        The agent's conversation history is updated as events are received.
         """
         from janito.event_bus.queue_bus import QueueEventBus, QueueEventBusSentinel
         from janito.event_bus.bus import event_bus as system_event_bus
         self.history.add_message(role, prompt)
-        # Remove 'raw' if present in kwargs
         kwargs.pop('raw', None)
         generate_kwargs = dict(
             prompt=prompt,
@@ -73,31 +71,15 @@ class LLMAgent:
         )
         if self.tools:
             generate_kwargs['tools'] = self.tools
-        cancel_event = threading.Event()
-        event_bus = QueueEventBus()
-
-        def run_generate():
-            generate_kwargs_with_cancel = dict(generate_kwargs)
-            generate_kwargs_with_cancel['cancel_event'] = cancel_event
-            generate_kwargs_with_cancel['event_bus'] = event_bus
-            response = self.driver.generate(**generate_kwargs_with_cancel)
-            if response is not None:
-                self.history.add_message("assistant", response)
-            # Signal the end of event publishing
-            event_bus.publish(QueueEventBusSentinel())
-
-        thread = threading.Thread(target=run_generate, daemon=True)
-        thread.start()
-
-        def event_iterator():
-            while True:
-                event = event_bus.fetch_event()
-                if event is None:
-                    break
-                system_event_bus.publish(event)
-                yield event
-
-        return event_iterator()
+        cancel_event = generate_kwargs.get('cancel_event', None)
+        event_iterator = self.driver.stream_generate(**generate_kwargs)
+        for event in event_iterator:
+            system_event_bus.publish(event)
+            # Optionally update conversation history for ContentPartFound
+            from janito.driver_events import ContentPartFound
+            if isinstance(event, ContentPartFound):
+                self.history.add_message("assistant", event.content_part)
+            yield event
 
     def set_latest_event(self, event: str) -> None:
         with self._event_lock:

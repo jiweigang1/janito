@@ -5,20 +5,21 @@ from rich import print as rich_print
 from rich.align import Align
 from rich.panel import Panel
 from janito.version import __version__ as VERSION
-from janito.cli.utils import format_tokens, format_generation_time
+from janito.cli.utils import format_tokens
 
 def print_verbose_header(agent, args):
     if getattr(args, 'verbose', False):
         rich_print(Panel(Align(f"[cyan]Janito {VERSION} | Driver: {agent.driver.get_name()}[/cyan]", align="center"), style="on grey11", expand=True))
 
 def print_performance(start_time, end_time, performance_collector, args):
-    generation_time_ns = (end_time - start_time) * 1e9
-    generation_time_ms = generation_time_ns / 1e6
+    if start_time is None or end_time is None:
+        generation_time_ns = None
+    else:
+        generation_time_ns = (end_time - start_time) * 1e9
     if getattr(args, 'verbose', False):
         from rich.table import Table
         from rich.style import Style
         from rich import box
-        formatted_time = format_generation_time(generation_time_ms)
         total_requests = performance_collector.get_total_requests()
         avg_duration = performance_collector.get_average_duration()
         status_counts = performance_collector.get_status_counts()
@@ -29,7 +30,6 @@ def print_performance(start_time, end_time, performance_collector, args):
 
         left = []
         right = []
-        left.append(("[bold]Generation Time[/bold]", f"{int(generation_time_ms // 1000)}s [{int(generation_time_ms):,} ms]"))
         right.append(("[bold]Total Requests[/bold]", f"{total_requests}"))
         left.append(("[bold]Avg Duration[/bold]", f"{avg_duration:.3f}s"))
         right.append(("[bold]Status Counts[/bold]", ', '.join(f"{k}: {v}" for k, v in status_counts.items()) if status_counts else "-"))

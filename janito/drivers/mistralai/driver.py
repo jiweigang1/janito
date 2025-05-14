@@ -1,26 +1,21 @@
 """
-OpenAI LLM driver.
+MistralAI LLM driver with function calling support.
 
-This driver manages interaction with the OpenAI API, supporting both standard chat completions and tool/function calls.
-
-Event Handling:
-----------------
-When a model response contains both content and tool calls, the driver always publishes the content event (ContentPartFound) first, followed by any tool call events (ToolCallStarted, ToolCallFinished, etc.), regardless of their order in the API response. This is different from the Google Gemini driver, which preserves the original order of parts. This approach ensures that the main content is delivered before any tool execution events for downstream consumers.
+This driver manages interaction with the MistralAI API, supporting both standard chat completions and function calls.
 """
-import openai
-import json
 import time
 import uuid
-from typing import List, Optional
+import json
+from typing import Optional
 from janito.llm_driver import LLMDriver
-from janito.providers.openai.schema_generator import generate_tool_schemas
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
 )
+from janito.providers.openai.schema_generator import generate_tool_schemas
 from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 
-class OpenAIModelDriver(LLMDriver):
+class MistralAIModelDriver(LLMDriver):
     def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
         super().__init__(provider_name, model_name, api_key, tool_registry)
 
@@ -33,14 +28,17 @@ class OpenAIModelDriver(LLMDriver):
                 arguments = json.loads(arguments)
             except Exception:
                 arguments = {}
-        result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
-        tool_result_msg = {
-            "role": "tool",
-            "tool_call_id": getattr(tool_call, 'id', None),
-            "name": tool_name,
-            "content": str(result)
-        }
-        messages.append(tool_result_msg)
+        try:
+            result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
+            tool_result_msg = {
+                "role": "tool",
+                "tool_call_id": getattr(tool_call, 'id', None),
+                "name": tool_name,
+                "content": str(result)
+            }
+            messages.append(tool_result_msg)
+        except Exception:
+            pass
 
     def handle_content_part(self, content, request_id):
         self.publish(ContentPartFound, request_id, content_part=content)
@@ -52,31 +50,7 @@ class OpenAIModelDriver(LLMDriver):
                 api_kwargs['tool_choice'] = 'auto'
         api_kwargs['model'] = self.model_name
         api_kwargs['messages'] = messages
-        api_kwargs['stream'] = False
-        return client.chat.completions.create(**api_kwargs)
-
-    def _extract_usage(self, usage):
-        usage_dict = {}
-        if usage:
-            for attr in dir(usage):
-                if attr.startswith('_') or attr == '__class__':
-                    continue
-                value = getattr(usage, attr)
-                if isinstance(value, (str, int, float, bool, type(None))):
-                    usage_dict[attr] = value
-                elif isinstance(value, list):
-                    if all(isinstance(i, (str, int, float, bool, type(None))) for i in value):
-                        usage_dict[attr] = value
-        return usage_dict
-
-    def _process_tool_calls(self, tool_calls, messages, tool_executor):
-        had_function_call = False
-        for tool_call in tool_calls:
-            if self.cancel_event is not None and self.cancel_event.is_set():
-                break
-            self.handle_function_call(tool_call, messages, tool_executor)
-            had_function_call = True
-        return had_function_call
+        return client.chat.complete(**api_kwargs)
 
     def _process_generation_turn(self, client, messages, schemas, prompt, system_prompt, tools, request_id, start_time, kwargs, tool_executor):
         api_kwargs = dict(kwargs)
@@ -87,13 +61,13 @@ class OpenAIModelDriver(LLMDriver):
         })
         response = self.send_api_request(client, messages, schemas, **api_kwargs)
         duration = time.time() - start_time
-        usage_dict = self._extract_usage(getattr(response, 'usage', None))
-        self.publish(RequestFinished, request_id, response=response, duration=duration, status='success', usage=usage_dict)
+        self.publish(RequestFinished, request_id, response=response, duration=duration, status='success', usage={})
         message = response.choices[0].message
         content = message.content
-        if content is not None:
+        if content:
             self.handle_content_part(content, request_id)
         tool_calls = getattr(message, 'tool_calls', None)
+        had_function_call = False
         if tool_calls:
             assistant_msg = {
                 "role": "assistant",
@@ -101,9 +75,11 @@ class OpenAIModelDriver(LLMDriver):
                 "tool_calls": [tc.to_dict() if hasattr(tc, 'to_dict') else dict(tc.__dict__) for tc in tool_calls]
             }
             messages.append(assistant_msg)
-            had_function_call = self._process_tool_calls(tool_calls, messages, tool_executor)
-        else:
-            had_function_call = False
+            for tool_call in tool_calls:
+                if self.cancel_event is not None and self.cancel_event.is_set():
+                    break
+                self.handle_function_call(tool_call, messages, tool_executor)
+                had_function_call = True
         return had_function_call, duration
 
     def _run_generation(self, prompt: str, system_prompt: Optional[str], tools=None, **kwargs):
@@ -111,12 +87,17 @@ class OpenAIModelDriver(LLMDriver):
         tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
         try:
             self.publish(GenerationStarted, request_id, prompt=prompt)
+            from mistralai import Mistral
+            client = Mistral(api_key=self.api_key)
             schemas = generate_tool_schemas(tools) if tools else None
-            messages = []
+            conversation_history = []
             if system_prompt:
-                messages.append({"role": "system", "content": system_prompt})
-            messages.append({"role": "user", "content": prompt})
-            client = openai.OpenAI(api_key=self.api_key)
+                conversation_history.append({"role": "system", "content": system_prompt})
+            conversation_history.append({"role": "user", "content": prompt})
+            messages = conversation_history[:]
+            max_retries = 5
+            backoff_base = 1.0
+            attempt = 0
             turn_count = 0
             start_time = time.time()
             while True:
@@ -124,9 +105,31 @@ class OpenAIModelDriver(LLMDriver):
                     self.publish(RequestFinished, request_id, response=None, duration=0, status='cancelled', usage={})
                     self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
                     break
-                had_function_call, _ = self._process_generation_turn(
-                    client, messages, schemas, prompt, system_prompt, tools, request_id, start_time, kwargs, tool_executor
-                )
+                # Retry logic for 429 errors
+                while attempt <= max_retries:
+                    try:
+                        had_function_call, _ = self._process_generation_turn(
+                            client, messages, schemas, prompt, system_prompt, tools, request_id, start_time, kwargs, tool_executor
+                        )
+                        break
+                    except Exception as e:
+                        error_str = str(e)
+                        if (
+                            'Status 429' in error_str and
+                            'Service tier capacity exceeded for this model' in error_str
+                        ):
+                            self.publish(RequestError, request_id, error=error_str, exception=e)
+                            if attempt == max_retries:
+                                return
+                            sleep_time = backoff_base * (2 ** attempt)
+                            time.sleep(sleep_time)
+                            attempt += 1
+                            continue
+                        else:
+                            self.publish(RequestError, request_id, error=str(e), exception=e)
+                            return
+                else:
+                    return
                 turn_count += 1
                 if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):
                     continue

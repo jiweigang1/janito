@@ -30,16 +30,16 @@ class RunBashCommandTool(ToolBase):
         requires_user_input: bool = False,
     ) -> str:
         if not command.strip():
-            self.report_warning(tr("\u2139\ufe0f Empty command provided."), ReportAction.EXECUTE)
+            self.report_warning(tr("ℹ️ Empty command provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty command provided. Operation skipped.")
         self.report_info(
-            tr("\ud83d\udda5\ufe0f Run bash command: {command} ...\n", command=command),
+            tr("🖥️ Run bash command: {command} ...\n", command=command),
             ReportAction.EXECUTE,
         )
         if requires_user_input:
             self.report_warning(
                 tr(
-                    "\u26a0\ufe0f  Warning: This command might be interactive, require user input, and might hang."
+                    "⚠️  Warning: This command might be interactive, require user input, and might hang."
                 ),
                 ReportAction.EXECUTE
             )
@@ -74,7 +74,7 @@ class RunBashCommandTool(ToolBase):
                     process.kill()
                     self.report_error(
                         tr(
-                            " \u274c Timed out after {timeout} seconds.",
+                            " ❌ Timed out after {timeout} seconds.",
                             timeout=timeout,
                         ),
                         ReportAction.RUN
@@ -84,14 +84,14 @@ class RunBashCommandTool(ToolBase):
                     )
                 self.report_success(
                     tr(
-                        " \u2705 return code {return_code}",
+                        " ✅ return code {return_code}",
                         return_code=process.returncode,
                     )
                 )
                 warning_msg = ""
                 if requires_user_input:
                     warning_msg = tr(
-                        "\u26a0\ufe0f  Warning: This command might be interactive, require user input, and might hang.\n"
+                        "⚠️  Warning: This command might be interactive, require user input, and might hang.\n"
                     )
                 max_lines = 100
                 stdout_lines = stdout_content.count("\n")
@@ -127,7 +127,7 @@ class RunBashCommandTool(ToolBase):
                     return result
         except Exception as e:
             self.report_error(
-                tr(" \u274c Error: {error}", error=e),
+                tr(" ❌ Error: {error}", error=e),
                 ReportAction.RUN
             )
             return tr("Error running command: {error}", error=e)

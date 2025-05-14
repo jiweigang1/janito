@@ -20,7 +20,7 @@ class GetFileOutlineTool(ToolBase):
     def run(self, file_path: str) -> str:
         try:
             self.report_info(
-                tr("\ud83d\udcc4 Outline file '{disp_path}' ...", disp_path=display_path(file_path)),
+                tr("📄 Outline file '{disp_path}' ...", disp_path=display_path(file_path)),
                 ReportAction.READ,
             )
             ext = os.path.splitext(file_path)[1].lower()
@@ -32,7 +32,7 @@ class GetFileOutlineTool(ToolBase):
                 table = OutlineFormatter.format_outline_table(outline_items)
                 self.report_success(
                     tr(
-                        "\u2705 Outlined {count} {item_word}",
+                        "✅ Outlined {count} {item_word}",
                         count=len(outline_items),
                         item_word=pluralize("item", len(outline_items)),
                     ),
@@ -52,7 +52,7 @@ class GetFileOutlineTool(ToolBase):
                 table = OutlineFormatter.format_markdown_outline_table(outline_items)
                 self.report_success(
                     tr(
-                        "\u2705 Outlined {count} {item_word}",
+                        "✅ Outlined {count} {item_word}",
                         count=len(outline_items),
                         item_word=pluralize("item", len(outline_items)),
                     ),
@@ -69,7 +69,7 @@ class GetFileOutlineTool(ToolBase):
             else:
                 outline_type = "default"
                 self.report_success(
-                    tr("\u2705 Outlined {count} items", count=len(lines)),
+                    tr("✅ Outlined {count} items", count=len(lines)),
                     ReportAction.READ,
                 )
                 return tr(
@@ -79,7 +79,7 @@ class GetFileOutlineTool(ToolBase):
                 )
         except Exception as e:
             self.report_error(
-                tr("\u274c Error reading file: {error}", error=e),
+                tr("❌ Error reading file: {error}", error=e),
                 ReportAction.OUTLINE,
             )
             return tr("Error reading file: {error}", error=e)

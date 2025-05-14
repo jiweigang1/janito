@@ -51,7 +51,6 @@ class ProviderConfigManager:
         """Set API key for a provider."""
         auth_manager = LLMAuthManager()
         auth_manager.set_credentials(provider, api_key)
-        print(f"API key set for provider '{provider}'.")
 
     def get_provider_config(self, provider: str) -> dict:
         """Get config dict for a specific provider. Returns empty dict if not set."""

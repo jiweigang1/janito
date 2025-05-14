@@ -127,7 +127,7 @@ class SearchTextTool(ToolBase):
         count = sum(count for _, count in per_file_counts)
         file_word = pluralize("match", count)
         self.report_success(
-            tr(" \u2705 {count} {file_word}", count=count, file_word=file_word),
+            tr(" ✅ {count} {file_word}", count=count, file_word=file_word),
             ReportAction.READ
         )
         return info_str, dir_output, dir_limit_reached, per_file_counts

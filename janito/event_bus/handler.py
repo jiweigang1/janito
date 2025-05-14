@@ -17,8 +17,6 @@ class EventHandlerBase:
                 for module in event_modules:
                     event_class = getattr(module, event_class_name, None)
                     if event_class:
-                        if event_class_name == 'ReportEvent':
-                            pass
                         break
                 if event_class:
                     event_bus.subscribe(event_class, method)

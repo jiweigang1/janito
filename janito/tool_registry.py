@@ -1,5 +1,10 @@
 from typing import Type, Dict, Any
 
+def get_tool_schemas():
+    """Return schemas for all registered tools using the OpenAI schema generator."""
+    from janito.providers.openai.schema_generator import generate_tool_schemas
+    return generate_tool_schemas(ToolRegistry().get_tool_classes())
+
 class ToolRegistry:
     _instance = None
     _tools: Dict[str, Dict[str, Any]] = {}

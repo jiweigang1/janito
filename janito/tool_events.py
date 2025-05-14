@@ -36,3 +36,13 @@ class ToolRunError(ToolEvent):
     error: str
     exception: Exception = None
     arguments: Any = None
+
+@attr.s(auto_attribs=True, kw_only=True)
+class ToolCallError(ToolEvent):
+    """
+    Event indicating that the tool could not be called (e.g., tool not found, invalid arguments, or invocation failure).
+    This is distinct from ToolRunError, which is for errors during execution after the tool has started running.
+    """
+    error: str
+    exception: Exception = None
+    arguments: Any = None

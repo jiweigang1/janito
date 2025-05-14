@@ -61,6 +61,48 @@ def handle_user_prompt(args):
         print(result)
     return True
 
+def set_default_system_prompt(args):
+    import os
+    import sys
+    if not getattr(args, 'system', None):
+        default_system_prompt = os.path.join(
+            os.path.dirname(__file__),
+            '../agent/templates/profiles/system_prompt_template_base.txt.j2'
+        )
+        if os.path.isfile(default_system_prompt):
+            args.system = default_system_prompt
+        else:
+            # Try to find it as an installed package resource
+            try:
+                import importlib.resources as pkg_resources
+                with pkg_resources.path('janito.agent.templates.profiles', 'system_prompt_template_base.txt.j2') as pkg_path:
+                    if pkg_path.is_file():
+                        args.system = str(pkg_path)
+                    else:
+                        raise FileNotFoundError
+            except Exception:
+                print(f"Error: Default system prompt template not found in source or installed package.", file=sys.stderr)
+                sys.exit(1)
+
+def dispatch_command(args, mgr, parser):
+    if args.list_tools:
+        handle_list_tools()
+    elif args.set_api_key:
+        handle_set_api_key(args, mgr)
+    elif args.set_provider:
+        handle_set_provider(args, mgr)
+    elif args.set_config:
+        handle_set_config(args, mgr)
+    elif args.list_providers:
+        handle_list_providers()
+    elif args.user_prompt:
+        if not handle_user_prompt(args):
+            parser.print_help()
+    else:
+        # If no user prompt is provided, start the chat shell
+        from janito.cli.chat_shell import main as chat_shell_main
+        chat_shell_main()
+
 def main():
     """
     Entry point for the janito CLI.
@@ -83,27 +125,14 @@ def main():
 
     args = parser.parse_args()
 
+    set_default_system_prompt(args)
+
     # Instantiate RichTerminalReporter with correct raw_mode before any prompt handling
     from janito.rich_terminal_reporter import RichTerminalReporter
     _rich_ui_manager = RichTerminalReporter(raw_mode=args.raw)
 
-    # Dispatch table for argument handlers
     mgr = ProviderConfigManager()
-    if args.list_tools:
-        handle_list_tools()
-    elif args.set_api_key:
-        handle_set_api_key(args, mgr)
-    elif args.set_provider:
-        handle_set_provider(args, mgr)
-    elif args.set_config:
-        handle_set_config(args, mgr)
-    elif args.list_providers:
-        handle_list_providers()
-    elif args.user_prompt:
-        if not handle_user_prompt(args):
-            parser.print_help()
-    else:
-        parser.print_help()
+    dispatch_command(args, mgr, parser)
 
 if __name__ == "__main__":
     main()
