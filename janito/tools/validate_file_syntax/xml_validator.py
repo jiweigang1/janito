@@ -8,4 +8,4 @@ def validate_xml(file_path: str) -> str:
         return tr("⚠️ lxml not installed. Cannot validate XML.")
     with open(file_path, "rb") as f:
         etree.parse(f)
-    return "✅ Syntax valid"
+    return "✅ OK"

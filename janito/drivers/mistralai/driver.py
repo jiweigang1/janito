@@ -100,57 +100,63 @@ class MistralAIModelDriver(LLMDriver):
         request_id = str(uuid.uuid4())
         tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
         try:
-            if isinstance(messages_or_prompt, str):
-                self._add_to_history({"role": "user", "content": messages_or_prompt})
-            elif isinstance(messages_or_prompt, list):
-                for msg in messages_or_prompt:
-                    self._add_to_history(dict(msg))
-            if system_prompt:
-                if not self._history or self._history[0].get('role') != 'system':
-                    self._add_to_history({"role": "system", "content": system_prompt})
+            self._prepare_history(messages_or_prompt, system_prompt)
             self.publish(GenerationStarted, request_id, conversation_history=self._history)
             from mistralai import Mistral
             client = Mistral(api_key=self.api_key)
             schemas = generate_tool_schemas(tools) if tools else None
-            messages = []
-            max_retries = 5
-            backoff_base = 1.0
-            attempt = 0
-            turn_count = 0
-            while True:
-                if self.cancel_event is not None and self.cancel_event.is_set():
-                    self.publish(RequestFinished, request_id, response=None, status='cancelled', usage={})
-                    self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
-                    break
-                # Retry logic for 429 errors
-                while attempt <= max_retries:
-                    try:
-                        had_function_call, _ = self._process_generation_turn(
-                            client, messages, schemas, tools, request_id, None, kwargs, tool_executor
-                        )
-                        break
-                    except Exception as e:
-                        error_str = str(e)
-                        if (
-                            'Status 429' in error_str and
-                            'Service tier capacity exceeded for this model' in error_str
-                        ):
-                            self.publish(RequestError, request_id, error=error_str, exception=e, traceback=traceback.format_exc())
-                            if attempt == max_retries:
-                                return
-                            sleep_time = backoff_base * (2 ** attempt)
-                            time.sleep(sleep_time)
-                            attempt += 1
-                            continue
-                        else:
-                            self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
-                            return
-                else:
-                    return
-                turn_count += 1
-                if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):
-                    continue
-                self.publish(GenerationFinished, request_id, total_turns=turn_count)
-                break
+            self._run_turn_loop(client, schemas, tools, request_id, kwargs, tool_executor)
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
+
+    def _prepare_history(self, messages_or_prompt, system_prompt):
+        if isinstance(messages_or_prompt, str):
+            self._add_to_history({"role": "user", "content": messages_or_prompt})
+        elif isinstance(messages_or_prompt, list):
+            for msg in messages_or_prompt:
+                self._add_to_history(dict(msg))
+        if system_prompt:
+            if not self._history or self._history[0].get('role') != 'system':
+                self._add_to_history({"role": "system", "content": system_prompt})
+
+    def _run_turn_loop(self, client, schemas, tools, request_id, kwargs, tool_executor):
+        messages = []
+        max_retries = 5
+        backoff_base = 1.0
+        attempt = 0
+        turn_count = 0
+        while True:
+            if self.cancel_event is not None and self.cancel_event.is_set():
+                self.publish(RequestFinished, request_id, response=None, status='cancelled', usage={})
+                self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
+                break
+            # Retry logic for 429 errors
+            while attempt <= max_retries:
+                try:
+                    had_function_call, _ = self._process_generation_turn(
+                        client, messages, schemas, tools, request_id, None, kwargs, tool_executor
+                    )
+                    break
+                except Exception as e:
+                    error_str = str(e)
+                    if (
+                        'Status 429' in error_str and
+                        'Service tier capacity exceeded for this model' in error_str
+                    ):
+                        self.publish(RequestError, request_id, error=error_str, exception=e, traceback=traceback.format_exc())
+                        if attempt == max_retries:
+                            return
+                        sleep_time = backoff_base * (2 ** attempt)
+                        time.sleep(sleep_time)
+                        attempt += 1
+                        continue
+                    else:
+                        self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
+                        return
+            else:
+                return
+            turn_count += 1
+            if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):
+                continue
+            self.publish(GenerationFinished, request_id, total_turns=turn_count)
+            break

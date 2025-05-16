@@ -3,4 +3,4 @@ def validate_json(file_path: str) -> str:
 
     with open(file_path, "r", encoding="utf-8") as f:
         json.load(f)
-    return "✅ Syntax valid"
+    return "✅ OK"

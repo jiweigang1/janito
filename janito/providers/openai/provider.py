@@ -6,7 +6,7 @@ from janito.tool_registry import ToolRegistry
 from janito.providers.registry import LLMProviderRegistry
 
 class OpenAIProvider(LLMProvider):
-    DEFAULT_MODEL = "gpt-4.1"  # Options: gpt-4.1, gpt-4o, gpt-4-turbo, o3-mini, o4-mini, o4-mini-high
+    DEFAULT_MODEL = "gpt-4.1"  # Options: gpt-4.1, gpt-4o, o3-mini, o4-mini, o4-mini-high
 
     @classmethod
     def list_models(cls):
@@ -15,13 +15,43 @@ class OpenAIProvider(LLMProvider):
         """
         return [
             {
+                "name": "gpt-3.5-turbo",
+                "open": "openai",
+                "context": "16 385",
+                "max_input": "12 289",
+                "max_cot": "N/A",
+                "max_response": "4 096",
+                "thinking_supported": False,
+                "default_temp": 0.2
+            },
+            {
                 "name": "gpt-4.1",
                 "open": "openai",
                 "context": "1 047 576",
                 "max_input": "1 014 808",
                 "max_cot": "N/A",
                 "max_response": "32 768",
-                "thinking_supported": "",
+                "thinking_supported": False,
+                "default_temp": 0.2
+            },
+            {
+                "name": "gpt-4.1-mini",
+                "open": "openai",
+                "context": "1 047 576",
+                "max_input": "1 014 808",
+                "max_cot": "N/A",
+                "max_response": "32 768",
+                "thinking_supported": False,
+                "default_temp": 0.2
+            },
+            {
+                "name": "gpt-4.1-nano",
+                "open": "openai",
+                "context": "1 047 576",
+                "max_input": "1 014 808",
+                "max_cot": "N/A",
+                "max_response": "32 768",
+                "thinking_supported": False,
                 "default_temp": 0.2
             },
             {
@@ -31,17 +61,17 @@ class OpenAIProvider(LLMProvider):
                 "max_input": "123 904",
                 "max_cot": "N/A",
                 "max_response": "4 096",
-                "thinking_supported": "",
+                "thinking_supported": False,
                 "default_temp": 0.2
             },
             {
-                "name": "gpt-4-turbo",
+                "name": "gpt-4o-mini",
                 "open": "openai",
                 "context": "128 000",
-                "max_input": "123 904",
+                "max_input": "111 616",
                 "max_cot": "N/A",
-                "max_response": "4 096",
-                "thinking_supported": "",
+                "max_response": "16 384",
+                "thinking_supported": False,
                 "default_temp": 0.2
             },
             {
@@ -51,7 +81,7 @@ class OpenAIProvider(LLMProvider):
                 "max_input": "100 000",
                 "max_cot": "N/A",
                 "max_response": "100 000",
-                "thinking_supported": "Yes",
+                "thinking_supported": True,
                 "default_temp": 0.2
             },
             {
@@ -61,7 +91,7 @@ class OpenAIProvider(LLMProvider):
                 "max_input": "100 000",
                 "max_cot": "N/A",
                 "max_response": "100 000",
-                "thinking_supported": "Yes",
+                "thinking_supported": True,
                 "default_temp": 1
             },
             {
@@ -71,16 +101,18 @@ class OpenAIProvider(LLMProvider):
                 "max_input": "100 000",
                 "max_cot": "N/A",
                 "max_response": "100 000",
-                "thinking_supported": "Yes",
+                "thinking_supported": True,
                 "default_temp": 0.2
             }
         ]
 
     def __init__(self, auth_manager: LLMAuthManager = None, model_name: str = None):
+
         self.auth_manager = auth_manager or LLMAuthManager()
         self._api_key = self.auth_manager.get_credentials("openai")
         self._tool_registry = ToolRegistry()
         self._model_name = model_name if model_name else self.DEFAULT_MODEL
+
         self._driver = OpenAIModelDriver("openai", self._model_name, self._api_key, self._tool_registry)
 
     def get_model_name(self) -> str:

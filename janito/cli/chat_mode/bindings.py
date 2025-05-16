@@ -17,6 +17,12 @@ class KeyBindingsFactory:
             buf = event.app.current_buffer
             buf.text = "No"
             buf.validate_and_handle()
+        @bindings.add("f1")
+        def _(event):
+            buf = event.app.current_buffer
+            buf.text = "/restart"
+            buf.validate_and_handle()
+
         @bindings.add("f12")
         def _(event):
             buf = event.app.current_buffer

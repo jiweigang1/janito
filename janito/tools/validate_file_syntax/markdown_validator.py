@@ -106,4 +106,4 @@ def _build_markdown_result(errors):
             errors="\n".join(errors),
         )
         return msg
-    return "✅ Syntax valid"
+    return "✅ OK"

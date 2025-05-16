@@ -7,6 +7,7 @@ import os
 from rich.console import Console
 from janito.cli._termweb_log_utils import print_termweb_logs
 from janito.i18n import tr
+from janito.cli.config import get_termweb_port
 
 
 def wait_for_termweb(port, timeout=3.0):
@@ -23,9 +24,6 @@ def wait_for_termweb(port, timeout=3.0):
             pass
         time.sleep(0.1)
     return False
-
-
-from janito.cli.config import get_termweb_port
 
 def start_termweb(selected_port=None):
     """

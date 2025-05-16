@@ -26,6 +26,7 @@ class OpenAIModelDriver(LLMDriver):
         return list(getattr(self, '_history', []))
 
     def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
+
         super().__init__(provider_name, model_name, api_key, tool_registry)
 
     def _add_to_history(self, message: Dict[str, Any]):

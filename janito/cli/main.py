@@ -106,6 +106,9 @@ def handle_set_model(args):
     sys.exit(0)
 
 def handle_list_models(args):
+    """
+    List models for the specified or current provider, with better modularity for maintainability.
+    """
     provider_name = getattr(args, 'provider', None)
     if not provider_name:
         provider_name = ProviderConfigManager().get_default_provider()
@@ -113,57 +116,71 @@ def handle_list_models(args):
         print("Error: Provider must be specified with --provider or set as default before listing models.")
         sys.exit(1)
     try:
-        from janito.providers.registry import LLMProviderRegistry
-        provider_cls = LLMProviderRegistry.get(provider_name)
-        if hasattr(provider_cls, 'list_models'):
-            models = provider_cls.list_models()
-            # If models is a list of dicts with detailed info, print as table
-            if models and isinstance(models[0], dict):
-                from rich.table import Table
-                from rich.console import Console
-                headers = ["name", "open", "context", "max_input", "max_cot", "max_response", "thinking_supported"]
-                display_headers = ["Model Name", "Vendor", "context", "max_input", "max_cot", "max_response", "Thinking"]
-                table = Table(title=f"Supported models for provider '{provider_name}'")
-                for i, h in enumerate(display_headers):
-                    justify = "right" if i == 0 else "center"
-                    table.add_column(h, style="bold", justify=justify)
-                def format_k(val):
-                    try:
-                        n = int(val)
-                        if n >= 1000:
-                            return f"{n // 1000}k"
-                        return str(n)
-                    except Exception:
-                        return str(val)
-
-                num_fields = {"context", "max_input", "max_cot", "max_response"}
-                for m in models:
-                    row = [str(m.get("name", ""))]
-                    for h in headers[1:]:
-                        v = m.get(h, "")
-                        if h in num_fields and v not in ("", "N/A"):
-                            if h in ("context", "max_input") and isinstance(v, (list, tuple)) and len(v) == 2:
-                                row.append(f"{format_k(v[0])} / {format_k(v[1])}")
-                            else:
-                                row.append(format_k(v))
-                        elif h == "open":
-                            row.append("Open" if v is True or v == "Open" else "Locked")
-                        elif h == "thinking_supported":
-                            row.append("✔" if v is True or v == "True" else "")
-                        else:
-                            row.append(str(v))
-                    table.add_row(*row)
-                console = Console()
-                console.print(table)
-            else:
-                print(f"Supported models for provider '{provider_name}':")
-                for m in models:
-                    print(f"- {m}")
-        else:
-            print(f"Provider '{provider_name}' does not support model listing.")
+        _handle_list_models_try(args, provider_name)
     except Exception as e:
         print(f"Error listing models for provider '{provider_name}': {e}")
     sys.exit(0)
+
+def _handle_list_models_try(args, provider_name):
+    from janito.providers.registry import LLMProviderRegistry
+    provider_cls = LLMProviderRegistry.get(provider_name)
+    if hasattr(provider_cls, 'list_models'):
+        models = provider_cls.list_models()
+        # If models is a list of dicts with detailed info, print as table
+        if models and isinstance(models[0], dict):
+            _print_models_table(models, provider_name)
+        else:
+            print(f"Supported models for provider '{provider_name}':")
+            for m in models:
+                print(f"- {m}")
+    else:
+        print(f"Provider '{provider_name}' does not support model listing.")
+
+def _print_models_table(models, provider_name):
+    from rich.table import Table
+    from rich.console import Console
+    headers = ["name", "open", "context", "max_input", "max_cot", "max_response", "thinking_supported"]
+    display_headers = ["Model Name", "Vendor", "context", "max_input", "max_cot", "max_response", "Thinking"]
+    table = Table(title=f"Supported models for provider '{provider_name}'")
+    _add_table_columns(table, display_headers)
+    num_fields = {"context", "max_input", "max_cot", "max_response"}
+    for m in models:
+        row = [str(m.get("name", ""))]
+        row.extend(_build_model_row(m, headers, num_fields))
+        table.add_row(*row)
+    console = Console()
+    console.print(table)
+
+def _add_table_columns(table, display_headers):
+    for i, h in enumerate(display_headers):
+        justify = "right" if i == 0 else "center"
+        table.add_column(h, style="bold", justify=justify)
+
+def _format_k(val):
+    try:
+        n = int(val)
+        if n >= 1000:
+            return f"{n // 1000}k"
+        return str(n)
+    except Exception:
+        return str(val)
+
+def _build_model_row(m, headers, num_fields):
+    row = []
+    for h in headers[1:]:
+        v = m.get(h, "")
+        if h in num_fields and v not in ("", "N/A"):
+            if h in ("context", "max_input") and isinstance(v, (list, tuple)) and len(v) == 2:
+                row.append(f"{_format_k(v[0])} / {_format_k(v[1])}")
+            else:
+                row.append(_format_k(v))
+        elif h == "open":
+            row.append("Open" if v is True or v == "Open" else "Locked")
+        elif h == "thinking_supported":
+            row.append("📖" if v is True or v == "True" else "")
+        else:
+            row.append(str(v))
+    return row
 
 def handle_model_selection(args):
     if getattr(args, 'model', None):
@@ -227,15 +244,15 @@ def main():
 
     args = parser.parse_args()
 
-    set_default_system_prompt(args)
-    
-    # Update runtime_config with all relevant CLI args
+    # Update runtime_config with all relevant CLI args (MOVED UP FOR EARLY INJECTION)
     for key, rc_key in [('provider', 'provider'), ('model', 'model'), ('role', 'role'), ('temperature', 'temperature')]:
         value = getattr(args, key, None)
         if value is not None:
             runtime_config.set(rc_key, value)
     if getattr(args, 'system', None):
         runtime_config.set('system_prompt', args.system)
+
+    set_default_system_prompt(args)
 
     if getattr(args, 'set_model', None):
         handle_set_model(args)

@@ -1,6 +1,8 @@
 import http.client
 from rich.console import Console
 from janito.cli.runtime_config import runtime_config
+from janito.cli.console import shared_console
+from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
 
 def is_termweb_running(port):
@@ -12,10 +14,6 @@ def is_termweb_running(port):
         return resp.status == 200
     except Exception:
         return False
-
-
-from janito.cli.console import shared_console
-from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
 class TermwebLogTailShellHandler(ShellCmdHandler):
     help_text = "Show the last lines of the latest termweb logs"
@@ -56,7 +54,6 @@ class TermwebLogTailShellHandler(ShellCmdHandler):
                 pass
         if (not stdout_path or not stdout_lines) and (not stderr_path or not stderr_lines):
             shared_console.print("[termweb] No output or errors captured in logs.")
-
 
 def handle_termweb_status(*args, shell_state=None, **kwargs):
     if shell_state is None:

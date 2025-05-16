@@ -90,4 +90,4 @@ def _build_result_message(warnings, lxml_error):
         msg += lxml_error
     if msg:
         return msg.strip()
-    return "✅ Syntax valid"
+    return "✅ OK"

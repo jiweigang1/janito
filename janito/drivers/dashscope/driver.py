@@ -79,63 +79,68 @@ class DashScopeModelDriver(LLMDriver):
         request_id = str(uuid.uuid4())
         tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
         try:
-            # Do not clear internal history here; accumulate across turns
-            if isinstance(messages_or_prompt, str):
-                user_msg = {"role": "user", "content": messages_or_prompt}
-                self._add_to_history(user_msg)
-            elif isinstance(messages_or_prompt, list):
-                for msg in messages_or_prompt:
-                    self._add_to_history(dict(msg))
-            if system_prompt:
-                # Ensure system prompt is the first message if provided
-                if not self._history or self._history[0].get('role') != 'system':
-                    self._history.insert(0, {"role": "system", "content": system_prompt})
+            self._prepare_history(messages_or_prompt, system_prompt)
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
             schemas = generate_tool_schemas(tools) if tools else None
             turn_count = 0
             while True:
-                self.publish(RequestStarted, request_id, payload={"tools": tools})
-                enable_thinking = kwargs.get('think', False) or kwargs.get('enable_thinking', False)
-                if 'enable_thinking' in kwargs:
-                    kwargs.pop('enable_thinking')
-                messages = self.get_history()
-                response = self.send_api_request(messages, schemas, self.api_key, enable_thinking=enable_thinking, **kwargs)
-                status_code = getattr(response, 'status_code', None)
-                error_code = getattr(response, 'code', None)
-                error_message = getattr(response, 'message', None)
-                output = getattr(response, 'output', None)
-                usage = getattr(response, 'usage', {})
-
-                # Check for 4xx client errors and handle them
-                if status_code is not None and 400 <= status_code < 500:
-                    self.publish(RequestError, request_id, error=f"{error_code}: {error_message}", exception=None, traceback=None)
-                    self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
-                    break
-
-                self.publish(RequestFinished, request_id, response=response, status="success", usage=usage)
-                if not output or not hasattr(output, 'choices') or not output.choices:
-                    self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
-                    return
-                message = output.choices[0].message
-                content = message.get("content") if isinstance(message, dict) else getattr(message, "content", None)
-                if content:
-                    self.handle_content_part(content, request_id)
-                tool_calls = message.get("tool_calls") if isinstance(message, dict) else getattr(message, "tool_calls", None)
-                if tool_calls:
-                    # Prepare the assistant message and add to history first (protocol compliance)
-                    assistant_msg = {
-                        "role": "assistant",
-                        "content": content,
-                        "tool_calls": [tc.to_dict() if hasattr(tc, 'to_dict') else dict(tc) for tc in tool_calls]
-                    }
-                    self._add_to_history(assistant_msg)
-                    # Now execute tool(s) and add tool messages to history
-                    for tool_call in tool_calls:
-                        self.handle_function_call(tool_call, tool_executor)
+                if self._run_gen_turn(tools, kwargs, schemas, tool_executor, request_id, turn_count):
                     turn_count += 1
-                    continue  # Loop again for multi-turn tool use
+                    continue
                 else:
-                    self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
                     break
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
+
+    def _prepare_history(self, messages_or_prompt, system_prompt):
+        # Accumulate history across turns
+        if isinstance(messages_or_prompt, str):
+            user_msg = {"role": "user", "content": messages_or_prompt}
+            self._add_to_history(user_msg)
+        elif isinstance(messages_or_prompt, list):
+            for msg in messages_or_prompt:
+                self._add_to_history(dict(msg))
+        if system_prompt:
+            # Ensure system prompt is the first message if provided
+            if not self._history or self._history[0].get('role') != 'system':
+                self._history.insert(0, {"role": "system", "content": system_prompt})
+
+    def _run_gen_turn(self, tools, kwargs, schemas, tool_executor, request_id, turn_count):
+        self.publish(RequestStarted, request_id, payload={"tools": tools})
+        enable_thinking = kwargs.get('think', False) or kwargs.get('enable_thinking', False)
+        if 'enable_thinking' in kwargs:
+            kwargs.pop('enable_thinking')
+        messages = self.get_history()
+        response = self.send_api_request(messages, schemas, self.api_key, enable_thinking=enable_thinking, **kwargs)
+        status_code = getattr(response, 'status_code', None)
+        error_code = getattr(response, 'code', None)
+        error_message = getattr(response, 'message', None)
+        output = getattr(response, 'output', None)
+        usage = getattr(response, 'usage', {})
+
+        if status_code is not None and 400 <= status_code < 500:
+            self.publish(RequestError, request_id, error=f"{error_code}: {error_message}", exception=None, traceback=None)
+            self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
+            return False
+        self.publish(RequestFinished, request_id, response=response, status="success", usage=usage)
+        if not output or not hasattr(output, 'choices') or not output.choices:
+            self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
+            return False
+        message = output.choices[0].message
+        content = message.get("content") if isinstance(message, dict) else getattr(message, "content", None)
+        if content:
+            self.handle_content_part(content, request_id)
+        tool_calls = message.get("tool_calls") if isinstance(message, dict) else getattr(message, "tool_calls", None)
+        if tool_calls:
+            assistant_msg = {
+                "role": "assistant",
+                "content": content,
+                "tool_calls": [tc.to_dict() if hasattr(tc, 'to_dict') else dict(tc) for tc in tool_calls]
+            }
+            self._add_to_history(assistant_msg)
+            for tool_call in tool_calls:
+                self.handle_function_call(tool_call, tool_executor)
+            return True  # Loop for multi-turn tool use
+        else:
+            self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
+            return False

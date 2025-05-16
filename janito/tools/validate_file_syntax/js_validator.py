@@ -24,4 +24,4 @@ def validate_js(file_path: str) -> str:
             errors="\n".join(errors),
         )
         return msg
-    return "✅ Syntax valid"
+    return "✅ OK"

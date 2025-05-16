@@ -13,6 +13,7 @@ from janito.cli.chat_mode.bindings import KeyBindingsFactory
 from janito.cli.chat_mode.agent_setup import AgentSetup
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit import PromptSession
+from janito.cli.chat_mode.toolbar_style import toolbar_style
 from prompt_toolkit.enums import EditingMode
 
 class ChatShellState:
@@ -62,6 +63,7 @@ class ChatSession:
         )
         self.session = PromptSession(
             bottom_toolbar=toolbar_func,
+            style=toolbar_style,
             editing_mode=EditingMode.VI,
             key_bindings=self.key_bindings,
             history=self.mem_history,
@@ -85,7 +87,7 @@ class ChatSession:
                     self.toolbar_renderer.shell_state = self.shell_state
                     self.session = PromptSession(
                         bottom_toolbar=self.toolbar_renderer.render,
-                        style=self.toolbar_renderer.get_style(),
+                        style=toolbar_style,
                         editing_mode=EditingMode.VI,
                         key_bindings=self.key_bindings,
                         history=self.mem_history,

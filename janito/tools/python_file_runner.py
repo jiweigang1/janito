@@ -61,7 +61,8 @@ class PythonFileRunnerTool(ToolBase):
                 stdout_file.flush()
                 stderr_file.flush()
                 self.report_success(
-                    tr("✅ Return code {return_code}", return_code=return_code)
+                    tr("✅ Return code {return_code}", return_code=return_code),
+                    ReportAction.EXECUTE
                 )
                 return self._format_result(
                     stdout_file.name, stderr_file.name, return_code
@@ -79,7 +80,9 @@ class PythonFileRunnerTool(ToolBase):
             for line in stream:
                 file_obj.write(line)
                 file_obj.flush()
-                report_func(line.rstrip('\r\n'))
+                # Always supply a default action for stdout/stderr reporting
+                from janito.report_events import ReportAction
+                report_func(line.rstrip('\r\n'), ReportAction.EXECUTE)
                 if count_func == "stdout":
                     stdout_lines += 1
                 else:

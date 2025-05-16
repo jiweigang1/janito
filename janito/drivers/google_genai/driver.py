@@ -172,41 +172,46 @@ class GoogleGenaiModelDriver(LLMDriver):
         request_id = str(uuid.uuid4())
         tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
         try:
-            # Do not clear internal history here; accumulate across turns
-            if isinstance(messages_or_prompt, str):
-                user_msg = {"role": "user", "content": messages_or_prompt}
-                self._add_to_history(user_msg)
-            elif isinstance(messages_or_prompt, list):
-                for msg in messages_or_prompt:
-                    self._add_to_history(dict(msg))
-            if system_prompt:
-                # Ensure system prompt is the first message if provided
-                if not self._history or self._history[0].get('role') != 'system':
-                    self._history.insert(0, {"role": "system", "content": system_prompt})
+            self._prepare_history(messages_or_prompt, system_prompt)
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
             declarations = generate_tool_declarations(tools) if tools else None
             config_dict = {}
             if declarations:
                 config_dict["tools"] = declarations
-            # Use a helper to convert internal history to driver messages and extract system prompt
             conversation_contents, sys_prompt_from_history = self._conversation_history_to_driver_messages(self._history)
             if system_prompt or sys_prompt_from_history:
                 config_dict["system_instruction"] = system_prompt or sys_prompt_from_history
             config = genai_types.GenerateContentConfig(**config_dict) if config_dict else None
             client = genai.Client(api_key=self.api_key)
-            turn_count = 0
-            while True:
-                if self.cancel_event is not None and self.cancel_event.is_set():
-                    self.publish(RequestFinished, request_id, response=None, status='cancelled', usage={})
-                    self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
-                    break
-                had_function_call, _ = self._process_generation_turn(
-                    client, config, conversation_contents, tool_executor, tools, request_id, None, kwargs
-                )
-                turn_count += 1
-                if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):
-                    continue  # Continue the loop for the next model response
-                self.publish(GenerationFinished, request_id, total_turns=turn_count)
-                break
+            self._run_turn_loop(client, config, conversation_contents, tool_executor, tools, request_id, kwargs)
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
+
+    def _prepare_history(self, messages_or_prompt, system_prompt):
+        # Accumulate history across turns
+        if isinstance(messages_or_prompt, str):
+            user_msg = {"role": "user", "content": messages_or_prompt}
+            self._add_to_history(user_msg)
+        elif isinstance(messages_or_prompt, list):
+            for msg in messages_or_prompt:
+                self._add_to_history(dict(msg))
+        if system_prompt:
+            # Ensure system prompt is the first message if provided
+            if not self._history or self._history[0].get('role') != 'system':
+                self._history.insert(0, {"role": "system", "content": system_prompt})
+
+    def _run_turn_loop(self, client, config, conversation_contents, tool_executor, tools, request_id, kwargs):
+        turn_count = 0
+        while True:
+            if self.cancel_event is not None and self.cancel_event.is_set():
+                self.publish(RequestFinished, request_id, response=None, status='cancelled', usage={})
+                self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
+                break
+            had_function_call, _ = self._process_generation_turn(
+                client, config, conversation_contents, tool_executor, tools, request_id, None, kwargs
+            )
+            turn_count += 1
+            if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):
+                continue  # Continue the loop for the next model response
+            self.publish(GenerationFinished, request_id, total_turns=turn_count)
+            break

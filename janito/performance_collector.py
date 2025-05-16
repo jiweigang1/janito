@@ -10,6 +10,7 @@ class PerformanceCollector(EventHandlerBase):
     """
     Aggregates performance metrics and statistics from LLM driver and report events.
     Collects timing, token usage, status, error, turn, content part, and tool usage data.
+    Also tracks request durations.
     """
     def __init__(self):
         super().__init__(driver_events, report_events, tool_events)
@@ -23,6 +24,9 @@ class PerformanceCollector(EventHandlerBase):
         self.total_turns = 0
         self.generation_finished_count = 0
         self.content_part_count = 0
+        # Duration tracking
+        self._request_start_times = dict()  # request_id -> timestamp
+        self._durations = []  # list of elapsed times (seconds)
         # Tool stats
         self.total_tool_events = 0
         self.tool_names_counter = Counter()
@@ -35,9 +39,27 @@ class PerformanceCollector(EventHandlerBase):
 
     def on_RequestStarted(self, event):
         self._events.append(('RequestStarted', event))
+        # Store the start time if possible
+        # Assumes 'event' has a unique .request_id and a .timestamp (in seconds)
+        request_id = getattr(event, 'request_id', None)
+        timestamp = getattr(event, 'timestamp', None)
+        if request_id is not None and timestamp is not None:
+            self._request_start_times[request_id] = timestamp
 
     def on_RequestFinished(self, event):
         self._events.append(('RequestFinished', event))
+        # Calculate and record the duration if start time is available
+        request_id = getattr(event, 'request_id', None)
+        finish_time = getattr(event, 'timestamp', None)
+        if request_id is not None and finish_time is not None:
+            start_time = self._request_start_times.pop(request_id, None)
+            if start_time is not None:
+                # Ensure the duration is stored as a float (seconds)
+                delta = finish_time - start_time
+                if hasattr(delta, 'total_seconds'):
+                    self._durations.append(delta.total_seconds())
+                else:
+                    self._durations.append(float(delta))
         self.total_requests += 1
         self.status_counter[event.status] += 1
         usage = getattr(event, 'usage', None)
@@ -77,6 +99,11 @@ class PerformanceCollector(EventHandlerBase):
                 self.tool_error_messages.append(event.message)
 
     # --- Aggregated Data Accessors ---
+    def get_average_duration(self):
+        if not self._durations:
+            return 0.0
+        return sum(self._durations) / len(self._durations)
+
     def get_total_requests(self):
         return self.total_requests
 

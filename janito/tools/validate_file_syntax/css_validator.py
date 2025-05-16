@@ -32,4 +32,4 @@ def validate_css(file_path: str) -> str:
             "⚠️ Warning: CSS syntax issues found:\n{errors}", errors="\n".join(errors)
         )
         return msg
-    return "✅ Syntax valid"
+    return "✅ OK"
