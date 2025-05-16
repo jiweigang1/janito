@@ -26,7 +26,7 @@ class RunBashCommandTool(ToolBase):
         for line in stream:
             file_obj.write(line)
             file_obj.flush()
-            report_func(line, ReportAction.EXECUTE)
+            report_func(line.rstrip('\r\n'), ReportAction.EXECUTE)
             if count_func == "stdout":
                 counter["stdout"] += 1
             else:

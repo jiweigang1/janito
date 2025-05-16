@@ -1,10 +1,8 @@
 from janito.cli.runtime_config import runtime_config
-
-
-from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
+from janito.cli.console import shared_console
 
-class PromptHandler(ShellCmdHandler):
+class PromptShellHandler(ShellCmdHandler):
     help_text = "Show the system prompt"
 
     def run(self):
@@ -15,12 +13,7 @@ class PromptHandler(ShellCmdHandler):
         else:
             shared_console.print("[bold red]No LLM agent available to fetch the system prompt.[/bold red]")
 
-
-from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
-from janito.cli.console import shared_console
-from janito.cli.runtime_config import runtime_config
-
-class RoleHandler(ShellCmdHandler):
+class RoleShellHandler(ShellCmdHandler):
     help_text = "Change the system role"
 
     def run(self):
@@ -35,11 +28,7 @@ class RoleHandler(ShellCmdHandler):
             agent.set_template_var("role", new_role)
         shared_console.print(f"[bold green]System role updated to:[/bold green] {new_role}")
 
-
-from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
-from janito.cli.console import shared_console
-
-class ProfileHandler(ShellCmdHandler):
+class ProfileShellHandler(ShellCmdHandler):
     help_text = "Show the current and available Agent Profile (only 'base' is supported)"
 
     def run(self):

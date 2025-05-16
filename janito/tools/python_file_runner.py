@@ -79,7 +79,7 @@ class PythonFileRunnerTool(ToolBase):
             for line in stream:
                 file_obj.write(line)
                 file_obj.flush()
-                report_func(line)
+                report_func(line.rstrip('\r\n'))
                 if count_func == "stdout":
                     stdout_lines += 1
                 else:

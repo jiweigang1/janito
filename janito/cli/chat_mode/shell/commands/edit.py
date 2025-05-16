@@ -3,7 +3,7 @@ import webbrowser
 from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
-class EditHandler(ShellCmdHandler):
+class EditShellHandler(ShellCmdHandler):
     help_text = "Open a file in the browser-based editor"
 
     def run(self):

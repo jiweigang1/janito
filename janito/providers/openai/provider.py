@@ -6,7 +6,7 @@ from janito.tool_registry import ToolRegistry
 from janito.providers.registry import LLMProviderRegistry
 
 class OpenAIProvider(LLMProvider):
-    DEFAULT_MODEL = "gpt-4.1"
+    DEFAULT_MODEL = "gpt-4.1"  # Options: gpt-4.1, gpt-4o, gpt-4-turbo, o3-mini, o4-mini, o4-mini-high
 
     @classmethod
     def list_models(cls):
@@ -39,16 +39,6 @@ class OpenAIProvider(LLMProvider):
                 "open": "openai",
                 "context": "128 000",
                 "max_input": "123 904",
-                "max_cot": "N/A",
-                "max_response": "4 096",
-                "thinking_supported": "",
-                "default_temp": 0.2
-            },
-            {
-                "name": "gpt-4",
-                "open": "openai",
-                "context": "8 192",
-                "max_input": "4 096*",
                 "max_cot": "N/A",
                 "max_response": "4 096",
                 "thinking_supported": "",

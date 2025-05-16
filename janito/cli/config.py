@@ -64,7 +64,7 @@ class EffectiveConfig:
 CONFIG_OPTIONS = {
     "api_key": "API key for OpenAI-compatible service (required)",  # pragma: allowlist secret
     "trust": "Trust mode: suppress all console output (bool, default: False)",
-    "model": "Model name to use (e.g., 'gpt-4.1')",
+    "model": "Model name to use (e.g., 'gpt-4.1', 'gpt-4o', 'gpt-4-turbo', 'o3-mini', 'o4-mini', 'o4-mini-high')",
     "base_url": "API base URL (OpenAI-compatible endpoint)",
     "role": "Role description for the Agent Profile (e.g., 'software engineer')",
 

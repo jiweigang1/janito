@@ -8,42 +8,55 @@ import datetime
 # For example, if you have a global or singleton:
 # from janito.app_context import performance_collector as collector
 from janito.perf_singleton import performance_collector as collector
+from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
+from janito.cli.console import shared_console
+
+def _event_timestamp(event):
+    if hasattr(event, 'timestamp'):
+        try:
+            ts = float(getattr(event, 'timestamp', 0))
+            return f" [dim]{datetime.datetime.fromtimestamp(ts)}[/dim]"
+        except Exception:
+            return ""
+    return ""
+
+def _event_tool_name(event):
+    return f" [cyan]{getattr(event, 'tool_name', '')}[/cyan]" if hasattr(event, 'tool_name') else ""
+
+def _event_params(event):
+    return f" Params: {getattr(event, 'params', '')}" if hasattr(event, 'params') else ""
+
+def _event_result(event):
+    return f" Result: {getattr(event, 'result', '')}" if hasattr(event, 'result') else ""
+
+def _event_error(event):
+    return f" [red]Error: {getattr(event, 'error')}[/red]" if hasattr(event, 'error') and getattr(event, 'error', None) else ""
+
+def _event_message(event):
+    return f" [yellow]Message: {getattr(event, 'message')}[/yellow]" if hasattr(event, 'message') else ""
+
+def _event_subtype(event):
+    return f" [magenta]Subtype: {getattr(event, 'subtype')}[/magenta]" if hasattr(event, 'subtype') else ""
+
+def _event_status(event):
+    return f" [blue]Status: {getattr(event, 'status')}[/blue]" if hasattr(event, 'status') else ""
+
+def _event_duration(event):
+    return f" [green]Duration: {getattr(event, 'duration')}[/green]" if hasattr(event, 'duration') else ""
 
 def format_event(event_tuple, parent_tree=None):
     event_type, event = event_tuple
     desc = f"[bold]{event_type}[/bold]"
-    # Add timestamp if available
-    if hasattr(event, 'timestamp'):
-        try:
-            ts = float(getattr(event, 'timestamp', 0))
-            desc += f" [dim]{datetime.datetime.fromtimestamp(ts)}[/dim]"
-        except Exception:
-            pass
-    # Add tool name if available
-    if hasattr(event, 'tool_name'):
-        desc += f" [cyan]{getattr(event, 'tool_name', '')}[/cyan]"
-    # Add params if available
-    if hasattr(event, 'params'):
-        desc += f" Params: {getattr(event, 'params', '')}"
-    # Add result if available
-    if hasattr(event, 'result'):
-        desc += f" Result: {getattr(event, 'result', '')}"
-    # Add error if available
-    if hasattr(event, 'error') and getattr(event, 'error', None):
-        desc += f" [red]Error: {getattr(event, 'error')}[/red]"
-    # Add message if available
-    if hasattr(event, 'message'):
-        desc += f" [yellow]Message: {getattr(event, 'message')}[/yellow]"
-    # Add subtype if available
-    if hasattr(event, 'subtype'):
-        desc += f" [magenta]Subtype: {getattr(event, 'subtype')}[/magenta]"
-    # Add status if available
-    if hasattr(event, 'status'):
-        desc += f" [blue]Status: {getattr(event, 'status')}[/blue]"
-    # Add duration if available
-    if hasattr(event, 'duration'):
-        desc += f" [green]Duration: {getattr(event, 'duration')}[/green]"
-
+    # Modular logic for each possible component
+    desc += _event_timestamp(event)
+    desc += _event_tool_name(event)
+    desc += _event_params(event)
+    desc += _event_result(event)
+    desc += _event_error(event)
+    desc += _event_message(event)
+    desc += _event_subtype(event)
+    desc += _event_status(event)
+    desc += _event_duration(event)
     if parent_tree is not None:
         node = parent_tree.add(desc)
     else:
@@ -75,14 +88,7 @@ def drill_down_last_generation():
     console = Console()
     console.print(tree)
 
-from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
-from janito.cli.console import shared_console
-
-def drill_down_last_generation():
-    # ... (existing logic)
-    pass
-
-class LastHandler(ShellCmdHandler):
+class LastShellHandler(ShellCmdHandler):
     help_text = "Show details of the last generation, with drill-down of tool executions."
 
     def run(self):

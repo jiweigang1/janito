@@ -83,7 +83,7 @@ class PythonCommandRunnerTool(ToolBase):
                 file_obj.write(line)
                 file_obj.flush()
                 from janito.tool_base import ReportAction
-                report_func(line, ReportAction.EXECUTE)
+                report_func(line.rstrip('\r\n'), ReportAction.EXECUTE)
                 if count_func == "stdout":
                     stdout_lines += 1
                 else:

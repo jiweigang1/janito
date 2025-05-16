@@ -8,7 +8,7 @@ from rich.table import Table
 from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
-class ToolsHandler(ShellCmdHandler):
+class ToolsShellHandler(ShellCmdHandler):
     help_text = "List available tools"
 
     def run(self):

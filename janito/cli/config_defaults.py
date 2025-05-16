@@ -1,7 +1,7 @@
 # Centralized config defaults for Janito CLI
 CONFIG_DEFAULTS = {
     "api_key": None,  # Must be set by user
-    "model": "gpt-4.1",  # Default model
+    "model": "gpt-4.1",  # Default model (available: gpt-4.1, gpt-4o, gpt-4-turbo, o3-mini, o4-mini, o4-mini-high)
     "role": "software developer",  # Part of the Agent Profile
 
     "temperature": 0.2,

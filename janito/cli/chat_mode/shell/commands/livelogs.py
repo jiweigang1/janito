@@ -1,7 +1,7 @@
 from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
-class LivelogsHandler(ShellCmdHandler):
+class LivelogsShellHandler(ShellCmdHandler):
     help_text = "Show the last lines of livereload logs. Usage: /livelogs [lines]"
 
     def run(self):

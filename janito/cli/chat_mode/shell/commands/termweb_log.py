@@ -15,11 +15,9 @@ def is_termweb_running(port):
 
 
 from janito.cli.console import shared_console
-
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
-from janito.cli.console import shared_console
 
-class TermwebLogTailHandler(ShellCmdHandler):
+class TermwebLogTailShellHandler(ShellCmdHandler):
     help_text = "Show the last lines of the latest termweb logs"
 
     def run(self):

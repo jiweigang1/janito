@@ -3,7 +3,7 @@ from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 from janito.cli.console import shared_console
 
-class HistoryHandler(ShellCmdHandler):
+class HistoryShellHandler(ShellCmdHandler):
     help_text = "Show input history for this session"
 
     def run(self):

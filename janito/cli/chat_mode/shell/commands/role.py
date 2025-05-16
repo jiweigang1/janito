@@ -1,6 +1,6 @@
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
-class RoleCommand(ShellCmdHandler):
+class RoleCommandShellHandler(ShellCmdHandler):
     """Set or display the current role."""
     
     def __init__(self, shell_state, handler):

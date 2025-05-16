@@ -1,7 +1,7 @@
 from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
-class ViewHandler(ShellCmdHandler):
+class ViewShellHandler(ShellCmdHandler):
     help_text = "Print the current LLM conversation or agent driver history"
 
     def run(self):

@@ -54,7 +54,7 @@ def handle_restart(shell_state=None):
 
 handle_restart.help_text = "Start a new conversation (reset context)"
 
-class RestartHandler(ShellCmdHandler):
+class RestartShellHandler(ShellCmdHandler):
     help_text = "Start a new conversation (reset context)"
     def run(self):
         handle_restart(self.shell_state)

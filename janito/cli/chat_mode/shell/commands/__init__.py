@@ -1,31 +1,31 @@
 from .base import ShellCmdHandler
-from .edit import EditHandler
-from .history_view import ViewHandler
-from .lang import LangHandler
-from .livelogs import LivelogsHandler
-from .last import LastHandler
-from .prompt import PromptHandler, RoleHandler, ProfileHandler
-from .role import RoleCommand
-from .session import HistoryHandler
-from .termweb_log import TermwebLogTailHandler
-from .tools import ToolsHandler
-from .help import HelpHandler
+from .edit import EditShellHandler
+from .history_view import ViewShellHandler
+from .lang import LangShellHandler
+from .livelogs import LivelogsShellHandler
+from .last import LastShellHandler
+from .prompt import PromptShellHandler, RoleShellHandler, ProfileShellHandler
+from .role import RoleCommandShellHandler
+from .session import HistoryShellHandler
+from .termweb_log import TermwebLogTailShellHandler
+from .tools import ToolsShellHandler
+from .help import HelpShellHandler
 from janito.cli.console import shared_console
 
 COMMAND_HANDLERS = {
-    "/restart": __import__("janito.cli.chat_mode.shell.commands.conversation_restart", fromlist=["RestartHandler"]).RestartHandler,
-    "/edit": EditHandler,
-    "/view": ViewHandler,
-    "/lang": LangHandler,
-    "/livelogs": LivelogsHandler,
-    "/last": LastHandler,
-    "/prompt": PromptHandler,
-    "/role": RoleHandler,
-    "/profile": ProfileHandler,
-    "/history": HistoryHandler,
-    "/termweb-logs": TermwebLogTailHandler,
-    "/tools": ToolsHandler,
-    "/help": HelpHandler,
+    "/restart": __import__("janito.cli.chat_mode.shell.commands.conversation_restart", fromlist=["RestartShellHandler"]).RestartShellHandler,
+    "/edit": EditShellHandler,
+    "/view": ViewShellHandler,
+    "/lang": LangShellHandler,
+    "/livelogs": LivelogsShellHandler,
+    "/last": LastShellHandler,
+    "/prompt": PromptShellHandler,
+    "/role": RoleShellHandler,
+    "/profile": ProfileShellHandler,
+    "/history": HistoryShellHandler,
+    "/termweb-logs": TermwebLogTailShellHandler,
+    "/tools": ToolsShellHandler,
+    "/help": HelpShellHandler,
 }
 
 def handle_command(command, shell_state=None):
