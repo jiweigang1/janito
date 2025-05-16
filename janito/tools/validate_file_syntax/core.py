@@ -86,11 +86,11 @@ class ValidateFileSyntaxTool(ToolBase):
     def run(self, file_path: str) -> str:
         disp_path = display_path(file_path)
         self.report_info(
-            ReportAction.READ,
             tr(
-                "\U0001f50e Validate syntax for file '{disp_path}' ...",
+                "🔎 Validate syntax for file '{disp_path}' ...",
                 disp_path=disp_path,
             ),
+            ReportAction.READ
         )
         result = validate_file_syntax(
             file_path,

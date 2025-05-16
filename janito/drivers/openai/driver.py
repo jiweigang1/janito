@@ -12,7 +12,7 @@ import json
 import time
 import uuid
 import traceback
-from typing import Optional
+from typing import Optional, List, Dict, Any, Union
 from janito.llm_driver import LLMDriver
 from janito.providers.openai.schema_generator import generate_tool_schemas
 from janito.driver_events import (
@@ -20,65 +20,59 @@ from janito.driver_events import (
 )
 from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
-from janito.conversation_history import LLMConversationHistory
 
 class OpenAIModelDriver(LLMDriver):
-    def _conversation_history_to_driver_messages(self, conversation_history: LLMConversationHistory):
-        """
-        Convert LLMConversationHistory to OpenAI API message format.
-        """
-        raw_msgs = list(conversation_history.get_history())
-        messages = []
-        for msg in raw_msgs:
-            if msg.get("role") == "tool":
-                meta = msg.get("metadata", {})
-                # Tool call (arguments present, content is None)
-                if meta.get("arguments") is not None and msg.get("content") is None:
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": meta.get("tool_call_id"),
-                        "name": meta.get("name"),
-                        "content": None,  # OpenAI expects content for tool responses only
-                        "arguments": meta.get("arguments")
-                    })
-                # Tool response (content present)
-                elif msg.get("content") is not None:
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": meta.get("tool_call_id"),
-                        "name": meta.get("name"),
-                        "content": msg.get("content")
-                    })
-            else:
-                # user, assistant, system
-                messages.append({k: v for k, v in msg.items() if k in ("role", "content")})
-        return messages
+    def get_history(self):
+        return list(getattr(self, '_history', []))
 
     def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
         super().__init__(provider_name, model_name, api_key, tool_registry)
 
-    def handle_function_call(self, tool_call, messages, tool_executor):
+    def _add_to_history(self, message: Dict[str, Any]):
+        self._history.append(message)
+
+    def _handle_function_call(self, tool_call, tool_executor):
         func = getattr(tool_call, 'function', None)
         tool_name = getattr(func, 'name', None) if func else None
         arguments = getattr(func, 'arguments', None) if func else None
+        tool_call_id = getattr(tool_call, 'id', None)
+
+        # Explicit checks for required fields
+        if not tool_call_id:
+            raise ValueError("tool_call.id is missing or None in tool_call: {}".format(tool_call))
+        if not tool_name:
+            raise ValueError("tool_name is missing or None in tool_call: {}".format(tool_call))
+
         if isinstance(arguments, str):
             try:
                 arguments = json.loads(arguments)
             except Exception:
                 arguments = {}
-        result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
+        try:
+            result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
+            content = str(result)
+        except Exception as e:
+            content = f"Tool execution error: {e}"
         tool_result_msg = {
             "role": "tool",
-            "tool_call_id": getattr(tool_call, 'id', None),
+            "tool_call_id": tool_call_id,
             "name": tool_name,
-            "content": str(result)
+            "content": content
         }
-        messages.append(tool_result_msg)
+        self._add_to_history(tool_result_msg)
 
-    def handle_content_part(self, content, request_id):
+    def _handle_content_part(self, content, request_id):
         self.publish(ContentPartFound, request_id, content_part=content)
+        assistant_msg = {
+            "role": "assistant",
+            "content": content
+        }
+        self._add_to_history(assistant_msg)
 
-    def send_api_request(self, client, messages, schemas, **api_kwargs):
+    def _send_api_request(self, client, messages, schemas, **api_kwargs):
+        # Pass temperature from api_kwargs if present, default to 0
+        if 'temperature' not in api_kwargs:
+            pass  # Do not set temperature if not specified; use provider default
         if schemas:
             api_kwargs['tools'] = schemas
             if 'tool_choice' not in api_kwargs:
@@ -102,63 +96,101 @@ class OpenAIModelDriver(LLMDriver):
                         usage_dict[attr] = value
         return usage_dict
 
-    def _process_tool_calls(self, tool_calls, messages, tool_executor):
+    def _process_tool_calls(self, tool_calls, tool_executor):
         had_function_call = False
         for tool_call in tool_calls:
             if self.cancel_event is not None and self.cancel_event.is_set():
                 break
-            self.handle_function_call(tool_call, messages, tool_executor)
+            self._handle_function_call(tool_call, tool_executor)
             had_function_call = True
         return had_function_call
 
-    def _process_generation_turn(self, client, messages, schemas, tools, request_id, start_time, kwargs, tool_executor):
+    def _process_generation_turn(self, client, schemas, tools, request_id, start_time, kwargs, tool_executor):
         api_kwargs = dict(kwargs)
+        # Remove non-OpenAI arguments
+        api_kwargs.pop('raw', None)
         self.publish(RequestStarted, request_id, payload={
             'tools': tools
         })
-        response = self.send_api_request(client, messages, schemas, **api_kwargs)
-        duration = time.time() - start_time
+        messages = self.get_history()
+        response = self._send_api_request(client, messages, schemas, **api_kwargs)
         usage_dict = self._extract_usage(getattr(response, 'usage', None))
-        self.publish(RequestFinished, request_id, response=response, duration=duration, status='success', usage=usage_dict)
+        self.publish(RequestFinished, request_id, response=response, status='success', usage=usage_dict)
         message = response.choices[0].message
         content = message.content
         if content is not None:
-            self.handle_content_part(content, request_id)
+            self._handle_content_part(content, request_id)
         tool_calls = getattr(message, 'tool_calls', None)
         if tool_calls:
+            # Prepare the assistant message but do not add to history yet
             assistant_msg = {
                 "role": "assistant",
                 "content": content,
                 "tool_calls": [tc.to_dict() if hasattr(tc, 'to_dict') else dict(tc.__dict__) for tc in tool_calls]
             }
-            messages.append(assistant_msg)
-            had_function_call = self._process_tool_calls(tool_calls, messages, tool_executor)
+            # Execute tool(s) and collect result messages
+            tool_result_msgs = []
+            for tool_call in tool_calls:
+                func = getattr(tool_call, 'function', None)
+                tool_name = getattr(func, 'name', None) if func else None
+                arguments = getattr(func, 'arguments', None) if func else None
+                tool_call_id = getattr(tool_call, 'id', None)
+                if isinstance(arguments, str):
+                    try:
+                        arguments = json.loads(arguments)
+                    except Exception:
+                        arguments = {}
+                try:
+                    result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
+                    tool_content = str(result)
+                except Exception as e:
+                    tool_content = f"Tool execution error: {e}"
+                tool_result_msg = {
+                    "role": "tool",
+                    "tool_call_id": tool_call_id,
+                    "name": tool_name,
+                    "content": tool_content
+                }
+                tool_result_msgs.append(tool_result_msg)
+            # Now add both the assistant message and all tool result messages to history atomically
+            self._add_to_history(assistant_msg)
+            for msg in tool_result_msgs:
+                self._add_to_history(msg)
+            had_function_call = True
         else:
             had_function_call = False
-        return had_function_call, duration
+        return had_function_call, None
 
-    def _run_generation(self, conversation_history: LLMConversationHistory, system_prompt: Optional[str]=None, tools=None, **kwargs):
+    def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, **kwargs):
         """
-        Run a conversation using the provided conversation history (LLMConversationHistory).
-        The driver will not mutate the original conversation history.
+        Run a conversation using the provided messages or prompt.
+        The driver manages its own internal conversation history.
         """
         request_id = str(uuid.uuid4())
         tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
         try:
-            self.publish(GenerationStarted, request_id, conversation_history=conversation_history)
+            # Do not clear internal history here; accumulate across turns
+            if isinstance(messages_or_prompt, str):
+                user_msg = {"role": "user", "content": messages_or_prompt}
+                self._add_to_history(user_msg)
+            elif isinstance(messages_or_prompt, list):
+                for msg in messages_or_prompt:
+                    self._add_to_history(dict(msg))
+            if system_prompt:
+                # Ensure system prompt is the first message if provided
+                if not self._history or self._history[0].get('role') != 'system':
+                    self._history.insert(0, {"role": "system", "content": system_prompt})
+            self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
             schemas = generate_tool_schemas(tools) if tools else None
-            messages = self._conversation_history_to_driver_messages(conversation_history)
-
             client = openai.OpenAI(api_key=self.api_key)
             turn_count = 0
-            start_time = time.time()
             while True:
                 if self.cancel_event is not None and self.cancel_event.is_set():
-                    self.publish(RequestFinished, request_id, response=None, duration=0, status='cancelled', usage={})
+                    self.publish(RequestFinished, request_id, response=None, status='cancelled', usage={})
                     self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
                     break
                 had_function_call, _ = self._process_generation_turn(
-                    client, messages, schemas, tools, request_id, start_time, kwargs, tool_executor
+                    client, schemas, tools, request_id, None, kwargs, tool_executor
                 )
                 turn_count += 1
                 if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):

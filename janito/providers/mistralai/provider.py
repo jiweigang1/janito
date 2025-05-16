@@ -36,7 +36,7 @@ class MistralAIProvider(LLMProvider):
         ]
         fields = ["name", "context", "max_input", "max_cot", "max_response", "thinking_supported"]
         return [
-            {"name": name, "context": "N/A", "max_input": "N/A", "max_cot": "N/A", "max_response": "N/A", "thinking_supported": "N/A"}
+            {"name": name, "context": "N/A", "max_input": "N/A", "max_cot": "N/A", "max_response": "N/A", "thinking_supported": "N/A", "default_temp": 0.2}
             for name in model_names
         ]
 

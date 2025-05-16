@@ -7,14 +7,14 @@ import argparse
 import sys
 from janito.version import __version__ as VERSION
 from janito.provider_registry import list_providers, select_provider
-from janito.cli.one_shot_run.handler import PromptHandler
+from janito.cli.one_shot_mode.handler import PromptHandler
 from janito.provider_config import ProviderConfigManager
 from janito.cli.runtime_config import runtime_config
 from rich.console import Console
 from rich.pretty import Pretty
 
 def log_event_to_console(event):
-    from janito.console import shared_console
+    from janito.cli.console import shared_console
     shared_console.print(f"[EVENT] [bold cyan]{event.__class__.__name__}[/]:", Pretty(event.__dict__, expand_all=True))
 
 def handle_list_tools():
@@ -63,27 +63,8 @@ def handle_user_prompt(args):
     return True
 
 def set_default_system_prompt(args):
-    import os
-    import sys
     if not getattr(args, 'system', None):
-        default_system_prompt = os.path.join(
-            os.path.dirname(__file__),
-            '../agent/templates/profiles/system_prompt_template_base.txt.j2'
-        )
-        if os.path.isfile(default_system_prompt):
-            args.system = default_system_prompt
-        else:
-            # Try to find it as an installed package resource
-            try:
-                import importlib.resources as pkg_resources
-                with pkg_resources.path('janito.agent.templates.profiles', 'system_prompt_template_base.txt.j2') as pkg_path:
-                    if pkg_path.is_file():
-                        args.system = str(pkg_path)
-                    else:
-                        raise FileNotFoundError
-            except Exception:
-                print(f"Error: Default system prompt template not found in source or installed package.", file=sys.stderr)
-                sys.exit(1)
+        args.system = "You are an LLM agent. Respond to the user prompt as best as you can."
 
 def validate_model_for_provider(provider_name, model_name):
     """
@@ -211,15 +192,19 @@ def dispatch_command(args, mgr, parser):
         if not handle_user_prompt(args):
             parser.print_help()
     else:
-        # If no user prompt is provided, start the chat shell
-        from janito.cli.chat_shell import main as chat_shell_main
-        chat_shell_main()
+        # If no user prompt is provided, start the chat mode
+        from janito.cli.chat_mode.chat_entry import main as chat_mode_main
+        chat_mode_main()
 
 def main():
     """
     Entry point for the janito CLI.
     Parses command-line arguments and executes the corresponding actions.
     """
+    # Bootstrap runtime config with defaults
+    from janito.cli.config_defaults import bootstrap_runtime_config_from_defaults
+    bootstrap_runtime_config_from_defaults(runtime_config)
+
     parser = argparse.ArgumentParser(description="Janito CLI")
     parser.add_argument('--version', action='version', version=f'%(prog)s {VERSION}')
     parser.add_argument('--list-tools', action='store_true', help='List all registered tools')
@@ -235,11 +220,22 @@ def main():
     parser.add_argument('-v', '--verbose', action='store_true', help='Print extra information before answering')
     parser.add_argument('-r', '--raw', action='store_true', help='Print the raw JSON response from the OpenAI API (if applicable)')
     parser.add_argument('-e', '--event-log', action='store_true', help='Log events to the console as they are published')
+    parser.add_argument('-t', '--temperature', type=float, default=None, help='Temperature for the language model (default: provider default)')
+    parser.add_argument('--no-termweb', action='store_true', help='Disable the builtin lightweight web file viewer for terminal links (enabled by default)')
+    parser.add_argument('--termweb-port', type=int, default=8088, help='Port for the termweb server (default: 8088)')
     parser.add_argument('user_prompt', nargs=argparse.REMAINDER, help='Prompt to submit (if no other command is used)')
 
     args = parser.parse_args()
 
     set_default_system_prompt(args)
+    
+    # Update runtime_config with all relevant CLI args
+    for key, rc_key in [('provider', 'provider'), ('model', 'model'), ('role', 'role'), ('temperature', 'temperature')]:
+        value = getattr(args, key, None)
+        if value is not None:
+            runtime_config.set(rc_key, value)
+    if getattr(args, 'system', None):
+        runtime_config.set('system_prompt', args.system)
 
     if getattr(args, 'set_model', None):
         handle_set_model(args)
@@ -249,11 +245,32 @@ def main():
 
     handle_model_selection(args)
 
-    from janito.rich_terminal_reporter import RichTerminalReporter
+    # Validate model for provider using the canonical runtime_config
+    provider = runtime_config.get('provider')
+    model = runtime_config.get('model')
+    if provider and model:
+        if not validate_model_for_provider(provider, model):
+            print(f"[red]Error: Model '{model}' is not available for provider '{provider}'.[/red]")
+            sys.exit(1)
+
+    from janito.cli.rich_terminal_reporter import RichTerminalReporter
     _rich_ui_manager = RichTerminalReporter(raw_mode=args.raw)
 
-    mgr = ProviderConfigManager()
-    dispatch_command(args, mgr, parser)
+    try:
+        mgr = ProviderConfigManager()
+        # Only start termweb in chat mode (when no user prompt is provided)
+        if not args.user_prompt and not getattr(args, 'no_termweb', False):
+            from janito.cli.termweb_starter import start_termweb
+            from janito.cli.config import set_termweb_port, get_termweb_port
+            set_termweb_port(getattr(args, 'termweb_port', get_termweb_port()))
+            termweb_proc, started, termweb_stdout_path, termweb_stderr_path = start_termweb(get_termweb_port())
+        else:
+            termweb_proc = None
+        dispatch_command(args, mgr, parser)
+    finally:
+        if 'termweb_proc' in locals() and termweb_proc:
+            termweb_proc.terminate()
+            termweb_proc.wait()
 
 if __name__ == "__main__":
     main()

@@ -67,7 +67,7 @@ CONFIG_OPTIONS = {
     "model": "Model name to use (e.g., 'gpt-4.1')",
     "base_url": "API base URL (OpenAI-compatible endpoint)",
     "role": "Role description for the Agent Profile (e.g., 'software engineer')",
-    "system_prompt_template": "Override the entire Agent Profile prompt text",
+
     "temperature": "Sampling temperature (float, e.g., 0.0 - 2.0)",
     "max_tokens": "Maximum tokens for model response (int)",
     "use_azure_openai": "Whether to use Azure OpenAI client (default: False)",
@@ -80,3 +80,25 @@ CONFIG_OPTIONS = {
 local_config = FileConfig(Path(".janito/config.json"))
 global_config = FileConfig(Path.home() / ".janito/config.json")
 effective_config = EffectiveConfig(local_config, global_config)
+
+# Termweb port utilities
+DEFAULT_TERMWEB_PORT = 8088
+
+def get_termweb_port():
+    """
+    Get the configured port for termweb, falling back to the default if unset.
+    """
+    port = effective_config.get("termweb_port")
+    if port is None:
+        return DEFAULT_TERMWEB_PORT
+    try:
+        return int(port)
+    except Exception:
+        return DEFAULT_TERMWEB_PORT
+
+def set_termweb_port(port):
+    """
+    Set the termweb port in the local config (int or str are accepted).
+    """
+    local_config.set("termweb_port", int(port))
+    local_config.save()

@@ -5,6 +5,8 @@ import janito.report_events as report_events
 import janito.tool_events as tool_events
 
 class PerformanceCollector(EventHandlerBase):
+    _last_request_usage = None
+
     """
     Aggregates performance metrics and statistics from LLM driver and report events.
     Collects timing, token usage, status, error, turn, content part, and tool usage data.
@@ -13,7 +15,6 @@ class PerformanceCollector(EventHandlerBase):
         super().__init__(driver_events, report_events, tool_events)
         # Aggregated stats
         self.total_requests = 0
-        self.total_duration = 0.0
         self.status_counter = Counter()
         self.token_usage = defaultdict(int)  # keys: total_tokens, prompt_tokens, completion_tokens
         self.error_count = 0
@@ -38,10 +39,10 @@ class PerformanceCollector(EventHandlerBase):
     def on_RequestFinished(self, event):
         self._events.append(('RequestFinished', event))
         self.total_requests += 1
-        self.total_duration += event.duration
         self.status_counter[event.status] += 1
         usage = getattr(event, 'usage', None)
         if usage:
+            self._last_request_usage = usage.copy()
             for k, v in usage.items():
                 if isinstance(v, (int, float)):
                     self.token_usage[k] += v
@@ -78,11 +79,6 @@ class PerformanceCollector(EventHandlerBase):
     # --- Aggregated Data Accessors ---
     def get_total_requests(self):
         return self.total_requests
-
-    def get_average_duration(self):
-        if self.total_requests == 0:
-            return 0.0
-        return self.total_duration / self.total_requests
 
     def get_status_counts(self):
         return dict(self.status_counter)
@@ -128,3 +124,9 @@ class PerformanceCollector(EventHandlerBase):
 
     def get_all_events(self):
         return list(self._events)
+
+    def get_last_request_usage(self):
+        """
+        Returns the usage dict (tokens) from the most recent RequestFinished event, or None if not available.
+        """
+        return self._last_request_usage.copy() if self._last_request_usage else None

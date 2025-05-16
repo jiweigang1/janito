@@ -46,7 +46,8 @@ class RemoveDirectoryTool(ToolBase):
             else:
                 os.rmdir(file_path)
             self.report_success(
-                tr("✅ 1 {dir_word}", dir_word=pluralize("directory", 1))
+                tr("✅ 1 {dir_word}", dir_word=pluralize("directory", 1)),
+                ReportAction.WRITE
             )
             msg = tr("Directory removed: {disp_path}", disp_path=disp_path)
             if backup_zip:

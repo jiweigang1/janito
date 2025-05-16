@@ -77,7 +77,7 @@ class SearchTextTool(ToolBase):
         count_only,
     ):
         info_str = tr(
-            "\U0001f50d Search {search_type} '{pattern}' in '{disp_path}'",
+            "🔍 Search {search_type} '{pattern}' in '{disp_path}'",
             search_type=("regex" if use_regex else "text"),
             pattern=pattern,
             disp_path=display_path(search_path),

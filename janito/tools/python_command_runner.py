@@ -70,7 +70,7 @@ class PythonCommandRunnerTool(ToolBase):
                     stdout_file.name, stderr_file.name, return_code
                 )
         except Exception as e:
-            self.report_error(tr("❌ Error: {error}", error=e), ReportAction.RUN)
+            self.report_error(tr("❌ Error: {error}", error=e), ReportAction.EXECUTE)
             return tr("Error running code: {error}", error=e)
 
     def _stream_process_output(self, process, stdout_file, stderr_file):
@@ -82,7 +82,8 @@ class PythonCommandRunnerTool(ToolBase):
             for line in stream:
                 file_obj.write(line)
                 file_obj.flush()
-                report_func(line)
+                from janito.tool_base import ReportAction
+                report_func(line, ReportAction.EXECUTE)
                 if count_func == "stdout":
                     stdout_lines += 1
                 else:
@@ -107,7 +108,7 @@ class PythonCommandRunnerTool(ToolBase):
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             process.kill()
-            self.report_error(tr("❌ Timed out after {timeout} seconds.", timeout=timeout), ReportAction.RUN)
+            self.report_error(tr("❌ Timed out after {timeout} seconds.", timeout=timeout), ReportAction.EXECUTE)
             return None
 
     def _format_result(self, stdout_file_name, stderr_file_name, return_code):

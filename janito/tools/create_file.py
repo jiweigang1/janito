@@ -18,6 +18,7 @@ class CreateFileTool(ToolBase):
     Args:
         file_path (str): Path to the file to create.
         content (str): Content to write to the file.
+        overwrite (bool, optional): Overwrite existing file if True. Default: False. recommended only after reading the file to be overwritten
     Returns:
         str: Status message indicating the result. Example:
             - "✅ Successfully created the file at ..."
@@ -25,11 +26,11 @@ class CreateFileTool(ToolBase):
     Note: Syntax validation is automatically performed after this operation.
     """
 
-    def run(self, file_path: str, content: str) -> str:
+    def run(self, file_path: str, content: str, overwrite: bool = False) -> str:
         expanded_file_path = file_path  # Using file_path as is
         disp_path = display_path(expanded_file_path)
         file_path = expanded_file_path
-        if os.path.exists(file_path):
+        if os.path.exists(file_path) and not overwrite:
             try:
                 with open(file_path, "r", encoding="utf-8", errors="replace") as f:
                     existing_content = f.read()
@@ -39,6 +40,11 @@ class CreateFileTool(ToolBase):
                 "❗ Cannot create file: file already exists at '{disp_path}'.\n--- Current file content ---\n{existing_content}",
                 disp_path=disp_path,
                 existing_content=existing_content,
+            )
+        if os.path.exists(file_path) and overwrite:
+            self.report_info(
+                tr("⚠️ Overwriting file '{disp_path}' (recommended only after reading the file to be overwritten)", disp_path=disp_path),
+                ReportAction.WRITE,
             )
         dir_name = os.path.dirname(file_path)
         if dir_name:
@@ -53,7 +59,11 @@ class CreateFileTool(ToolBase):
         self.report_success(tr("✅ {new_lines} lines", new_lines=new_lines), ReportAction.WRITE)
         # Perform syntax validation and append result
         validation_result = validate_file_syntax(file_path)
+        caution_msg = ""
+        if overwrite:
+            caution_msg = "\n⚠️ File was overwritten. recommended only after reading the file to be overwritten"
         return (
             tr("✅ Created file {new_lines} lines.", new_lines=new_lines)
+            + caution_msg
             + f"\n{validation_result}"
         )

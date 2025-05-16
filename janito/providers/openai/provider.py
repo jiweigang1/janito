@@ -11,18 +11,79 @@ class OpenAIProvider(LLMProvider):
     @classmethod
     def list_models(cls):
         """
-        Return a list of supported OpenAI models with table fields ("N/A" for unknowns).
+        Return a list of supported OpenAI models with detailed fields.
         """
-        model_names = [
-            "gpt-4.1",
-            "gpt-4",
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k"
-        ]
-        fields = ["name", "context", "max_input", "max_cot", "max_response", "thinking_supported"]
         return [
-            {"name": name, "context": "N/A", "max_input": "N/A", "max_cot": "N/A", "max_response": "N/A", "thinking_supported": "N/A"}
-            for name in model_names
+            {
+                "name": "gpt-4.1",
+                "open": "openai",
+                "context": "1 047 576",
+                "max_input": "1 014 808",
+                "max_cot": "N/A",
+                "max_response": "32 768",
+                "thinking_supported": "",
+                "default_temp": 0.2
+            },
+            {
+                "name": "gpt-4o",
+                "open": "openai",
+                "context": "128 000",
+                "max_input": "123 904",
+                "max_cot": "N/A",
+                "max_response": "4 096",
+                "thinking_supported": "",
+                "default_temp": 0.2
+            },
+            {
+                "name": "gpt-4-turbo",
+                "open": "openai",
+                "context": "128 000",
+                "max_input": "123 904",
+                "max_cot": "N/A",
+                "max_response": "4 096",
+                "thinking_supported": "",
+                "default_temp": 0.2
+            },
+            {
+                "name": "gpt-4",
+                "open": "openai",
+                "context": "8 192",
+                "max_input": "4 096*",
+                "max_cot": "N/A",
+                "max_response": "4 096",
+                "thinking_supported": "",
+                "default_temp": 0.2
+            },
+            {
+                "name": "o3-mini",
+                "open": "openai",
+                "context": "200 000",
+                "max_input": "100 000",
+                "max_cot": "N/A",
+                "max_response": "100 000",
+                "thinking_supported": "Yes",
+                "default_temp": 0.2
+            },
+            {
+                "name": "o4-mini",
+                "open": "openai",
+                "context": "200 000",
+                "max_input": "100 000",
+                "max_cot": "N/A",
+                "max_response": "100 000",
+                "thinking_supported": "Yes",
+                "default_temp": 1
+            },
+            {
+                "name": "o4-mini-high",
+                "open": "openai",
+                "context": "200 000",
+                "max_input": "100 000",
+                "max_cot": "N/A",
+                "max_response": "100 000",
+                "thinking_supported": "Yes",
+                "default_temp": 0.2
+            }
         ]
 
     def __init__(self, auth_manager: LLMAuthManager = None, model_name: str = None):

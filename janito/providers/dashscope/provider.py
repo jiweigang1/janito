@@ -18,6 +18,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 8192,
             "thinking_supported": False,
             "open": False,
+            "default_temp": 0.2
         },
         "qwen-plus": {
             "context": 131072,
@@ -26,6 +27,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 8192,
             "thinking_supported": False,
             "open": False,
+            "default_temp": 0.2
         },
         "qwen-turbo": {
             "context": 1008192,
@@ -34,6 +36,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 8192,
             "thinking_supported": False,
             "open": False,
+            "default_temp": 0.2
         },
         "qwen-plus-2025-04-28": {
             "context": 131072,
@@ -42,6 +45,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 16384,
             "thinking_supported": True,
             "open": False,
+            "default_temp": 0.2
         },
         "qwen-turbo-2025-04-28": {
             "context": [1000000, 131072],
@@ -50,6 +54,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 8192,
             "thinking_supported": True,
             "open": False,
+            "default_temp": 0.2
         },
         # Detailed models
         "qwen3-235b-a22b": {
@@ -59,6 +64,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 16384,
             "thinking_supported": True,
             "open": True,
+            "default_temp": 0.2
         },
         "qwen3-32b": {
             "context": 131072,
@@ -67,6 +73,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 16384,
             "thinking_supported": True,
             "open": True,
+            "default_temp": 0.2
         },
         "qwen3-30b-a3b": {
             "context": 131072,
@@ -75,6 +82,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 16384,
             "thinking_supported": True,
             "open": True,
+            "default_temp": 0.2
         },
         "qwen3-14b": {
             "context": 131072,
@@ -83,6 +91,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 8192,
             "thinking_supported": True,
             "open": True,
+            "default_temp": 0.2
         },
         "qwen3-8b": {
             "context": 131072,
@@ -91,6 +100,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 8192,
             "thinking_supported": True,
             "open": True,
+            "default_temp": 0.2
         },
         "qwen3-4b": {
             "context": 131072,
@@ -99,6 +109,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 8192,
             "thinking_supported": True,
             "open": True,
+            "default_temp": 0.2
         },
         "qwen3-1.7b": {
             "context": 32768,
@@ -107,6 +118,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 8192,
             "thinking_supported": True,
             "open": True,
+            "default_temp": 0.2
         },
         "qwen3-0.6b": {
             "context": 30720,
@@ -115,6 +127,7 @@ class DashScopeProvider(LLMProvider):
             "max_response": 8192,
             "thinking_supported": True,
             "open": True,
+            "default_temp": 0.2
         },
     }
 
@@ -139,6 +152,8 @@ class DashScopeProvider(LLMProvider):
                     model_info[field] = val if val is not None else "N/A"
             # Add category field: 'Open' if open is True, else 'Proprietary'
             model_info["category"] = "Open" if model_info.get("open") is True else "Proprietary"
+            # Add default_temp field
+            model_info["default_temp"] = spec.get("default_temp", 0.2)
             models.append(model_info)
         return models
 
@@ -149,12 +164,12 @@ class DashScopeProvider(LLMProvider):
         """
         return cls.MODEL_SPECS.get(model_name)
 
-    def __init__(self, auth_manager: LLMAuthManager = None, model_name: str = None, think: bool = False):
+    def __init__(self, auth_manager: LLMAuthManager = None, model_name: str = None):
         self.auth_manager = auth_manager or LLMAuthManager()
         self._api_key = self.auth_manager.get_credentials("dashscope")
         self._tool_registry = ToolRegistry()
         self._model_name = model_name if model_name else self.DEFAULT_MODEL
-        self._driver = DashScopeModelDriver("dashscope", self._model_name, self._api_key, self._tool_registry, think=think)
+        self._driver = DashScopeModelDriver("dashscope", self._model_name, self._api_key, self._tool_registry)
 
     def get_model_name(self) -> str:
         return self._model_name
@@ -165,16 +180,15 @@ class DashScopeProvider(LLMProvider):
 
     def create_agent(self, agent_name: str = None, **kwargs):
         """
-        Create an LLMAgent for DashScope, supporting 'think' (enable_thinking) argument.
+        Create an Agent for DashScope.
         Args:
             agent_name (str): Optional agent name.
-            think (bool): If True, enables thinking mode (DashScope only).
             **kwargs: Additional parameters for the agent.
         Returns:
-            LLMAgent: An instance of LLMAgent configured with the appropriate driver.
+            Agent: An instance of Agent configured with the appropriate driver.
         """
-        from janito.agent.llm_agent import LLMAgent
-        return LLMAgent(self.driver, agent_name=agent_name, **kwargs)
+        from janito.agent.agent import Agent
+        return Agent(self.driver, agent_name=agent_name, **kwargs)
 
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
         executor = ToolExecutor(registry=self._tool_registry, event_bus=event_bus)

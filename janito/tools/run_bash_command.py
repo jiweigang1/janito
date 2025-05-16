@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 import sys
 import os
-
+import threading
 
 @register_tool(name="run_bash_command")
 class RunBashCommandTool(ToolBase):
@@ -21,6 +21,16 @@ class RunBashCommandTool(ToolBase):
     Returns:
         str: File paths and line counts for stdout and stderr.
     """
+
+    def _stream_output(self, stream, file_obj, report_func, count_func, counter):
+        for line in stream:
+            file_obj.write(line)
+            file_obj.flush()
+            report_func(line, ReportAction.EXECUTE)
+            if count_func == "stdout":
+                counter["stdout"] += 1
+            else:
+                counter["stderr"] += 1
 
     def run(
         self,
@@ -66,10 +76,31 @@ class RunBashCommandTool(ToolBase):
                     bufsize=1,
                     env=env,
                 )
+                counter = {"stdout": 0, "stderr": 0}
+                stdout_thread = threading.Thread(
+                    target=self._stream_output,
+                    args=(
+                        process.stdout,
+                        stdout_file,
+                        self.report_stdout,
+                        "stdout",
+                        counter,
+                    ),
+                )
+                stderr_thread = threading.Thread(
+                    target=self._stream_output,
+                    args=(
+                        process.stderr,
+                        stderr_file,
+                        self.report_stderr,
+                        "stderr",
+                        counter,
+                    ),
+                )
+                stdout_thread.start()
+                stderr_thread.start()
                 try:
-                    stdout_content, stderr_content = process.communicate(
-                        timeout=timeout
-                    )
+                    return_code = process.wait(timeout=timeout)
                 except subprocess.TimeoutExpired:
                     process.kill()
                     self.report_error(
@@ -77,29 +108,39 @@ class RunBashCommandTool(ToolBase):
                             " ❌ Timed out after {timeout} seconds.",
                             timeout=timeout,
                         ),
-                        ReportAction.RUN
+                        ReportAction.EXECUTE
                     )
                     return tr(
                         "Command timed out after {timeout} seconds.", timeout=timeout
                     )
+                stdout_thread.join()
+                stderr_thread.join()
+                stdout_file.flush()
+                stderr_file.flush()
                 self.report_success(
                     tr(
                         " ✅ return code {return_code}",
-                        return_code=process.returncode,
-                    )
+                        return_code=return_code,
+                    ),
+                    ReportAction.EXECUTE
                 )
+                max_lines = 100
+                # Read back the output for summary
+                stdout_file.seek(0)
+                stderr_file.seek(0)
+                stdout_content = stdout_file.read()
+                stderr_content = stderr_file.read()
+                stdout_lines = counter["stdout"]
+                stderr_lines = counter["stderr"]
                 warning_msg = ""
                 if requires_user_input:
                     warning_msg = tr(
                         "⚠️  Warning: This command might be interactive, require user input, and might hang.\n"
                     )
-                max_lines = 100
-                stdout_lines = stdout_content.count("\n")
-                stderr_lines = stderr_content.count("\n")
                 if stdout_lines <= max_lines and stderr_lines <= max_lines:
                     result = warning_msg + tr(
                         "Return code: {return_code}\n--- STDOUT ---\n{stdout_content}",
-                        return_code=process.returncode,
+                        return_code=return_code,
                         stdout_content=stdout_content,
                     )
                     if stderr_content.strip():
@@ -122,12 +163,12 @@ class RunBashCommandTool(ToolBase):
                         )
                     result += tr(
                         "returncode: {return_code}\nUse the get_lines tool to inspect the contents of these files when needed.",
-                        return_code=process.returncode,
+                        return_code=return_code,
                     )
                     return result
         except Exception as e:
             self.report_error(
                 tr(" ❌ Error: {error}", error=e),
-                ReportAction.RUN
+                ReportAction.EXECUTE
             )
             return tr("Error running command: {error}", error=e)

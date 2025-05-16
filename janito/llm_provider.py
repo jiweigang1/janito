@@ -29,12 +29,12 @@ class LLMProvider(ABC):
 
     def create_agent(self, agent_name: str = None, **kwargs):
         """
-        Factory method to create an LLMAgent using the provider's intrinsic driver.
+        Factory method to create an Agent using the provider's intrinsic driver.
         Args:
             agent_name (str): Optional agent name.
             **kwargs: Additional parameters for the agent.
         Returns:
-            LLMAgent: An instance of LLMAgent configured with the appropriate driver.
+            Agent: An instance of Agent configured with the appropriate driver.
         """
-        from janito.agent.llm_agent import LLMAgent
-        return LLMAgent(self.driver, agent_name=agent_name, **kwargs)
+        from janito.agent.agent import Agent
+        return Agent(self.driver, agent_name=agent_name, **kwargs)

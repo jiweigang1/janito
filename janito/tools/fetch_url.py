@@ -96,6 +96,7 @@ class FetchUrlTool(ToolBase):
                 "✅ {num_lines} {line_word}",
                 num_lines=num_lines,
                 line_word=pluralize("line", num_lines),
-            )
+            ),
+            ReportAction.READ
         )
         return text

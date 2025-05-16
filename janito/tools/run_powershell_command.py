@@ -192,7 +192,7 @@ class RunPowerShellCommandTool(ToolBase):
                             " ❌ Timed out after {timeout} seconds.",
                             timeout=timeout,
                         ),
-                        ReportAction.RUN
+                        ReportAction.EXECUTE
                     )
                     return tr(
                         "Command timed out after {timeout} seconds.", timeout=timeout
@@ -202,7 +202,8 @@ class RunPowerShellCommandTool(ToolBase):
                 stdout_file.flush()
                 stderr_file.flush()
                 self.report_success(
-                    tr(" ✅ return code {return_code}", return_code=return_code)
+                    tr(" ✅ return code {return_code}", return_code=return_code),
+                    ReportAction.EXECUTE
                 )
                 return self._format_result(
                     requires_user_input, return_code, stdout_file, stderr_file
@@ -210,6 +211,6 @@ class RunPowerShellCommandTool(ToolBase):
         except Exception as e:
             self.report_error(
                 tr(" ❌ Error: {error}", error=e),
-                ReportAction.RUN
+                ReportAction.EXECUTE
             )
             return tr("Error running command: {error}", error=e)

@@ -1,13 +1,17 @@
 """
-MistralAI LLM driver with function calling support.
+MistralAI LLM driver.
 
-This driver manages interaction with the MistralAI API, supporting both standard chat completions and function calls.
+This driver manages interaction with the MistralAI API, supporting both standard chat completions and tool/function calls.
+
+Event Handling:
+----------------
+When a model response contains both content and tool calls, the driver always publishes the content event (ContentPartFound) first, followed by any tool call events, regardless of their order in the API response. This ensures that the main content is delivered before any tool execution events for downstream consumers.
 """
 import time
 import uuid
 import traceback
 import json
-from typing import Optional
+from typing import Optional, List, Dict, Any, Union
 from janito.llm_driver import LLMDriver
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
@@ -15,44 +19,19 @@ from janito.driver_events import (
 from janito.providers.openai.schema_generator import generate_tool_schemas
 from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
-from janito.conversation_history import LLMConversationHistory
 
 class MistralAIModelDriver(LLMDriver):
-    def _conversation_history_to_driver_messages(self, conversation_history: LLMConversationHistory):
-        """
-        Convert LLMConversationHistory to Mistral API message format.
-        """
-        raw_msgs = list(conversation_history.get_history())
-        messages = []
-        for msg in raw_msgs:
-            if msg.get("role") == "tool":
-                meta = msg.get("metadata", {})
-                # Tool call (arguments present, content is None)
-                if meta.get("arguments") is not None and msg.get("content") is None:
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": meta.get("tool_call_id"),
-                        "name": meta.get("name"),
-                        "content": None,  # Mistral expects content for tool responses only
-                        "arguments": meta.get("arguments")
-                    })
-                # Tool response (content present)
-                elif msg.get("content") is not None:
-                    messages.append({
-                        "role": "tool",
-                        "tool_call_id": meta.get("tool_call_id"),
-                        "name": meta.get("name"),
-                        "content": msg.get("content")
-                    })
-            else:
-                # user, assistant, system
-                messages.append({k: v for k, v in msg.items() if k in ("role", "content")})
-        return messages
+    def get_history(self):
+        return list(getattr(self, '_history', []))
 
     def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
         super().__init__(provider_name, model_name, api_key, tool_registry)
+        self._history = []
 
-    def handle_function_call(self, tool_call, messages, tool_executor):
+    def _add_to_history(self, message: dict):
+        self._history.append(message)
+
+    def handle_function_call(self, tool_call, tool_executor):
         func = getattr(tool_call, 'function', None)
         tool_name = getattr(func, 'name', None) if func else None
         arguments = getattr(func, 'arguments', None) if func else None
@@ -63,18 +42,20 @@ class MistralAIModelDriver(LLMDriver):
                 arguments = {}
         try:
             result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
-            tool_result_msg = {
-                "role": "tool",
-                "tool_call_id": getattr(tool_call, 'id', None),
-                "name": tool_name,
-                "content": str(result)
-            }
-            messages.append(tool_result_msg)
-        except Exception:
-            pass
+            content = str(result)
+        except Exception as e:
+            content = f"Tool execution error: {e}"
+        tool_result_msg = {
+            "role": "tool",
+            "tool_call_id": getattr(tool_call, 'id', None),
+            "name": tool_name,
+            "content": content
+        }
+        self._add_to_history(tool_result_msg)
 
     def handle_content_part(self, content, request_id):
         self.publish(ContentPartFound, request_id, content_part=content)
+        self._add_to_history({"role": "assistant", "content": content})
 
     def send_api_request(self, client, messages, schemas, **api_kwargs):
         if schemas:
@@ -91,8 +72,7 @@ class MistralAIModelDriver(LLMDriver):
             'tools': tools
         })
         response = self.send_api_request(client, messages, schemas, **api_kwargs)
-        duration = time.time() - start_time
-        self.publish(RequestFinished, request_id, response=response, duration=duration, status='success', usage={})
+        self.publish(RequestFinished, request_id, response=response, status='success', usage={})
         message = response.choices[0].message
         content = message.content
         if content:
@@ -100,48 +80,53 @@ class MistralAIModelDriver(LLMDriver):
         tool_calls = getattr(message, 'tool_calls', None)
         had_function_call = False
         if tool_calls:
+            # Prepare the assistant message but do not add to history yet
             assistant_msg = {
                 "role": "assistant",
                 "content": content,
                 "tool_calls": [tc.to_dict() if hasattr(tc, 'to_dict') else dict(tc.__dict__) for tc in tool_calls]
             }
-            messages.append(assistant_msg)
+            # Execute tool(s) and collect result messages
             for tool_call in tool_calls:
                 if self.cancel_event is not None and self.cancel_event.is_set():
                     break
-                self.handle_function_call(tool_call, messages, tool_executor)
+                self.handle_function_call(tool_call, tool_executor)
                 had_function_call = True
-        return had_function_call, duration
+            # Now add the assistant message to history after all tool results are available
+            self._add_to_history(assistant_msg)
+        return had_function_call, None
 
-    def _run_generation(self, conversation_history: LLMConversationHistory, system_prompt: Optional[str]=None, tools=None, **kwargs):
-        """
-        Run a conversation using the provided conversation history (LLMConversationHistory).
-        The driver will not mutate the original conversation history.
-        """
+    def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, **kwargs):
         request_id = str(uuid.uuid4())
         tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
         try:
-            self.publish(GenerationStarted, request_id, conversation_history=conversation_history)
+            if isinstance(messages_or_prompt, str):
+                self._add_to_history({"role": "user", "content": messages_or_prompt})
+            elif isinstance(messages_or_prompt, list):
+                for msg in messages_or_prompt:
+                    self._add_to_history(dict(msg))
+            if system_prompt:
+                if not self._history or self._history[0].get('role') != 'system':
+                    self._add_to_history({"role": "system", "content": system_prompt})
+            self.publish(GenerationStarted, request_id, conversation_history=self._history)
             from mistralai import Mistral
             client = Mistral(api_key=self.api_key)
             schemas = generate_tool_schemas(tools) if tools else None
-            messages = self._conversation_history_to_driver_messages(conversation_history)
-
+            messages = []
             max_retries = 5
             backoff_base = 1.0
             attempt = 0
             turn_count = 0
-            start_time = time.time()
             while True:
                 if self.cancel_event is not None and self.cancel_event.is_set():
-                    self.publish(RequestFinished, request_id, response=None, duration=0, status='cancelled', usage={})
+                    self.publish(RequestFinished, request_id, response=None, status='cancelled', usage={})
                     self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
                     break
                 # Retry logic for 429 errors
                 while attempt <= max_retries:
                     try:
                         had_function_call, _ = self._process_generation_turn(
-                            client, messages, schemas, tools, request_id, start_time, kwargs, tool_executor
+                            client, messages, schemas, tools, request_id, None, kwargs, tool_executor
                         )
                         break
                     except Exception as e:

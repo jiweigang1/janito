@@ -41,11 +41,10 @@ class RequestStarted(DriverEvent):
 class RequestFinished(DriverEvent):
     """
     Event indicating that a request has completed.
-    Contains the response, duration, and status (e.g., success or failure).
+    Contains the response and status (e.g., success or failure).
     This event may be emitted multiple times if the system retries a request due to errors or failures before a final response is received.
     """
     response: Any
-    duration: float
     status: str
     usage: dict = None
 

@@ -4,7 +4,7 @@ from janito.tool_registry import register_tool
 from janito.i18n import tr
 import shutil
 import re
-
+from janito.tools.validate_file_syntax.core import validate_file_syntax
 
 @register_tool(name="replace_text_in_file")
 class ReplaceTextInFileTool(ToolBase):
@@ -63,8 +63,11 @@ class ReplaceTextInFileTool(ToolBase):
             backup_path = file_path + ".bak"
             if backup and file_changed:
                 self._backup_file(file_path, backup_path)
+            validation_result = ""
             if file_changed:
                 self._write_file_content(file_path, new_content)
+                # Perform syntax validation and append result
+                validation_result = validate_file_syntax(file_path)
             warning, concise_warning = self._handle_warnings(
                 replaced_count, file_changed, occurrences
             )
@@ -84,7 +87,7 @@ class ReplaceTextInFileTool(ToolBase):
             )
             return self._format_final_msg(
                 file_path, warning, backup_path, match_info, details
-            )
+            ) + (f"\n{validation_result}" if validation_result else "")
         except Exception as e:
             self.report_error(tr(" ❌ Error"), ReportAction.REPLACE)
             return tr("Error replacing text: {error}", error=e)
@@ -186,7 +189,7 @@ class ReplaceTextInFileTool(ToolBase):
         """Format the info message for the operation."""
         if replace_lines == 0:
             return tr(
-                "[35m📝 Replace in {disp_path} del {search_lines} lines {action}",
+                "📝 Replace in {disp_path} del {search_lines} lines {action}",
                 disp_path=disp_path,
                 search_lines=search_lines,
                 action=action,
@@ -210,7 +213,7 @@ class ReplaceTextInFileTool(ToolBase):
             else:
                 delta_str = "+0"
             return tr(
-                "[35m📝 Replace in {disp_path} {delta_str} {action}",
+                "📝 Replace in {disp_path} {delta_str} {action}",
                 disp_path=disp_path,
                 delta_str=delta_str,
                 action=action,

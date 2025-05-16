@@ -9,12 +9,22 @@ class ToolExecutor:
     Handles input, output, and error management for tool execution.
     Integrates with ToolRegistry to resolve and execute tools by name.
     Emits events for tool execution lifecycle using the provided event_bus (must be explicitly passed).
+    Optionally enforces a per-executor allow-list (allowed_tools), restricting which tool names can be executed:
+      - If allowed_tools is not None, only tool names present in this list can be executed; others are rejected.
     """
-    def __init__(self, registry: ToolRegistry = None, event_bus=None):
+
+    """
+    Responsible for executing tools (functions, scripts, etc.) within the janito framework.
+    Handles input, output, and error management for tool execution.
+    Integrates with ToolRegistry to resolve and execute tools by name.
+    Emits events for tool execution lifecycle using the provided event_bus (must be explicitly passed).
+    """
+    def __init__(self, registry: ToolRegistry = None, event_bus=None, allowed_tools: list = None):
         if event_bus is None:
             raise ValueError("ToolExecutor requires an event_bus to be provided.")
         self.registry = registry or ToolRegistry()
         self._event_bus = event_bus
+        self._allowed_tools = set(allowed_tools) if allowed_tools is not None else None
 
     @property
     def event_bus(self):
@@ -71,6 +81,12 @@ class ToolExecutor:
             raise ValueError("Provided tool is not executable.")
 
     def execute_by_name(self, tool_name: str, *args, request_id=None, arguments=None, **kwargs):
+        # Restrict execution to allowed tools if enforced
+        if self._allowed_tools is not None and tool_name not in self._allowed_tools:
+            error_msg = f"Tool '{tool_name}' is not permitted by executor allow-list."
+            self._event_bus.publish(ToolCallError(tool_name=tool_name, request_id=request_id, error=error_msg, arguments=arguments))
+            raise ToolCallException(tool_name, error_msg, arguments=arguments)
+
         tool = self.registry.get_tool(tool_name)
         if tool is None:
             error_msg = f"Tool '{tool_name}' not found in registry."

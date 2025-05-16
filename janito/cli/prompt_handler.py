@@ -25,12 +25,20 @@ class PromptHandler:
     performance_collector: PerformanceCollector
     console: Console
 
-    def __init__(self, args: Any) -> None:
+    def __init__(self, args: Any, conversation_history) -> None:
+        self.temperature = getattr(args, 'temperature', None)
+        """
+        Initialize PromptHandler.
+        :param args: CLI or programmatic arguments for provider/model selection, etc.
+        :param conversation_history: LLMConversationHistory object for multi-turn chat mode.
+        """
         self.args = args
+        self.conversation_history = conversation_history
         self.provider_name = None
         self.provider_cls = None
         self.agent = None
-        self.performance_collector = PerformanceCollector()
+        from janito.perf_singleton import performance_collector
+        self.performance_collector = performance_collector
         self.console = Console()
 
     def setup(self):
@@ -38,7 +46,8 @@ class PromptHandler:
         if not self.provider_name:
             return False
         self.provider_cls = setup_provider(self.args, return_class=True)[0]
-        self.agent = setup_agent(self.provider_cls, self.args)
+        # Former agent instantiation removed (single agent pattern!)
+        # System prompt template setting is handled after agent creation in ChatSession
         return True
 
     def _handle_inner_event(self, inner_event, on_event, status):
@@ -64,6 +73,9 @@ class PromptHandler:
             status.update(f"[bold red]Tool Error in '{tool_name}': {error_msg}[/bold red]")
             self.console.print(f"[red]Tool Error in '{tool_name}': {error_msg}[/red]")
             return 'break'
+        # Report unknown event types
+        event_type = type(inner_event).__name__
+        self.console.print(f"[yellow]Warning: Unknown event type encountered: {event_type}[/yellow]")
         return None
 
     def _process_event_iter(self, event_iter, on_event):
@@ -84,6 +96,8 @@ class PromptHandler:
                             break
                 # After exiting spinner, continue with next events (if any)
             # Handle other event types outside the spinner if needed
+            else:
+                pass
 
     def run_prompt(self, user_prompt: str, raw: bool = False, on_event: Optional[Callable] = None) -> None:
         """

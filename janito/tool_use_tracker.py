@@ -67,8 +67,6 @@ class ToolUseTracker:
         if not ops:
             return False
         last = ops[-1]
-        if last["tool"] == "replace_file":
-            return True
         if last["tool"] == "get_lines":
             params = last["params"]
             if params.get("from_line") is None and params.get("to_line") is None:

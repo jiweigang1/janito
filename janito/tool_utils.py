@@ -18,7 +18,8 @@ def display_path(path):
     Returns:
         str: Display path, as an ANSI hyperlink.
     """
-    HARDCODED_PORT = 8088
+    from janito.cli.config import get_termweb_port
+    port = get_termweb_port()
     if os.path.isabs(path):
         cwd = os.path.abspath(os.getcwd())
         abs_path = os.path.abspath(path)
@@ -29,7 +30,7 @@ def display_path(path):
             disp = path
     else:
         disp = os.path.relpath(path)
-    url = f"http://localhost:{HARDCODED_PORT}/?path={urllib.parse.quote(path)}"
+    url = f"http://localhost:{port}/?path={urllib.parse.quote(path)}"
     # Use Rich markup for hyperlinks
     return f"[link={url}]{disp}[/link]"
 

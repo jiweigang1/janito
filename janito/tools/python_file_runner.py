@@ -67,7 +67,7 @@ class PythonFileRunnerTool(ToolBase):
                     stdout_file.name, stderr_file.name, return_code
                 )
         except Exception as e:
-            self.report_error(tr("❌ Error: {error}", error=e), ReportAction.RUN)
+            self.report_error(tr("❌ Error: {error}", error=e), ReportAction.EXECUTE)
             return tr("Error running file: {error}", error=e)
 
     def _stream_process_output(self, process, stdout_file, stderr_file):
@@ -104,7 +104,7 @@ class PythonFileRunnerTool(ToolBase):
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             process.kill()
-            self.report_error(tr("❌ Timed out after {timeout} seconds.", timeout=timeout), ReportAction.RUN)
+            self.report_error(tr("❌ Timed out after {timeout} seconds.", timeout=timeout), ReportAction.EXECUTE)
             return None
 
     def _format_result(self, stdout_file_name, stderr_file_name, return_code):
