@@ -1,9 +1,12 @@
 from janito.llm_provider import LLMProvider
+from janito.llm_model_info import ModelInfo
 from janito.llm_auth_manager import LLMAuthManager
 from janito.drivers.openai.driver import OpenAIModelDriver
 from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 from janito.providers.registry import LLMProviderRegistry
+
+from .model_info import MODEL_SPECS
 
 class OpenAIProvider(LLMProvider):
     DEFAULT_MODEL = "gpt-4.1"  # Options: gpt-4.1, gpt-4o, o3-mini, o4-mini, o4-mini-high
@@ -14,96 +17,16 @@ class OpenAIProvider(LLMProvider):
         Return a list of supported OpenAI models with detailed fields.
         """
         return [
-            {
-                "name": "gpt-3.5-turbo",
-                "open": "openai",
-                "context": "16 385",
-                "max_input": "12 289",
-                "max_cot": "N/A",
-                "max_response": "4 096",
-                "thinking_supported": False,
-                "default_temp": 0.2
-            },
-            {
-                "name": "gpt-4.1",
-                "open": "openai",
-                "context": "1 047 576",
-                "max_input": "1 014 808",
-                "max_cot": "N/A",
-                "max_response": "32 768",
-                "thinking_supported": False,
-                "default_temp": 0.2
-            },
-            {
-                "name": "gpt-4.1-mini",
-                "open": "openai",
-                "context": "1 047 576",
-                "max_input": "1 014 808",
-                "max_cot": "N/A",
-                "max_response": "32 768",
-                "thinking_supported": False,
-                "default_temp": 0.2
-            },
-            {
-                "name": "gpt-4.1-nano",
-                "open": "openai",
-                "context": "1 047 576",
-                "max_input": "1 014 808",
-                "max_cot": "N/A",
-                "max_response": "32 768",
-                "thinking_supported": False,
-                "default_temp": 0.2
-            },
-            {
-                "name": "gpt-4o",
-                "open": "openai",
-                "context": "128 000",
-                "max_input": "123 904",
-                "max_cot": "N/A",
-                "max_response": "4 096",
-                "thinking_supported": False,
-                "default_temp": 0.2
-            },
-            {
-                "name": "gpt-4o-mini",
-                "open": "openai",
-                "context": "128 000",
-                "max_input": "111 616",
-                "max_cot": "N/A",
-                "max_response": "16 384",
-                "thinking_supported": False,
-                "default_temp": 0.2
-            },
-            {
-                "name": "o3-mini",
-                "open": "openai",
-                "context": "200 000",
-                "max_input": "100 000",
-                "max_cot": "N/A",
-                "max_response": "100 000",
-                "thinking_supported": True,
-                "default_temp": 0.2
-            },
-            {
-                "name": "o4-mini",
-                "open": "openai",
-                "context": "200 000",
-                "max_input": "100 000",
-                "max_cot": "N/A",
-                "max_response": "100 000",
-                "thinking_supported": True,
-                "default_temp": 1
-            },
-            {
-                "name": "o4-mini-high",
-                "open": "openai",
-                "context": "200 000",
-                "max_input": "100 000",
-                "max_cot": "N/A",
-                "max_response": "100 000",
-                "thinking_supported": True,
-                "default_temp": 0.2
-            }
+            ModelInfo(name="gpt-3.5-turbo", open="openai", context="16 385", max_input="12 289", max_cot="N/A", max_response="4 096", thinking_supported=False, default_temp=0.2).to_dict(),
+            ModelInfo(name="gpt-4.1", open="openai", context="1 047 576", max_input="1 014 808", max_cot="N/A", max_response="32 768", thinking_supported=False, default_temp=0.2).to_dict(),
+            ModelInfo(name="codex-mini-latest", open="openai", context="1 047 576", max_input="1 014 808", max_cot="N/A", max_response="32 768", thinking_supported=False, default_temp=0.2).to_dict(),
+            ModelInfo(name="gpt-4.1-mini", open="openai", context="1 047 576", max_input="1 014 808", max_cot="N/A", max_response="32 768", thinking_supported=False, default_temp=0.2).to_dict(),
+            ModelInfo(name="gpt-4.1-nano", open="openai", context="1 047 576", max_input="1 014 808", max_cot="N/A", max_response="32 768", thinking_supported=False, default_temp=0.2).to_dict(),
+            ModelInfo(name="gpt-4o", open="openai", context="128 000", max_input="123 904", max_cot="N/A", max_response="4 096", thinking_supported=False, default_temp=0.2).to_dict(),
+            ModelInfo(name="gpt-4o-mini", open="openai", context="128 000", max_input="111 616", max_cot="N/A", max_response="16 384", thinking_supported=False, default_temp=0.2).to_dict(),
+            ModelInfo(name="o3-mini", open="openai", context="200 000", max_input="100 000", max_cot="N/A", max_response="100 000", thinking_supported=True, default_temp=0.2).to_dict(),
+            ModelInfo(name="o4-mini", open="openai", context="200 000", max_input="100 000", max_cot="N/A", max_response="100 000", thinking_supported=True, default_temp=1).to_dict(),
+            ModelInfo(name="o4-mini-high", open="openai", context="200 000", max_input="100 000", max_cot="N/A", max_response="100 000", thinking_supported=True, default_temp=0.2).to_dict()
         ]
 
     def __init__(self, auth_manager: LLMAuthManager = None, model_name: str = None):

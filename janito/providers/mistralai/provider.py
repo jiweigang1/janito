@@ -1,8 +1,11 @@
 from janito.llm_provider import LLMProvider
+from janito.llm_model_info import ModelInfo
 from janito.llm_auth_manager import LLMAuthManager
 from janito.drivers.mistralai.driver import MistralAIModelDriver
 from janito.tool_registry import ToolRegistry
 from janito.providers.registry import LLMProviderRegistry
+
+from .model_info import MODEL_SPECS
 
 class MistralAIProvider(LLMProvider):
     DEFAULT_MODEL = "mistral-medium-latest"
@@ -29,14 +32,13 @@ class MistralAIProvider(LLMProvider):
     @classmethod
     def list_models(cls):
         """
-        Return a list of supported MistralAI models with table fields ("N/A" for unknowns).
+        Return a list of supported MistralAI models with table fields ("N/A" for unknowns) using ModelInfo dataclass.
         """
         model_names = [
             "mistral-medium-latest"
         ]
-        fields = ["name", "context", "max_input", "max_cot", "max_response", "thinking_supported"]
         return [
-            {"name": name, "context": "N/A", "max_input": "N/A", "max_cot": "N/A", "max_response": "N/A", "thinking_supported": "N/A", "default_temp": 0.2}
+            ModelInfo(name=name).to_dict()
             for name in model_names
         ]
 

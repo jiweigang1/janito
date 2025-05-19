@@ -1,160 +1,38 @@
 from janito.llm_provider import LLMProvider
+from janito.llm_model_info import ModelInfo
 from janito.llm_auth_manager import LLMAuthManager
 from janito.drivers.dashscope.driver import DashScopeModelDriver
 from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 from janito.providers.registry import LLMProviderRegistry
 
+from .model_info import MODEL_SPECS
+
 class DashScopeProvider(LLMProvider):
     DEFAULT_MODEL = "qwen3-235b-a22b"
 
-    # Model specifications with detailed metadata
-    MODEL_SPECS = {
-        # Commercial models with minimal info
-        "qwen-max": {
-            "context": 32768,
-            "max_input": 30720,
-            "max_cot": None,
-            "max_response": 8192,
-            "thinking_supported": False,
-            "open": False,
-            "default_temp": 0.2
-        },
-        "qwen-plus": {
-            "context": 131072,
-            "max_input": 129024,
-            "max_cot": None,
-            "max_response": 8192,
-            "thinking_supported": False,
-            "open": False,
-            "default_temp": 0.2
-        },
-        "qwen-turbo": {
-            "context": 1008192,
-            "max_input": 1000000,
-            "max_cot": None,
-            "max_response": 8192,
-            "thinking_supported": False,
-            "open": False,
-            "default_temp": 0.2
-        },
-        "qwen-plus-2025-04-28": {
-            "context": 131072,
-            "max_input": 129024,
-            "max_cot": 38912,
-            "max_response": 16384,
-            "thinking_supported": True,
-            "open": False,
-            "default_temp": 0.2
-        },
-        "qwen-turbo-2025-04-28": {
-            "context": [1000000, 131072],
-            "max_input": [1000000, 129024],
-            "max_cot": 38912,
-            "max_response": 8192,
-            "thinking_supported": True,
-            "open": False,
-            "default_temp": 0.2
-        },
-        # Detailed models
-        "qwen3-235b-a22b": {
-            "context": 131072,
-            "max_input": 129024,
-            "max_cot": 38912,
-            "max_response": 16384,
-            "thinking_supported": True,
-            "open": True,
-            "default_temp": 0.2
-        },
-        "qwen3-32b": {
-            "context": 131072,
-            "max_input": 129024,
-            "max_cot": 38912,
-            "max_response": 16384,
-            "thinking_supported": True,
-            "open": True,
-            "default_temp": 0.2
-        },
-        "qwen3-30b-a3b": {
-            "context": 131072,
-            "max_input": 129024,
-            "max_cot": 38912,
-            "max_response": 16384,
-            "thinking_supported": True,
-            "open": True,
-            "default_temp": 0.2
-        },
-        "qwen3-14b": {
-            "context": 131072,
-            "max_input": 129024,
-            "max_cot": 38912,
-            "max_response": 8192,
-            "thinking_supported": True,
-            "open": True,
-            "default_temp": 0.2
-        },
-        "qwen3-8b": {
-            "context": 131072,
-            "max_input": 129024,
-            "max_cot": 38912,
-            "max_response": 8192,
-            "thinking_supported": True,
-            "open": True,
-            "default_temp": 0.2
-        },
-        "qwen3-4b": {
-            "context": 131072,
-            "max_input": 129024,
-            "max_cot": 38912,
-            "max_response": 8192,
-            "thinking_supported": True,
-            "open": True,
-            "default_temp": 0.2
-        },
-        "qwen3-1.7b": {
-            "context": 32768,
-            "max_input": [30720, 28672],
-            "max_cot": 30720,
-            "max_response": 8192,
-            "thinking_supported": True,
-            "open": True,
-            "default_temp": 0.2
-        },
-        "qwen3-0.6b": {
-            "context": 30720,
-            "max_input": [30720, 28672],
-            "max_cot": 30720,
-            "max_response": 8192,
-            "thinking_supported": True,
-            "open": True,
-            "default_temp": 0.2
-        },
-    }
 
     @classmethod
     def list_models(cls, details=False):
         """
-        Return a list of supported DashScope models. Each model dict includes all metadata fields, an 'open' flag, and a 'type' field ('commercial' or 'open').
-        Missing values are filled with 'N/A'.
+        Return a list of supported DashScope models using ModelInfo dataclass for structured output.
         """
-        fields = ["name", "context", "max_input", "max_cot", "max_response", "thinking_supported", "open"]
+        fields = ["context", "max_input", "max_cot", "max_response", "thinking_supported", "open", "category", "default_temp"]
         models = []
         for name, spec in cls.MODEL_SPECS.items():
-            model_info = {"name": name}
-            for field in fields[1:]:
-                val = spec.get(field, None)
-                # If thinking_supported is False, show max_cot as '-'
-                if field == "max_cot" and spec.get("thinking_supported") is False:
-                    model_info[field] = "-"
-                elif field == "open":
-                    model_info[field] = "Open" if val is True else "Proprietary"
+            # Compose arguments for dataclass
+            model_kwargs = {"name": name}
+            for field in fields:
+                if field in spec:
+                    model_kwargs[field] = spec[field]
+                elif field == "max_cot" and spec.get("thinking_supported") is False:
+                    model_kwargs[field] = "-"
                 else:
-                    model_info[field] = val if val is not None else "N/A"
-            # Add category field: 'Open' if open is True, else 'Proprietary'
-            model_info["category"] = "Open" if model_info.get("open") is True else "Proprietary"
-            # Add default_temp field
-            model_info["default_temp"] = spec.get("default_temp", 0.2)
-            models.append(model_info)
+                    model_kwargs[field] = spec.get(field, "N/A")
+            # Default temp special case
+            if "default_temp" not in model_kwargs:
+                model_kwargs["default_temp"] = 0.2
+            models.append(ModelInfo(**model_kwargs).to_dict())
         return models
 
     @classmethod
