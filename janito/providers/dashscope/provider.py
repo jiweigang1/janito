@@ -12,35 +12,6 @@ class DashScopeProvider(LLMProvider):
     DEFAULT_MODEL = "qwen3-235b-a22b"
 
 
-    @classmethod
-    def list_models(cls, details=False):
-        """
-        Return a list of supported DashScope models using ModelInfo dataclass for structured output.
-        """
-        fields = ["context", "max_input", "max_cot", "max_response", "thinking_supported", "open", "category", "default_temp"]
-        models = []
-        for name, spec in cls.MODEL_SPECS.items():
-            # Compose arguments for dataclass
-            model_kwargs = {"name": name}
-            for field in fields:
-                if field in spec:
-                    model_kwargs[field] = spec[field]
-                elif field == "max_cot" and spec.get("thinking_supported") is False:
-                    model_kwargs[field] = "-"
-                else:
-                    model_kwargs[field] = spec.get(field, "N/A")
-            # Default temp special case
-            if "default_temp" not in model_kwargs:
-                model_kwargs["default_temp"] = 0.2
-            models.append(ModelInfo(**model_kwargs).to_dict())
-        return models
-
-    @classmethod
-    def get_model_info(cls, model_name):
-        """
-        Return the metadata dictionary for a given model name, or None if not found.
-        """
-        return cls.MODEL_SPECS.get(model_name)
 
     def __init__(self, auth_manager: LLMAuthManager = None, model_name: str = None):
         self.auth_manager = auth_manager or LLMAuthManager()

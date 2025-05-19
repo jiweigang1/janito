@@ -20,6 +20,7 @@ class LLMDriver(ABC):
         self.cancel_event = None
         self._history: List[Dict[str, Any]] = []  # Internal conversation history
 
+
     def stream_generate(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str] = None, tools: Optional[list] = None, **kwargs):
         """
         Stream generation events from the LLM driver in a thread-safe, cancellable manner.
@@ -58,7 +59,10 @@ class LLMDriver(ABC):
         thread = threading.Thread(target=generation_thread, daemon=True)
         thread.start()
         while True:
-            event = event_queue.get()
+            try:
+                event = event_queue.get(timeout=0.1)
+            except queue.Empty:
+                continue
             if event is None:
                 break
             yield event

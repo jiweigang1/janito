@@ -12,7 +12,7 @@ class RichTerminalReporter(EventHandlerBase):
     """
     Handles UI rendering for janito events using Rich.
 
-    - Regular (non-raw) output is printed only for ContentPartFound events.
+    - Regular (non-raw (-R/--raw flag)) output is printed only for ContentPartFound events.
     - For RequestFinished events, output is printed only if raw mode is enabled (using Pretty formatting).
     - If raw mode is not enabled, RequestFinished events produce no output.
     - Report events (info, success, error, etc.) are always printed with appropriate styling.

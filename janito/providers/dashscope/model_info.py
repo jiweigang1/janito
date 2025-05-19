@@ -7,7 +7,8 @@ MODEL_SPECS = {
         "max_response": 8192,
         "thinking_supported": False,
         "open": False,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     "qwen-plus": {
         "context": 131072,
@@ -16,7 +17,8 @@ MODEL_SPECS = {
         "max_response": 8192,
         "thinking_supported": False,
         "open": False,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     "qwen-turbo": {
         "context": 1008192,
@@ -25,7 +27,8 @@ MODEL_SPECS = {
         "max_response": 8192,
         "thinking_supported": False,
         "open": False,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     "qwen-plus-2025-04-28": {
         "context": 131072,
@@ -34,7 +37,8 @@ MODEL_SPECS = {
         "max_response": 16384,
         "thinking_supported": True,
         "open": False,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     "qwen-turbo-2025-04-28": {
         "context": [1000000, 131072],
@@ -43,7 +47,8 @@ MODEL_SPECS = {
         "max_response": 8192,
         "thinking_supported": True,
         "open": False,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     # Detailed models
     "qwen3-235b-a22b": {
@@ -53,7 +58,8 @@ MODEL_SPECS = {
         "max_response": 16384,
         "thinking_supported": True,
         "open": True,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     "qwen3-32b": {
         "context": 131072,
@@ -62,7 +68,8 @@ MODEL_SPECS = {
         "max_response": 16384,
         "thinking_supported": True,
         "open": True,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     "qwen3-30b-a3b": {
         "context": 131072,
@@ -71,7 +78,8 @@ MODEL_SPECS = {
         "max_response": 16384,
         "thinking_supported": True,
         "open": True,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     "qwen3-14b": {
         "context": 131072,
@@ -80,7 +88,8 @@ MODEL_SPECS = {
         "max_response": 8192,
         "thinking_supported": True,
         "open": True,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     "qwen3-8b": {
         "context": 131072,
@@ -89,7 +98,8 @@ MODEL_SPECS = {
         "max_response": 8192,
         "thinking_supported": True,
         "open": True,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     "qwen3-4b": {
         "context": 131072,
@@ -98,7 +108,8 @@ MODEL_SPECS = {
         "max_response": 8192,
         "thinking_supported": True,
         "open": True,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     "qwen3-1.7b": {
         "context": 32768,
@@ -107,7 +118,8 @@ MODEL_SPECS = {
         "max_response": 8192,
         "thinking_supported": True,
         "open": True,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
     "qwen3-0.6b": {
         "context": 30720,
@@ -116,6 +128,7 @@ MODEL_SPECS = {
         "max_response": 8192,
         "thinking_supported": True,
         "open": True,
-        "default_temp": 0.2
+        "default_temp": 0.2,
+        "driver": "DashScopeModelDriver"
     },
 }

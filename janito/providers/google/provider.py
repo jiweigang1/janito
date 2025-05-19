@@ -14,18 +14,6 @@ class GoogleProvider(LLMProvider):
     """
     DEFAULT_MODEL = "gemini-2.5-pro-preview-05-06"
 
-    @classmethod
-    def list_models(cls):
-        """
-        Return a list of supported Google models with table fields ("N/A" for unknowns) using ModelInfo dataclass.
-        """
-        model_names = [
-            "gemini-2.5-pro-preview-05-06"
-        ]
-        return [
-            ModelInfo(name=name).to_dict()
-            for name in model_names
-        ]
 
     def __init__(self, model_name: str = None):
         self._auth_manager = LLMAuthManager()

@@ -139,8 +139,8 @@ def _handle_list_models_try(args, provider_name):
 def _print_models_table(models, provider_name):
     from rich.table import Table
     from rich.console import Console
-    headers = ["name", "open", "context", "max_input", "max_cot", "max_response", "thinking_supported"]
-    display_headers = ["Model Name", "Vendor", "context", "max_input", "max_cot", "max_response", "Thinking"]
+    headers = ["name", "open", "context", "max_input", "max_cot", "max_response", "thinking_supported", "driver"]
+    display_headers = ["Model Name", "Vendor", "context", "max_input", "max_cot", "max_response", "Thinking", "Driver"]
     table = Table(title=f"Supported models for provider '{provider_name}'")
     _add_table_columns(table, display_headers)
     num_fields = {"context", "max_input", "max_cot", "max_response"}
@@ -166,6 +166,15 @@ def _format_k(val):
         return str(val)
 
 def _build_model_row(m, headers, num_fields):
+    # Extend for driver column
+    def format_driver(val):
+        if isinstance(val, (list, tuple)):
+            return ', '.join(val)
+        val_str = str(val)
+        # Remove only a trailing 'ModelDriver', but keep names like 'OpenAIResponses'
+        return val_str.removesuffix('ModelDriver').strip()
+
+
     row = []
     for h in headers[1:]:
         v = m.get(h, "")
@@ -178,8 +187,12 @@ def _build_model_row(m, headers, num_fields):
             row.append("Open" if v is True or v == "Open" else "Locked")
         elif h == "thinking_supported":
             row.append("📖" if v is True or v == "True" else "")
+        elif h == "driver":
+            row.append(format_driver(v))
         else:
             row.append(str(v))
+        # Add driver to last column if present in headers
+
     return row
 
 def handle_model_selection(args):
@@ -232,10 +245,11 @@ def main():
     parser.add_argument('--set-config', nargs=3, metavar=('PROVIDER', 'KEY', 'VALUE'), help='Set a provider-specific config value')
     parser.add_argument('--set-model', metavar='MODEL', help='Set the default model for the current or selected provider (stores in ~/janito/config.json)')
     parser.add_argument('-s', '--system', metavar='SYSTEM_PROMPT', help='Set a system prompt for the LLM agent')
+    parser.add_argument('-r', '--role', metavar='ROLE', help='Set the role for the agent (overrides config)')
     parser.add_argument('-p', '--provider', metavar='PROVIDER', help='Select the LLM provider (overrides config)')
     parser.add_argument('-m', '--model', metavar='MODEL', help='Select the model for the provider (overrides config)')
     parser.add_argument('-v', '--verbose', action='store_true', help='Print extra information before answering')
-    parser.add_argument('-r', '--raw', action='store_true', help='Print the raw JSON response from the OpenAI API (if applicable)')
+    parser.add_argument('-R', '--raw', action='store_true', help='Print the raw JSON response from the OpenAI API (if applicable)')
     parser.add_argument('-e', '--event-log', action='store_true', help='Log events to the console as they are published')
     parser.add_argument('-t', '--temperature', type=float, default=None, help='Temperature for the language model (default: provider default)')
     parser.add_argument('--no-termweb', action='store_true', help='Disable the builtin lightweight web file viewer for terminal links (enabled by default)')

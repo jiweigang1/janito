@@ -104,10 +104,11 @@ After installation, use the `janito` command in your terminal.
 | `--set-config`         | Set provider-specific config (`PROVIDER KEY VALUE`)                         |
 | `--set-model`          | Set default model for current/selected provider                             |
 | `-s`, `--system`       | Set a system prompt                                                         |
+| `-r`, `--role`         | Set the role for the agent (overrides config)                                |
 | `-p`, `--provider`     | Select LLM provider (overrides config)                                      |
 | `-m`, `--model`        | Select model for the provider                                               |
 | `-v`, `--verbose`      | Print extra information before answering                                    |
-| `-r`, `--raw`          | Print raw JSON response from API                                            |
+| `-R`, `--raw`          | Print raw JSON response from API                                            |
 | `-e`, `--event-log`    | Log events to console as they occur                                         |
 | `[user_prompt]...`     | Prompt to submit (if no other command is used)                              |
 

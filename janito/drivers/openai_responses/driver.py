@@ -14,19 +14,18 @@ import uuid
 import traceback
 from typing import Optional, List, Dict, Any, Union
 from janito.llm_driver import LLMDriver
-from janito.providers.openai.schema_generator import generate_tool_schemas
+from janito.drivers.openai_responses.schema_generator import generate_tool_schemas
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
 )
 from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 
-class OpenAIModelDriver(LLMDriver):
+class OpenAIResponsesModelDriver(LLMDriver):
     def get_history(self):
         return list(getattr(self, '_history', []))
 
     def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
-
         super().__init__(provider_name, model_name, api_key, tool_registry)
 
     def _add_to_history(self, message: Dict[str, Any]):
@@ -105,6 +104,39 @@ class OpenAIModelDriver(LLMDriver):
             had_function_call = True
         return had_function_call
 
+    def _maybe_add_reasoning(self, history_added_indices, output_items, idx):
+        if idx > 0:
+            prev_item = output_items[idx - 1]
+            is_reasoning = (getattr(prev_item, 'type', None) == 'reasoning') or (isinstance(prev_item, dict) and prev_item.get('type') == 'reasoning')
+            if is_reasoning and (idx - 1) not in history_added_indices:
+                cleaned = {k: v for k, v in (prev_item if isinstance(prev_item, dict) else prev_item.__dict__).items() if k in ('id', 'type', 'summary')}
+                self._add_to_history(cleaned)
+                history_added_indices.add(idx - 1)
+
+    def _execute_tool_call_and_prepare_result(self, item, tool_executor):
+        tool_call = item
+        tool_name = getattr(tool_call, 'name', None) if not isinstance(tool_call, dict) else tool_call.get('name')
+        arguments = getattr(tool_call, 'arguments', None) if not isinstance(tool_call, dict) else tool_call.get('arguments')
+        tool_call_id = getattr(tool_call, 'call_id', None) if not isinstance(tool_call, dict) else tool_call.get('call_id')
+        if not tool_call_id:
+            tool_call_id = getattr(tool_call, 'id', None) if not isinstance(tool_call, dict) else tool_call.get('id')
+        if isinstance(arguments, str):
+            try:
+                arguments = json.loads(arguments)
+            except Exception:
+                arguments = {}
+        try:
+            result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
+            tool_content = str(result)
+        except Exception as e:
+            tool_content = f"Tool execution error: {e}"
+        output_msg = {
+            "type": "function_call_output",
+            "call_id": tool_call_id,
+            "output": tool_content
+        }
+        return output_msg
+
     def _process_generation_turn(self, client, schemas, tools, request_id, start_time, kwargs, tool_executor):
         api_kwargs = dict(kwargs)
         # Remove non-OpenAI arguments
@@ -116,47 +148,29 @@ class OpenAIModelDriver(LLMDriver):
         response = self._send_api_request(client, messages, schemas, **api_kwargs)
         usage_dict = self._extract_usage(getattr(response, 'usage', None))
         self.publish(RequestFinished, request_id, response=response, status='success', usage=usage_dict)
-        message = response.choices[0].message
-        content = message.content
+        content = getattr(response, 'output_text', None)  # OpenAI Responses API v2: main content is in output_text
         if content is not None:
             self._handle_content_part(content, request_id)
-        tool_calls = getattr(message, 'tool_calls', None)
-        if tool_calls:
-            # Prepare the assistant message but do not add to history yet
-            assistant_msg = {
-                "role": "assistant",
-                "content": content,
-                "tool_calls": [tc.to_dict() if hasattr(tc, 'to_dict') else dict(tc.__dict__) for tc in tool_calls]
-            }
-            # Execute tool(s) and collect result messages
+        output_items = getattr(response, 'output', None)
+        if output_items:
+            history_added_indices = set()
             tool_result_msgs = []
-            for tool_call in tool_calls:
-                func = getattr(tool_call, 'function', None)
-                tool_name = getattr(func, 'name', None) if func else None
-                arguments = getattr(func, 'arguments', None) if func else None
-                tool_call_id = getattr(tool_call, 'id', None)
-                if isinstance(arguments, str):
-                    try:
-                        arguments = json.loads(arguments)
-                    except Exception:
-                        arguments = {}
-                try:
-                    result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
-                    tool_content = str(result)
-                except Exception as e:
-                    tool_content = f"Tool execution error: {e}"
-                tool_result_msg = {
-                    "role": "tool",
-                    "tool_call_id": tool_call_id,
-                    "name": tool_name,
-                    "content": tool_content
-                }
-                tool_result_msgs.append(tool_result_msg)
-            # Now add both the assistant message and all tool result messages to history atomically
-            self._add_to_history(assistant_msg)
+            for idx, item in enumerate(output_items):
+                is_func_call = (getattr(item, 'type', None) == 'function_call') or (isinstance(item, dict) and item.get('type') == 'function_call')
+                if is_func_call:
+                    self._maybe_add_reasoning(history_added_indices, output_items, idx)
+                    # Now add the function_call itself (CLEANED)
+                    func_src = item if isinstance(item, dict) else item.__dict__
+                    cleaned_fc = {k: v for k, v in func_src.items() if k in ('id', 'call_id', 'name', 'type', 'arguments')}
+                    self._add_to_history(cleaned_fc)
+                    history_added_indices.add(idx)
+                    tool_result_msgs.append(self._execute_tool_call_and_prepare_result(item, tool_executor))
             for msg in tool_result_msgs:
                 self._add_to_history(msg)
-            had_function_call = True
+            had_function_call = any(
+                (getattr(it, 'type', None) == 'function_call' or (isinstance(it, dict) and it.get('type') == 'function_call'))
+                for it in output_items
+            )
         else:
             had_function_call = False
         return had_function_call, None
@@ -199,3 +213,5 @@ class OpenAIModelDriver(LLMDriver):
                 break
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
+
+# Alias for compatibility/dynamic loading

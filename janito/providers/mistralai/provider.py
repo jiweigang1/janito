@@ -29,17 +29,5 @@ class MistralAIProvider(LLMProvider):
         executor = ToolExecutor(registry=self._tool_registry, event_bus=event_bus)
         return executor.execute_by_name(tool_name, *args, **kwargs)
 
-    @classmethod
-    def list_models(cls):
-        """
-        Return a list of supported MistralAI models with table fields ("N/A" for unknowns) using ModelInfo dataclass.
-        """
-        model_names = [
-            "mistral-medium-latest"
-        ]
-        return [
-            ModelInfo(name=name).to_dict()
-            for name in model_names
-        ]
 
 LLMProviderRegistry.register("mistralai", MistralAIProvider)

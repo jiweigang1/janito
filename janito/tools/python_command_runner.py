@@ -64,7 +64,8 @@ class PythonCommandRunnerTool(ToolBase):
                 stdout_file.flush()
                 stderr_file.flush()
                 self.report_success(
-                    tr("✅ Return code {return_code}", return_code=return_code)
+                    tr("✅ Return code {return_code}", return_code=return_code),
+                    ReportAction.EXECUTE
                 )
                 return self._format_result(
                     stdout_file.name, stderr_file.name, return_code
