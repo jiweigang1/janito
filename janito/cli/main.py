@@ -39,8 +39,25 @@ def handle_set_provider(args, mgr):
     mgr.set_default_provider(args.set_provider)
     print(f"Current provider set to '{args.set_provider}' in {mgr.get_config_path()}.")
 
-def handle_set_config(args, mgr):
-    provider, key, value = args.set_config
+def handle_set_provider_kv(args, mgr):
+    # args.set is expected to look like: '[provider.]key=value'
+    set_arg = args.set.strip()
+    if '=' not in set_arg:
+        print("Error: --set requires argument in the form [PROVIDER_NAME.]KEY=VALUE")
+        print("Example: --set openai.base_url=https://api...")
+        return
+    keypart, value = set_arg.split('=', 1)
+    if '.' in keypart:
+        provider, key = keypart.split('.', 1)
+    else:
+        # Use CLI-selected provider, or default from config
+        provider = getattr(args, 'provider', None)
+        if not provider:
+            provider = mgr.get_default_provider()
+        key = keypart
+    if not provider:
+        print("Error: No provider specified. Use -p/--provider or set a default provider, or use PROVIDER_NAME.key=VALUE.")
+        return
     mgr.set_provider_config(provider, key, value)
     print(f"Set config for provider '{provider}': {key} = {value}")
 
@@ -92,18 +109,6 @@ def validate_model_for_provider(provider_name, model_name):
         print(f"Error validating model for provider '{provider_name}': {e}")
         return False
 
-def handle_set_model(args):
-    provider_name = getattr(args, 'provider', None)
-    if not provider_name:
-        provider_name = ProviderConfigManager().get_default_provider()
-    if not provider_name:
-        print("Error: Provider must be specified with --provider or set as default before setting a model.")
-        sys.exit(1)
-    if not validate_model_for_provider(provider_name, args.set_model):
-        sys.exit(1)
-    ProviderConfigManager().set_provider_config(provider_name, "model", args.set_model)
-    print(f"Default model for provider '{provider_name}' set to '{args.set_model}' in {{ProviderConfigManager().get_config_path()}}.")
-    sys.exit(0)
 
 def handle_list_models(args):
     """
@@ -214,8 +219,8 @@ def dispatch_command(args, mgr, parser):
         handle_set_api_key(args, mgr)
     elif args.set_provider:
         handle_set_provider(args, mgr)
-    elif args.set_config:
-        handle_set_config(args, mgr)
+    elif args.set:
+        handle_set_provider_kv(args, mgr)
     elif args.list_providers:
         handle_list_providers()
     elif args.user_prompt:
@@ -223,8 +228,19 @@ def dispatch_command(args, mgr, parser):
             parser.print_help()
     else:
         # If no user prompt is provided, start the chat mode
-        from janito.cli.chat_mode.chat_entry import main as chat_mode_main
-        chat_mode_main()
+        termweb_proc = None
+        try:
+            if not getattr(args, 'no_termweb', False):
+                from janito.cli.termweb_starter import start_termweb
+                from janito.cli.config import set_termweb_port, get_termweb_port
+                set_termweb_port(getattr(args, 'termweb_port', get_termweb_port()))
+                termweb_proc, started, termweb_stdout_path, termweb_stderr_path = start_termweb(get_termweb_port())
+            from janito.cli.chat_mode.chat_entry import main as chat_mode_main
+            chat_mode_main()
+        finally:
+            if termweb_proc:
+                termweb_proc.terminate()
+                termweb_proc.wait()
 
 def main():
     """
@@ -242,8 +258,7 @@ def main():
     parser.add_argument('-l', '--list-models', action='store_true', help='List all supported models for the current or selected provider')
     parser.add_argument('--set-api-key', nargs=2, metavar=('PROVIDER', 'API_KEY'), help='Set API key for a provider')
     parser.add_argument('--set-provider', metavar='PROVIDER', help='Set the current LLM provider (stores in ~/janito/config.json)')
-    parser.add_argument('--set-config', nargs=3, metavar=('PROVIDER', 'KEY', 'VALUE'), help='Set a provider-specific config value')
-    parser.add_argument('--set-model', metavar='MODEL', help='Set the default model for the current or selected provider (stores in ~/janito/config.json)')
+    parser.add_argument('--set', metavar='[PROVIDER_NAME.]KEY=VALUE', help="Set a config key for a provider (e.g. --set openai.base_url=https://api.openai.com or --set model=gpt-3)")
     parser.add_argument('-s', '--system', metavar='SYSTEM_PROMPT', help='Set a system prompt for the LLM agent')
     parser.add_argument('-r', '--role', metavar='ROLE', help='Set the role for the agent (overrides config)')
     parser.add_argument('-p', '--provider', metavar='PROVIDER', help='Select the LLM provider (overrides config)')
@@ -268,8 +283,6 @@ def main():
 
     set_default_system_prompt(args)
 
-    if getattr(args, 'set_model', None):
-        handle_set_model(args)
 
     if getattr(args, 'list_models', False):
         handle_list_models(args)
@@ -287,21 +300,8 @@ def main():
     from janito.cli.rich_terminal_reporter import RichTerminalReporter
     _rich_ui_manager = RichTerminalReporter(raw_mode=args.raw)
 
-    try:
-        mgr = ProviderConfigManager()
-        # Only start termweb in chat mode (when no user prompt is provided)
-        if not args.user_prompt and not getattr(args, 'no_termweb', False):
-            from janito.cli.termweb_starter import start_termweb
-            from janito.cli.config import set_termweb_port, get_termweb_port
-            set_termweb_port(getattr(args, 'termweb_port', get_termweb_port()))
-            termweb_proc, started, termweb_stdout_path, termweb_stderr_path = start_termweb(get_termweb_port())
-        else:
-            termweb_proc = None
-        dispatch_command(args, mgr, parser)
-    finally:
-        if 'termweb_proc' in locals() and termweb_proc:
-            termweb_proc.terminate()
-            termweb_proc.wait()
+    mgr = ProviderConfigManager()
+    dispatch_command(args, mgr, parser)
 
 if __name__ == "__main__":
     main()

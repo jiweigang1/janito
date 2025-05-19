@@ -101,8 +101,7 @@ After installation, use the `janito` command in your terminal.
 | `-l`, `--list-models`  | List models for current/selected provider                                   |
 | `--set-api-key`        | Set API key for a provider (`PROVIDER API_KEY`)                             |
 | `--set-provider`       | Set the current LLM provider                                                |
-| `--set-config`         | Set provider-specific config (`PROVIDER KEY VALUE`)                         |
-| `--set-model`          | Set default model for current/selected provider                             |
+| `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set default model for the current/selected provider. |
 | `-s`, `--system`       | Set a system prompt                                                         |
 | `-r`, `--role`         | Set the role for the agent (overrides config)                                |
 | `-p`, `--provider`     | Select LLM provider (overrides config)                                      |

@@ -15,14 +15,13 @@ class OpenAIProvider(LLMProvider):
 
 
 
-    def __init__(self, auth_manager: LLMAuthManager = None, model_name: str = None):
-
+    def __init__(self, auth_manager: LLMAuthManager = None, model_name: str = None, config: dict = None):
         self.auth_manager = auth_manager or LLMAuthManager()
         self._api_key = self.auth_manager.get_credentials("openai")
         self._tool_registry = ToolRegistry()
         self._model_name = model_name if model_name else self.DEFAULT_MODEL
-
-        self._driver = self.get_driver_for_model(self._model_name)
+        self._config = config or {}
+        self._driver = self.get_driver_for_model(self._model_name, config=self._config)
 
     def get_model_name(self) -> str:
         return self._model_name
