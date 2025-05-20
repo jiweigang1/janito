@@ -14,6 +14,7 @@ from janito.tool_registry import ToolRegistry
 from janito.llm.driver_info import LLMDriverInfo
 
 class MistralAIModelDriver(LLMDriver):
+    name = "mistralai"
     def get_history(self):
         return list(getattr(self, '_history', []))
 

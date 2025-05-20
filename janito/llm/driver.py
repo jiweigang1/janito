@@ -20,6 +20,14 @@ class LLMDriver(ABC):
         self.cancel_event = None
         self._history: List[Dict[str, Any]] = []  # Internal conversation history
 
+    @property
+    def model_name(self):
+        # Always return the canonical model name for the driver
+        return getattr(self, '_model_name', getattr(self, 'model', None))
+
+    @model_name.setter
+    def model_name(self, value):
+        self._model_name = value
 
     def stream_generate(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str] = None, tools: Optional[list] = None, **kwargs):
         """

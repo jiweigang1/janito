@@ -1,7 +1,7 @@
-from janito.llm.model import ModelInfo
+from janito.llm.model import LLMModelInfo
 
 MODEL_SPECS = {
-    "qwen-max": ModelInfo(
+    "qwen-max": LLMModelInfo(
         name="qwen-max",
         context=32768,
         max_input=30720,
@@ -12,7 +12,7 @@ MODEL_SPECS = {
         open=False,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen-plus": ModelInfo(
+    "qwen-plus": LLMModelInfo(
         name="qwen-plus",
         context=131072,
         max_input=129024,
@@ -23,7 +23,7 @@ MODEL_SPECS = {
         open=False,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen-turbo": ModelInfo(
+    "qwen-turbo": LLMModelInfo(
         name="qwen-turbo",
         context=1008192,
         max_input=1000000,
@@ -34,7 +34,7 @@ MODEL_SPECS = {
         open=False,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen-plus-2025-04-28": ModelInfo(
+    "qwen-plus-2025-04-28": LLMModelInfo(
         name="qwen-plus-2025-04-28",
         context=131072,
         max_input=129024,
@@ -45,7 +45,7 @@ MODEL_SPECS = {
         open=False,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen-turbo-2025-04-28": ModelInfo(
+    "qwen-turbo-2025-04-28": LLMModelInfo(
         name="qwen-turbo-2025-04-28",
         context=[1000000, 131072],
         max_input=[1000000, 129024],
@@ -56,7 +56,7 @@ MODEL_SPECS = {
         open=False,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen3-235b-a22b": ModelInfo(
+    "qwen3-235b-a22b": LLMModelInfo(
         name="qwen3-235b-a22b",
         context=131072,
         max_input=129024,
@@ -67,7 +67,7 @@ MODEL_SPECS = {
         open=True,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen3-32b": ModelInfo(
+    "qwen3-32b": LLMModelInfo(
         name="qwen3-32b",
         context=131072,
         max_input=129024,
@@ -78,7 +78,7 @@ MODEL_SPECS = {
         open=True,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen3-30b-a3b": ModelInfo(
+    "qwen3-30b-a3b": LLMModelInfo(
         name="qwen3-30b-a3b",
         context=131072,
         max_input=129024,
@@ -89,7 +89,7 @@ MODEL_SPECS = {
         open=True,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen3-14b": ModelInfo(
+    "qwen3-14b": LLMModelInfo(
         name="qwen3-14b",
         context=131072,
         max_input=129024,
@@ -100,7 +100,7 @@ MODEL_SPECS = {
         open=True,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen3-8b": ModelInfo(
+    "qwen3-8b": LLMModelInfo(
         name="qwen3-8b",
         context=131072,
         max_input=129024,
@@ -111,7 +111,7 @@ MODEL_SPECS = {
         open=True,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen3-4b": ModelInfo(
+    "qwen3-4b": LLMModelInfo(
         name="qwen3-4b",
         context=131072,
         max_input=129024,
@@ -122,7 +122,7 @@ MODEL_SPECS = {
         open=True,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen3-1.7b": ModelInfo(
+    "qwen3-1.7b": LLMModelInfo(
         name="qwen3-1.7b",
         context=32768,
         max_input=[30720, 28672],
@@ -133,7 +133,7 @@ MODEL_SPECS = {
         open=True,
         other={"driver": "DashScopeModelDriver"}
     ),
-    "qwen3-0.6b": ModelInfo(
+    "qwen3-0.6b": LLMModelInfo(
         name="qwen3-0.6b",
         context=30720,
         max_input=[30720, 28672],

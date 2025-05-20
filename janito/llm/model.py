@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 @dataclass
-class ModelInfo:
+class LLMModelInfo:
     name: str
     context: Any = "N/A"
     max_input: Any = "N/A"

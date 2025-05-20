@@ -1,5 +1,5 @@
 from janito.llm.provider import LLMProvider
-from janito.llm.model import ModelInfo
+from janito.llm.model import LLMModelInfo
 from janito.llm.auth import LLMAuthManager
 from janito.llm.driver_info import LLMDriverInfo
 from janito.drivers.openai.driver import OpenAIModelDriver
@@ -22,8 +22,6 @@ class OpenAIProvider(LLMProvider):
         self._tool_registry = ToolRegistry()
         _config = config or {}
         _model_name = _config.get('model_name', self.DEFAULT_MODEL)
-
-        # Build info object for the driver
         self._info = LLMDriverInfo(
             model=_model_name,
             api_key=self._api_key,
@@ -34,7 +32,7 @@ class OpenAIProvider(LLMProvider):
             presence_penalty=_config.get('presence_penalty'),
             frequency_penalty=_config.get('frequency_penalty'),
             stop=_config.get('stop'),
-            extra={k: v for k, v in _config.items() if k not in ['model_name', 'base_url','max_tokens','temperature','top_p','presence_penalty','frequency_penalty','stop']}
+            extra={k: v for k, v in _config.items() if k not in ['model_name','base_url','max_tokens','temperature','top_p','presence_penalty','frequency_penalty','stop']}
         )
         self._driver = OpenAIModelDriver(self._info, self._tool_registry)
 

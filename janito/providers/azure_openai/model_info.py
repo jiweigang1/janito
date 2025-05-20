@@ -1,7 +1,7 @@
-from janito.llm.model import ModelInfo
+from janito.llm.model import LLMModelInfo
 
 MODEL_SPECS = {
-    "azure-gpt-35-turbo": ModelInfo(
+    "azure-gpt-35-turbo": LLMModelInfo(
         name="azure-gpt-35-turbo",
         context=16385,
         max_input=12289,
@@ -12,7 +12,7 @@ MODEL_SPECS = {
         open="azure_openai",
         other={"driver": "AzureOpenAIModelDriver"}
     ),
-    "azure-gpt-4": ModelInfo(
+    "azure-gpt-4": LLMModelInfo(
         name="azure-gpt-4",
         context=128000,
         max_input=123904,

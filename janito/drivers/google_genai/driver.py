@@ -41,6 +41,7 @@ def extract_usage_metadata_native(usage_obj):
 
 
 class GoogleGenaiModelDriver(LLMDriver):
+    name = "google_genai"
     def __init__(self, info: LLMDriverInfo, tool_registry: ToolRegistry = None):
         super().__init__('google', info.model, info.api_key, tool_registry)
         self.config = info

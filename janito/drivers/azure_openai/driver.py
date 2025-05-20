@@ -4,6 +4,7 @@ from openai import AzureOpenAI
 from janito.llm.driver_info import LLMDriverInfo
 
 class AzureOpenAIModelDriver(OpenAIModelDriver):
+    name = "azure_openai"
     required_config = {"azure_endpoint"}  # Update key as used in your config logic
     def __init__(self, info: LLMDriverInfo, tool_registry=None):
         super().__init__(info, tool_registry)

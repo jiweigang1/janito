@@ -95,7 +95,6 @@ class PromptHandler:
         Optionally takes an on_event callback for custom event handling.
         """
         import threading
-        start_time = time.perf_counter()
         cancel_event = threading.Event()
         try:
             event_iter = self.agent.chat(user_prompt, raw=raw, cancel_event=cancel_event)
@@ -104,15 +103,12 @@ class PromptHandler:
         except KeyboardInterrupt:
             cancel_event.set()
             self.console.print("[red]Request cancelled.[/red]")
-            return None, None
-        end_time = time.perf_counter()
-        return start_time, end_time
+        # No return value; performance timing removed
 
     def run_prompts(self, prompts: list, raw: bool = False, on_event: Optional[Callable] = None) -> None:
         """
         Handles multiple prompts in sequence, collecting performance data for each.
         """
-        times = []
         for prompt in prompts:
-            times.append(self.run_prompt(prompt, raw=raw, on_event=on_event))
-        return times
+            self.run_prompt(prompt, raw=raw, on_event=on_event)
+        # No return value

@@ -24,7 +24,6 @@ def setup_provider():
     provider_cls = provider_registry.get_provider(provider_name)
     model_name = config.get('model')
     provider_instance = provider_cls(config={'model_name': model_name})
-
     return provider_instance
 
 def setup_agent(provider_instance, conversation_history, template_path=None, **kwargs):

@@ -1,5 +1,5 @@
 from janito.llm.provider import LLMProvider
-from janito.llm.model import ModelInfo
+from janito.llm.model import LLMModelInfo
 from janito.llm.auth import LLMAuthManager
 from janito.llm.driver_info import LLMDriverInfo
 from janito.drivers.dashscope.driver import DashScopeModelDriver
@@ -40,7 +40,7 @@ class DashScopeProvider(LLMProvider):
         return self._driver
 
     def create_agent(self, agent_name: str = None, **kwargs):
-        from janito.agent.agent import Agent
+        from janito.llm.agent import LLMAgent
         return Agent(self.driver, agent_name=agent_name, **kwargs)
 
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):

@@ -1,7 +1,7 @@
-from janito.llm.model import ModelInfo
+from janito.llm.model import LLMModelInfo
 
 MODEL_SPECS = {
-    "mistral-medium-latest": ModelInfo(
+    "mistral-medium-latest": LLMModelInfo(
         name="mistral-medium-latest",
         context=32000,
         max_input=32000,
@@ -12,7 +12,7 @@ MODEL_SPECS = {
         open="mistralai",
         other={"driver": "MistralAIModelDriver"}
     ),
-    "mistral-large-latest": ModelInfo(
+    "mistral-large-latest": LLMModelInfo(
         name="mistral-large-latest",
         context=64000,
         max_input=64000,
@@ -23,7 +23,7 @@ MODEL_SPECS = {
         open="mistralai",
         other={"driver": "MistralAIModelDriver"}
     ),
-    "mistral-small-latest": ModelInfo(
+    "mistral-small-latest": LLMModelInfo(
         name="mistral-small-latest",
         context=16000,
         max_input=16000,

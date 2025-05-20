@@ -8,7 +8,8 @@ from janito.cli.chat_mode.session import ChatSession
 
 def main():
     console = Console()
-    console.print("[bold green]Welcome to the Janito Chat Mode! Type /exit or press Ctrl+C to quit.[/bold green]")
+    from janito.version import __version__
+    console.print(f"[bold green]Welcome to the Janito Chat Mode (v{__version__})! Type /exit or press Ctrl+C to quit.[/bold green]")
     session = ChatSession(console)
     session.run()
 

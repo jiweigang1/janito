@@ -24,6 +24,9 @@ from janito.tool_registry import ToolRegistry
 from janito.llm.driver_info import LLMDriverInfo
 
 class OpenAIModelDriver(LLMDriver):
+    name = "openai"
+    # Which fields to extract from config and LLMDriverInfo
+    driver_fields = {"max_tokens", "temperature", "top_p", "presence_penalty", "frequency_penalty", "stop", "base_url", "api_key"}
     def __init__(self, info: LLMDriverInfo, tool_registry: ToolRegistry = None):
         super().__init__("openai", info.model, info.api_key, tool_registry)
         self.config = info

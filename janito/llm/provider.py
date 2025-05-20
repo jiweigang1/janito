@@ -25,7 +25,7 @@ class LLMProvider(ABC):
     def get_model_info(self, model_name=None):
         """
         Return the info dict for a given model (driver, params, etc). If model_name is None, return all model info dicts.
-        MODEL_SPECS must be dict[str, ModelInfo].
+        MODEL_SPECS must be dict[str, LLMModelInfo].
         """
         if not hasattr(self, 'MODEL_SPECS'):
             raise NotImplementedError("This provider does not have a MODEL_SPECS attribute.")
@@ -42,12 +42,12 @@ class LLMProvider(ABC):
         driver_name = self._get_driver_name_from_spec(spec)
         driver_class = self._resolve_driver_class(driver_name)
         self._validate_required_config(driver_class, config, driver_name)
+        # --- New: Generic driver info builder logic ---
+        from janito.llm.driver_config_builder import build_llm_driver_info
+        llm_driver_info = build_llm_driver_info(config or {}, driver_class)
         return driver_class(
-            type(self).name,
-            model_name,
-            getattr(self, '_api_key', None),
-            getattr(self, '_tool_registry', None),
-            config or {}
+            llm_driver_info,
+            getattr(self, '_tool_registry', None)
         )
 
     def _validate_model_specs(self):
@@ -96,5 +96,5 @@ class LLMProvider(ABC):
                 raise ValueError(f"Missing required config for {driver_name}: {', '.join(missing)}")
 
     def create_agent(self, agent_name: str = None, **kwargs):
-        from janito.agent.agent import Agent
-        return Agent(self.driver, agent_name=agent_name, **kwargs)
+        from janito.llm.agent import LLMAgent
+        return LLMAgent(self.driver, agent_name=agent_name, **kwargs)

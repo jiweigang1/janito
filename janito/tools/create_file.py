@@ -41,7 +41,10 @@ class CreateFileTool(ToolBase):
                 disp_path=disp_path,
                 existing_content=existing_content,
             )
-        if os.path.exists(file_path) and overwrite:
+        # Determine if we are overwriting an existing file
+        is_overwrite = os.path.exists(file_path) and overwrite
+        if is_overwrite:
+            # Overwrite branch: log only overwrite warning (no create message)
             self.report_info(
                 tr("⚠️ Overwriting file '{disp_path}'", disp_path=disp_path),
                 ReportAction.WRITE,
@@ -49,20 +52,24 @@ class CreateFileTool(ToolBase):
         dir_name = os.path.dirname(file_path)
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
-        self.report_info(
-            tr("📝 Create file '{disp_path}' ...", disp_path=disp_path),
-            ReportAction.WRITE,
-        )
+        if not is_overwrite:
+            # Create branch: log file creation message
+            self.report_info(
+                tr("📝 Create file '{disp_path}' ...", disp_path=disp_path),
+                ReportAction.WRITE,
+            )
         with open(file_path, "w", encoding="utf-8", errors="replace") as f:
             f.write(content)
         new_lines = content.count("\n") + 1 if content else 0
         self.report_success(tr("✅ {new_lines} lines", new_lines=new_lines), ReportAction.WRITE)
         # Perform syntax validation and append result
         validation_result = validate_file_syntax(file_path)
-        caution_msg = ""
-#        if overwrite:
-#            caution_msg = "\n⚠️ File was overwritten. recommended only after reading the file to be overwritten"
-        return (
-            tr("✅ Created file {new_lines} lines.", new_lines=new_lines)
-            + f"\n{validation_result}"
-        )
+        if is_overwrite:
+            # Overwrite branch: return minimal overwrite info to user
+            return tr("✅ {new_lines} lines", new_lines=new_lines) + f"\n{validation_result}"
+        else:
+            # Create branch: return detailed create success to user
+            return (
+                tr("✅ Created file {new_lines} lines.", new_lines=new_lines)
+                + f"\n{validation_result}"
+            )

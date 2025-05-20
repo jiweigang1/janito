@@ -5,13 +5,22 @@ Provides commands for managing API keys and interacting with LLM providers.
 """
 import argparse
 import sys
-from janito.version import __version__ as VERSION
-from janito.provider_registry import list_providers
-from janito.cli.one_shot_mode.handler import PromptHandler
-from janito.cli.config import config
-from janito.cli.provider_setup import setup_provider
 from rich.console import Console
 from rich.pretty import Pretty
+from janito.version import __version__ as VERSION
+from janito.provider_registry import list_providers
+from janito.cli.single_shot_mode.handler import PromptHandler
+from janito.cli.config import config
+from janito.cli.provider_setup import setup_provider
+
+# Singleton provider instance for reuse
+_provider_instance = None
+
+def get_provider_instance():
+    global _provider_instance
+    if _provider_instance is None:
+        _provider_instance = setup_provider()
+    return _provider_instance
 
 def log_event_to_console(event):
     from janito.cli.console import shared_console
@@ -32,7 +41,7 @@ def handle_list_tools():
 
 def handle_set_api_key(args, mgr):
     api_key = args.set_api_key
-    provider_instance = setup_provider()
+    provider_instance = get_provider_instance()
     try:
         provider = getattr(provider_instance, 'name', None)
 
@@ -65,7 +74,7 @@ def handle_set_provider_kv(args, mgr):
         provider, key = dot_parts
         model = None
     else:
-        provider_instance = setup_provider()
+        provider_instance = get_provider_instance()
         provider = getattr(provider_instance, 'name', None)
         if not provider:
             print("Error: No provider could be determined from setup_provider.")
@@ -89,7 +98,7 @@ def handle_list_models(args):
     """
     List models for the specified or current provider, using provider.get_model_info().
     """
-    provider_instance = setup_provider()
+    provider_instance = get_provider_instance()
     provider_name = getattr(provider_instance, 'name', None)
     if not provider_name:
         print("Error: Provider must be specified with --provider or set as default before listing models.")
@@ -166,7 +175,7 @@ def _build_model_row(m, headers, num_fields):
 
 def handle_model_selection(args):
     if getattr(args, 'model', None):
-        provider_instance = setup_provider()
+        provider_instance = get_provider_instance()
         provider_name = getattr(provider_instance, 'name', None)
 
         if not provider_name:
@@ -186,8 +195,7 @@ def validate_model_for_provider(provider_name, model_name):
     Returns True if available, False otherwise.
     """
     try:
-        from janito.cli.provider_setup import setup_provider
-        provider_instance = setup_provider()
+        provider_instance = get_provider_instance()
         info_dict = provider_instance.get_model_info()
         available_names = [m["name"] for m in info_dict.values() if isinstance(m, dict) and "name" in m]
         if model_name in available_names:
@@ -212,7 +220,12 @@ def dispatch_command(args, mgr, parser):
     elif args.list_providers:
         handle_list_providers()
     elif args.user_prompt:
-        if not handle_user_prompt(args):
+        from janito.cli.single_shot_mode.handler import PromptHandler as SingleShotPromptHandler
+        handler = SingleShotPromptHandler(args)
+        handler.handle()
+        # Mimic the original logic, though handle() returns None, so treat as successful
+        ret = True  # you may adapt this if handle() can indicate failure
+        if not ret:
             parser.print_help()
     else:
         handle_chat_mode(args, parser)
@@ -226,7 +239,7 @@ def handle_chat_mode(args, parser):
             from janito.cli.config import set_termweb_port, get_termweb_port
             set_termweb_port(getattr(args, 'termweb_port', get_termweb_port()))
             try:
-                provider_instance = setup_provider()
+                provider_instance = get_provider_instance()
             except RuntimeError as e:
                 from rich.console import Console
                 Console().print(f'[red][bold]Error:[/bold] {e}[/red]')

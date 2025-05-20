@@ -26,6 +26,7 @@ from janito.llm.driver_info import LLMDriverInfo
 dashscope.base_http_api_url = 'https://dashscope-intl.aliyuncs.com/api/v1'
 
 class DashScopeModelDriver(LLMDriver):
+    name = "dashscope"
     def get_history(self):
         return list(getattr(self, '_history', []))
 

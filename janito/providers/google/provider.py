@@ -1,5 +1,5 @@
 from janito.llm.provider import LLMProvider
-from janito.llm.model import ModelInfo
+from janito.llm.model import LLMModelInfo
 from janito.llm.auth import LLMAuthManager
 from janito.llm.driver_info import LLMDriverInfo
 from janito.drivers.google_genai.driver import GoogleGenaiModelDriver

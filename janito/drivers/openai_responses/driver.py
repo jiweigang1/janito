@@ -22,6 +22,7 @@ from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 
 class OpenAIResponsesModelDriver(LLMDriver):
+    name = "openai_responses"
     def get_history(self):
         return list(getattr(self, '_history', []))
 

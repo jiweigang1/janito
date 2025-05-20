@@ -13,6 +13,7 @@ from .help import HelpShellHandler
 from janito.cli.console import shared_console
 
 COMMAND_HANDLERS = {
+    "/clear": __import__("janito.cli.chat_mode.shell.commands.clear", fromlist=["ClearShellHandler"]).ClearShellHandler,
     "/restart": __import__("janito.cli.chat_mode.shell.commands.conversation_restart", fromlist=["RestartShellHandler"]).RestartShellHandler,
     "/edit": EditShellHandler,
     "/view": ViewShellHandler,
