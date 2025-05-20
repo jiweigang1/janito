@@ -1,19 +1,4 @@
-from janito.config_manager import ConfigManager
-# Centralized config defaults for Janito CLI
-CONFIG_DEFAULTS = {
-    "api_key": None,  # Must be set by user
-    "provider": "openai",  # Default provider (OpenAI, can be overridden by user with --provider)
-    "model": "gpt-4.1",  # Default model (available: gpt-4.1, gpt-4o, gpt-4-turbo, o3-mini, o4-mini, o4-mini-high)
-    "role": "software developer",  # Part of the Agent Profile
-    "temperature": 0.2,
-    "max_tokens": 32000,
-    "use_azure_openai": False,
-    "azure_openai_api_version": "2023-05-15",
-    "profile": "base",
-}
-
-# Singleton for CLI usage
-config = ConfigManager(config_path=None, defaults=CONFIG_DEFAULTS)
+from janito.config import config
 
 CONFIG_OPTIONS = {
     "api_key": "API key for OpenAI-compatible service (required)",  # pragma: allowlist secret

@@ -5,7 +5,7 @@ Defines ChatSession and ChatShellState classes.
 import types
 from prompt_toolkit.history import InMemoryHistory
 from janito.cli.chat_mode.shell.input_history import UserInputHistory
-from janito.conversation_history import LLMConversationHistory
+from janito.cli.agent_utils import build_cli_agent_and_history
 from janito.cli.prompt_handler import PromptHandler
 from janito.cli.config import config
 from janito.cli.chat_mode.toolbar import get_toolbar_func
@@ -43,11 +43,11 @@ class ChatSession:
         for item in self.input_dicts:
             if isinstance(item, dict) and "input" in item:
                 self.mem_history.append_string(item["input"])
-        self.conversation_history = LLMConversationHistory()
+        provider_instance, conversation_history, agent = build_cli_agent_and_history(config)
+        self.conversation_history = conversation_history
         self.shell_state = ChatShellState(self.mem_history, self.conversation_history)
-        from janito.cli.main import get_provider_instance
-        provider_instance = get_provider_instance()
         self.handler = PromptHandler(config, conversation_history=self.conversation_history, provider_instance=provider_instance)
+        self.shell_state.agent = agent
         self.agent_setup = AgentSetup(self.shell_state, self.conversation_history)
         self.agent_setup.setup_agents(provider_instance)
         self.handler.agent = self.shell_state.agent
@@ -60,7 +60,8 @@ class ChatSession:
         self.key_bindings = KeyBindingsFactory.create()
         toolbar_func = get_toolbar_func(
             perf=performance_collector,
-            msg_count=len(self.conversation_history.get_history())
+            msg_count=len(self.conversation_history.get_history()),
+            agent=self.shell_state.agent
         )
         self.session = PromptSession(
             bottom_toolbar=toolbar_func,
@@ -100,7 +101,7 @@ class ChatSession:
             self.handler.agent = self.shell_state.agent
             self.handler.args.user_prompt = cmd_input
             try:
-                self.handler.run_prompt(cmd_input, raw=False)
+                self.handler.handle_prompt(cmd_input, args=self.handler.args, print_header=False, raw=False)
             except Exception as exc:
                 self.console.print(f"[red]Exception in handler.run_prompt: {exc}[/red]")
                 import traceback

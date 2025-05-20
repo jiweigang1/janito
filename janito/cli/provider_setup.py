@@ -22,8 +22,11 @@ def setup_provider():
         raise RuntimeError(error_message)
 
     provider_cls = provider_registry.get_provider(provider_name)
+    # Pass config dict (with model_name if present) to the provider,
+    # not directly to a driver instance.
     model_name = config.get('model')
-    provider_instance = provider_cls(config={'model_name': model_name})
+    config_dict = {'model_name': model_name} if model_name else {}
+    provider_instance = provider_cls(config=config_dict)
     return provider_instance
 
 def setup_agent(provider_instance, conversation_history, template_path=None, **kwargs):

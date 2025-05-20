@@ -33,6 +33,7 @@ class ConfigManager:
         self.runtime_overrides = dict(runtime_overrides) if runtime_overrides else {}
         self._load_file_config()
 
+
     def _load_file_config(self):
         if self.config_path.exists():
             with open(self.config_path, "r", encoding="utf-8") as f:

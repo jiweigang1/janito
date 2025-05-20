@@ -14,11 +14,12 @@ def format_tokens(n, tag=None):
         val = f"{n/1000000:.1f}M"
     return f"<{tag}>{val}</{tag}>" if tag else val
 
-def assemble_first_line(model_name, role):
-    from janito.cli.config import config
-    max_tokens = config.get("max_tokens")
+def assemble_first_line(provider_name, model_name, role, agent=None):
+    max_tokens = None
+    if agent is not None and hasattr(agent, "driver") and hasattr(agent.driver, "config"):
+        max_tokens = getattr(agent.driver.config, "max_tokens", None)
     tokens_disp = format_tokens(max_tokens, "max-tokens")
-    return f" Janito {VERSION} | Model: <model>{model_name}</model> | Max-Tokens: {tokens_disp} | Role: <role>{role}</role>"
+    return f" Janito {VERSION} | Provider: <provider>{provider_name}</provider> | Model: <model>{model_name}</model> | Max-Tokens: {tokens_disp} | Role: <role>{role}</role>"
 
 def assemble_second_line(width, usage, msg_count, session_id=None):
     prompt_tokens = usage.get("prompt_tokens") if usage else None
@@ -55,14 +56,18 @@ def assemble_bindings_line():
         f"<b>/help</b>: Help | "
     )
 
-def get_toolbar_func(perf: PerformanceCollector, msg_count: int, session_id=None):
+def get_toolbar_func(perf: PerformanceCollector, msg_count: int, session_id=None, agent=None):
     from prompt_toolkit.application.current import get_app
     def get_toolbar():
         width = get_app().output.get_size().columns
-        model_name = config.get("model")
-        role = config.get("role")
+        provider_name = "?"
+        model_name = "?"
+        role = "?"
+        if agent is not None and hasattr(agent, "driver"):
+            provider_name = getattr(agent.driver, "name", "?")
+            model_name = getattr(agent.driver, "model_name", "?")
         usage = perf.get_last_request_usage()
-        first_line = assemble_first_line(model_name, role)
+        first_line = assemble_first_line(provider_name, model_name, role, agent=agent)
         second_line = assemble_second_line(width, usage, msg_count, session_id)
         bindings_line = assemble_bindings_line()
         toolbar_text = first_line + "\n" + second_line + "\n" + bindings_line

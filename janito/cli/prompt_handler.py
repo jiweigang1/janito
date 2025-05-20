@@ -13,6 +13,9 @@ from janito.driver_events import RequestStarted, RequestFinished, RequestError
 from janito.tool_events import ToolCallError
 import threading
 
+from janito.provider_config import validate_mandatory_provider_config
+from janito.cli.single_shot_mode.output import print_verbose_header
+
 class StatusRef:
     def __init__(self):
         self.status = None
@@ -25,6 +28,7 @@ class PromptHandler:
     provider_instance: Any
 
     def __init__(self, args: Any, conversation_history, provider_instance) -> None:
+        validate_mandatory_provider_config()
         self.temperature = getattr(args, 'temperature', None)
         """
         Initialize PromptHandler.
@@ -88,6 +92,20 @@ class PromptHandler:
             # Handle other event types outside the spinner if needed
             else:
                 pass
+
+    def handle_prompt(self, user_prompt, args=None, print_header=True, raw=False, on_event=None):
+        # args defaults to self.args for compatibility in interactive mode
+        args = args if args is not None else getattr(self, 'args', None)
+        # Join/cleanup prompt
+        if isinstance(user_prompt, list):
+            user_prompt = " ".join(user_prompt).strip()
+        else:
+            user_prompt = str(user_prompt).strip() if user_prompt is not None else ''
+        if not user_prompt:
+            raise ValueError("No user prompt was provided!")
+        if print_header and hasattr(self, 'agent') and args is not None:
+            print_verbose_header(self.agent, args)
+        self.run_prompt(user_prompt, raw=raw, on_event=on_event)
 
     def run_prompt(self, user_prompt: str, raw: bool = False, on_event: Optional[Callable] = None) -> None:
         """

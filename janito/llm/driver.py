@@ -11,7 +11,7 @@ class LLMDriver(ABC):
     Implements the streaming event-driven interface (stream_generate) with built-in threading, queueing, and event bus logic.
     Subclasses must implement the provider-specific _run_generation method.
     """
-    def __init__(self, name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
+    def __init__(self, name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None, config: Optional[dict] = None):
         self.name = name
         self.model_name = model_name
         self.api_key = api_key
@@ -19,6 +19,15 @@ class LLMDriver(ABC):
         self.event_bus = None
         self.cancel_event = None
         self._history: List[Dict[str, Any]] = []  # Internal conversation history
+        # Normalize config to always be a dict (for DriverInfo or similar object input)
+        if config is None:
+            self.config = {}
+        elif hasattr(config, 'to_dict'):
+            self.config = config.to_dict()
+        elif hasattr(config, '__dict__') and not isinstance(config, dict):
+            self.config = dict(config.__dict__)
+        else:
+            self.config = config
 
     @property
     def model_name(self):
