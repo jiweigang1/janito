@@ -1,23 +1,23 @@
 from janito.drivers.openai.driver import OpenAIModelDriver
 from openai import AzureOpenAI
     
-class AzureOpenAIModelDriver(OpenAIModelDriver):
-    def _get_max_tokens(self):
-        if self.config is not None:
-            mt = self.config.get("max_tokens")
-            if mt not in (None, '', 'N/A'):
-                try:
-                    return int(mt)
-                except Exception:
-                    return None
-        return None
+from janito.llm.driver_info import LLMDriverInfo
 
+class AzureOpenAIModelDriver(OpenAIModelDriver):
     required_config = {"azure_endpoint"}  # Update key as used in your config logic
-    def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry=None, config: dict = None):
-        super().__init__(provider_name, model_name, api_key, tool_registry, config)
-        self.azure_endpoint = config.get("azure_endpoint") if config else None
-        self.api_version = config.get("api_version") if config else None
-        self.api_key = api_key
+    def __init__(self, info: LLMDriverInfo, tool_registry=None):
+        super().__init__(info, tool_registry)
+        self.azure_endpoint = getattr(info, "extra", {}).get("azure_endpoint")
+        self.api_version = getattr(info, "extra", {}).get("api_version")
+        self.api_key = info.api_key
+
+    def _get_max_tokens(self):
+        if self.config is not None and getattr(self.config, "max_tokens", None) not in (None, '', 'N/A'):
+            try:
+                return int(self.config.max_tokens)
+            except Exception:
+                return None
+        return None
 
     def _create_client(self):
         return AzureOpenAI(api_key=self.api_key, azure_endpoint=self.azure_endpoint, api_version=self.api_version)

@@ -13,7 +13,7 @@ import time
 import uuid
 import traceback
 from typing import Optional, List, Dict, Any, Union
-from janito.llm_driver import LLMDriver
+from janito.llm.driver import LLMDriver
 from janito.drivers.openai_responses.schema_generator import generate_tool_schemas
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound

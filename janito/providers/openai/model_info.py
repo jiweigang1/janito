@@ -1,4 +1,4 @@
-from janito.llm_model_info import ModelInfo
+from janito.llm.model import ModelInfo
 
 MODEL_SPECS = {
     "gpt-3.5-turbo": ModelInfo(name="gpt-3.5-turbo", context=16385, max_input=12289, max_cot="N/A", max_response=4096, thinking_supported=False, default_temp=0.2, open="openai", other={"driver": "OpenAIModelDriver"}),

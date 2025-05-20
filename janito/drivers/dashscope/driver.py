@@ -13,7 +13,7 @@ import time
 import uuid
 import traceback
 from typing import Optional, List, Dict, Any, Union
-from janito.llm_driver import LLMDriver
+from janito.llm.driver import LLMDriver
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
 )
@@ -21,16 +21,17 @@ from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 from janito.providers.openai.schema_generator import generate_tool_schemas
 
+from janito.llm.driver_info import LLMDriverInfo
+
 dashscope.base_http_api_url = 'https://dashscope-intl.aliyuncs.com/api/v1'
 
 class DashScopeModelDriver(LLMDriver):
     def get_history(self):
         return list(getattr(self, '_history', []))
 
-    def __init__(self, provider_name: str, api_key: str, config: dict = None, tool_registry: ToolRegistry = None):
-        config = config or {}
-        model_name = config.get('model_name')
-        super().__init__(provider_name, model_name, api_key, tool_registry)
+    def __init__(self, info: LLMDriverInfo, tool_registry: ToolRegistry = None):
+        super().__init__('dashscope', info.model, info.api_key, tool_registry)
+        self.config = info
 
     def _add_to_history(self, message: Dict[str, Any]):
         self._history.append(message)

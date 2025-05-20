@@ -1,7 +1,7 @@
 """
 ProviderRegistry: Handles provider listing and selection logic for janito CLI.
 """
-from janito.llm_auth_manager import LLMAuthManager
+from janito.llm.auth import LLMAuthManager
 import sys
 from janito.exceptions import MissingProviderSelectionException
 

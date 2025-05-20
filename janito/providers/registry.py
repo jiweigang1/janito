@@ -1,5 +1,5 @@
 from typing import Type, Dict
-from janito.llm_provider import LLMProvider
+from janito.llm.provider import LLMProvider
 
 class LLMProviderRegistry:
     """

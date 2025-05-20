@@ -1,4 +1,4 @@
-from janito.llm_driver import LLMDriver
+from janito.llm.driver import LLMDriver
 from janito.tool_registry import ToolRegistry
 from typing import Any, Optional, List, Iterator, Union
 import threading

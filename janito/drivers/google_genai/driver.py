@@ -12,7 +12,7 @@ import time
 import uuid
 import traceback
 from typing import Optional, List, Dict, Any, Union
-from janito.llm_driver import LLMDriver
+from janito.llm.driver import LLMDriver
 from janito.drivers.google_genai.schema_generator import generate_tool_declarations
 from janito.providers.google.errors import EmptyResponseError
 from janito.driver_events import (
@@ -22,6 +22,7 @@ from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 from google import genai
 from google.genai import types as genai_types
+from janito.llm.driver_info import LLMDriverInfo
 
 def extract_usage_metadata_native(usage_obj):
     if usage_obj is None:
@@ -38,11 +39,11 @@ def extract_usage_metadata_native(usage_obj):
                 result[attr] = value
     return result
 
+
 class GoogleGenaiModelDriver(LLMDriver):
-    def __init__(self, provider_name: str, api_key: str, config: dict = None, tool_registry: ToolRegistry = None):
-        config = config or {}
-        model_name = config.get('model_name')
-        super().__init__(provider_name, model_name, api_key, tool_registry)
+    def __init__(self, info: LLMDriverInfo, tool_registry: ToolRegistry = None):
+        super().__init__('google', info.model, info.api_key, tool_registry)
+        self.config = info
         self._history: List[Dict[str, Any]] = []
 
     def _add_to_history(self, message: Dict[str, Any]):

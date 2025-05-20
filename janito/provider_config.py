@@ -3,7 +3,7 @@ ProviderConfigManager: Handles reading and writing provider configuration for ja
 """
 from janito.config_manager import ConfigManager
 from janito.cli.config_defaults import CONFIG_DEFAULTS
-from janito.llm_auth_manager import LLMAuthManager
+from janito.llm.auth import LLMAuthManager
 
 # Singleton for provider config usage
 config = ConfigManager(config_path=None, defaults=CONFIG_DEFAULTS)

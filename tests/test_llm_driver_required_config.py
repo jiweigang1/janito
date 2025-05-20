@@ -1,6 +1,6 @@
 import pytest
 from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
-from janito.llm_provider import LLMProvider
+from janito.llm.provider import LLMProvider
 
 # Dummy provider for test purposes
 class DummyProvider(LLMProvider):

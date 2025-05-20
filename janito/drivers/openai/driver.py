@@ -13,7 +13,7 @@ import time
 import uuid
 import traceback
 from typing import Optional, List, Dict, Any, Union
-from janito.llm_driver import LLMDriver
+from janito.llm.driver import LLMDriver
 from janito.providers.openai.schema_generator import generate_tool_schemas
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
@@ -21,22 +21,21 @@ from janito.driver_events import (
 from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 
+from janito.llm.driver_info import LLMDriverInfo
+
 class OpenAIModelDriver(LLMDriver):
+    def __init__(self, info: LLMDriverInfo, tool_registry: ToolRegistry = None):
+        super().__init__("openai", info.model, info.api_key, tool_registry)
+        self.config = info
+        # Retain LLMDriverInfo object for all config, supports all param access
+        self.base_url = info.base_url
 
     def _create_client(self):
-        # Uses the standard OpenAI Python SDK
         import openai
-        return openai.OpenAI(api_key=self.api_key)
+        return openai.OpenAI(api_key=self.config.api_key)
 
     def get_history(self):
         return list(getattr(self, '_history', []))
-
-    def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None, config: dict = None):
-        super().__init__(provider_name, model_name, api_key, tool_registry)
-
-        self.config = config or {}
-        # Support for base_url or other provider-level params:
-        self.base_url = self.config.get("base_url")
 
     def _add_to_history(self, message: Dict[str, Any]):
         self._history.append(message)
@@ -80,13 +79,11 @@ class OpenAIModelDriver(LLMDriver):
         self._add_to_history(assistant_msg)
 
     def _get_max_tokens(self):
-        if self.config is not None:
-            mt = self.config.get("max_tokens")
-            if mt not in (None, '', 'N/A'):
-                try:
-                    return int(mt)
-                except Exception:
-                    return None
+        if self.config is not None and getattr(self.config, "max_tokens", None) not in (None, '', 'N/A'):
+            try:
+                return int(self.config.max_tokens)
+            except Exception:
+                return None
         return None
 
     def _send_api_request(self, client, messages, schemas, **api_kwargs):
@@ -94,7 +91,6 @@ class OpenAIModelDriver(LLMDriver):
         if 'temperature' not in api_kwargs:
             pass  # Do not set temperature if not specified; use provider default
         if self.base_url:
-            # Use base_url for OpenAI client if provided (for compatible implementations)
             api_kwargs['base_url'] = self.base_url
         if schemas:
             api_kwargs['tools'] = schemas

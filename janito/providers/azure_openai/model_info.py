@@ -1,4 +1,4 @@
-from janito.llm_model_info import ModelInfo
+from janito.llm.model import ModelInfo
 
 MODEL_SPECS = {
     "azure-gpt-35-turbo": ModelInfo(
