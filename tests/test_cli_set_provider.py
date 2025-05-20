@@ -1,7 +1,7 @@
 import os
 import sys
 import json
-from janito.provider_config import ProviderConfigManager
+from janito.provider_config import get_provider_config, set_provider_config, set_provider_model_config, get_provider_model_config
 import pytest
 import subprocess
 
@@ -22,8 +22,7 @@ def test_set_provider_key_value_explicit(tmp_path, monkeypatch):
     result = run_cli(args)
     assert result.returncode == 0
     assert f"Set config for provider '{provider}': {key} = {value}" in result.stdout
-    mgr = ProviderConfigManager(str(config_path))
-    cfg = mgr.get_provider_config(provider)
+    cfg = get_provider_config(provider)
     assert cfg.get(key) == value
 
 def test_set_provider_key_value_via_cli_provider(tmp_path, monkeypatch):
@@ -36,8 +35,7 @@ def test_set_provider_key_value_via_cli_provider(tmp_path, monkeypatch):
     result = run_cli(args)
     assert result.returncode == 0
     assert f"Set config for provider '{provider}': {key} = {value}" in result.stdout
-    mgr = ProviderConfigManager(str(config_path))
-    cfg = mgr.get_provider_config(provider)
+    cfg = get_provider_config(provider)
     assert cfg.get(key) == value
 
 def test_set_provider_key_value_no_provider(tmp_path, monkeypatch):
@@ -48,6 +46,20 @@ def test_set_provider_key_value_no_provider(tmp_path, monkeypatch):
     result = run_cli(['--set', f'{key}={value}'])
     assert result.returncode == 0
     assert 'Error: No provider specified' in result.stdout
+
+def test_set_provider_model_key_value_explicit(tmp_path, monkeypatch):
+    config_path = tmp_path / 'config.json'
+    monkeypatch.setenv('JANITO_CONFIG', str(config_path))
+    provider = 'openaitest'
+    model = 'gpt-test1'
+    key = 'max_tokens'
+    value = '123'
+    args = ['--set', f'{provider}.{model}.{key}={value}']
+    result = run_cli(args)
+    assert result.returncode == 0
+    assert f"Set config for provider '{provider}', model '{model}': {key} = {value}" in result.stdout
+    cfg_model = get_provider_model_config(provider, model)
+    assert cfg_model.get(key) == value
 
 def test_set_provider_key_value_missing_equals():
     result = run_cli(['--set', 'nonsense'])

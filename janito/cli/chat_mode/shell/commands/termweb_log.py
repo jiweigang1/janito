@@ -1,6 +1,6 @@
 import http.client
 from rich.console import Console
-from janito.cli.runtime_config import runtime_config
+from janito.cli.config import config
 from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
@@ -80,7 +80,7 @@ def handle_termweb_status(*args, shell_state=None, **kwargs):
         console.print(f"  URL: [underline blue]{url}[/underline blue]")
     else:
         console.print(
-            "  [yellow]No port configured in state or runtime_config.[/yellow]"
+            "  [yellow]No port configured in config.[/yellow]"
         )
     if stdout_path:
         console.print(f"  Stdout log: {stdout_path}")

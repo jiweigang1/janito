@@ -2,30 +2,34 @@
 Provider and agent setup logic for janito CLI (shared).
 """
 from janito.provider_registry import ProviderRegistry
-from janito.provider_config import ProviderConfigManager
+from janito.cli.config import config
 import os
 from janito.platform_discovery import PlatformDiscovery
-from janito.cli.runtime_config import runtime_config
+from janito.cli.config import config
 from pathlib import Path
 from janito.tool_registry import ToolRegistry
 
-def setup_provider(args, return_class=False):
+def setup_provider():
     provider_registry = ProviderRegistry()
-    provider_config_mgr = ProviderConfigManager()
-    provider_name = provider_registry.select_provider(args)
+    provider_name = config.get('provider')
+
     if not provider_name:
-        return None if not return_class else (None, None)
-    from janito.providers.registry import LLMProviderRegistry
-    provider_cls = LLMProviderRegistry.get(provider_name)
-    if return_class:
-        return provider_cls, None
-    return provider_name
+        error_message = (
+            "Error: No provider specified and no default provider is set.\n"
+            "Providers with authentication configured:\n"
+            f"- " + "\n- ".join(config.list_configured_providers()) + "\n"
+            "Use prompt --provider PROVIDER to select one, or set a default with --set-provider PROVIDER."
+        )
+        raise RuntimeError(error_message)
 
-def setup_agent(provider_cls, runtime_config, conversation_history, template_path=None, **kwargs):
-    system_prompt = runtime_config.get('system_prompt')
-    model_name = runtime_config.get('model')
-
+    provider_cls = provider_registry.get_provider(provider_name)
+    model_name = config.get('model')
     provider_instance = provider_cls(model_name=model_name)
+
+    return provider_instance
+
+def setup_agent(provider_instance, conversation_history, template_path=None, **kwargs):
+    system_prompt = config.get('system_prompt')
     agent = provider_instance.create_agent(
         system_prompt=system_prompt,
         history=conversation_history,
@@ -40,17 +44,16 @@ def setup_main_agent(args, conversation_history):
     Instantiate and return a main agent for either chat or one-shot mode.
     Skips shell state components.
     """
-    provider_cls = setup_provider(args, return_class=True)[0]
-    if not provider_cls:
+    provider_instance = setup_provider()
+    if not provider_instance:
         return None
     tool_registry = ToolRegistry()
     all_tool_classes = tool_registry.get_tool_classes()
     templates_dir = Path(__file__).parent.parent / 'agent' / 'templates' / 'profiles'
     main_template_path = str(templates_dir / 'system_prompt_template_main.txt.j2')
-    agent = setup_agent(
-        provider_cls,
-        runtime_config,
-        conversation_history=conversation_history,
+    agent = provider_instance.create_agent(
+        system_prompt=config.get('system_prompt'),
+        history=conversation_history,
         tools=all_tool_classes,
         template_path=main_template_path
     )

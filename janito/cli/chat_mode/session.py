@@ -7,7 +7,7 @@ from prompt_toolkit.history import InMemoryHistory
 from janito.cli.chat_mode.shell.input_history import UserInputHistory
 from janito.conversation_history import LLMConversationHistory
 from janito.cli.prompt_handler import PromptHandler
-from janito.cli.runtime_config import runtime_config
+from janito.cli.config import config
 from janito.cli.chat_mode.toolbar import get_toolbar_func
 from janito.cli.chat_mode.bindings import KeyBindingsFactory
 from janito.cli.chat_mode.agent_setup import AgentSetup
@@ -45,13 +45,14 @@ class ChatSession:
                 self.mem_history.append_string(item["input"])
         self.conversation_history = LLMConversationHistory()
         self.shell_state = ChatShellState(self.mem_history, self.conversation_history)
-        self.handler = PromptHandler(runtime_config, conversation_history=self.conversation_history)
-        self.handler.setup()
+        from janito.cli.provider_setup import setup_provider
+        provider_instance = setup_provider()
+        self.handler = PromptHandler(config, conversation_history=self.conversation_history, provider_instance=provider_instance)
         self.agent_setup = AgentSetup(self.shell_state, self.conversation_history)
         self.agent_setup.setup_agents()
         self.handler.agent = self.shell_state.agent
         # Toolbar role sync
-        current_role = runtime_config.get('role', '<not set>')
+        current_role = config.get('role', '<not set>')
         agent = self.shell_state.agent
         if agent and hasattr(agent, "set_template_var"):
             agent.set_template_var("role", current_role)

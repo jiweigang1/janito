@@ -5,9 +5,16 @@ from janito.llm_driver import LLMDriver
 class LLMProvider(ABC):
     """
     Abstract base class for Large Language Model (LLM) providers.
-    Each provider is intrinsically written for a single LLMDriver (model or capability).
-    Subclasses should implement the core interface for interacting with LLM APIs.
+
+    Subclasses must implement the core interface for interacting with LLM APIs and define `provider_name` as a class attribute.
     """
+
+    provider_name: str = None  # Must be set on subclasses
+
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        if not hasattr(cls, 'provider_name') or not isinstance(getattr(cls, 'provider_name'), str) or not cls.provider_name:
+            raise TypeError(f"Class {cls.__name__} must define a class attribute 'provider_name' (non-empty str)")
 
     @abstractmethod
     def get_model_name(self) -> str:
@@ -37,14 +44,22 @@ class LLMProvider(ABC):
                 probable_path = f'openai_responses.driver'
             elif 'OpenAIModelDriver' == driver_name:
                 probable_path = f'openai.driver'
+            elif 'AzureOpenAIModelDriver' == driver_name:
+                probable_path = f'azure_openai.driver'
             if probable_path is not None:
                 module_path = f"{module_root}.{probable_path}"
                 mod = importlib.import_module(module_path)
                 driver_class = getattr(mod, driver_name)
         if driver_class is None:
             raise NotImplementedError("No driver class found or specified for this MODEL_SPECS entry.")
+        # Validate required config fields if specified by the driver
+        required = getattr(driver_class, 'required_config', None)
+        if required:
+            missing = [k for k in required if not config or k not in config or config.get(k) in (None, "")]
+            if missing:
+                raise ValueError(f"Missing required config for {driver_name}: {', '.join(missing)}")
         return driver_class(
-            getattr(self, 'PROVIDER_NAME', ''),
+            type(self).provider_name,
             model_name,
             getattr(self, '_api_key', None),
             getattr(self, '_tool_registry', None),

@@ -22,6 +22,11 @@ from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 
 class OpenAIModelDriver(LLMDriver):
+    def _create_client(self):
+        # Uses the standard OpenAI Python SDK
+        import openai
+        return openai.OpenAI(api_key=self.api_key)
+
     def get_history(self):
         return list(getattr(self, '_history', []))
 
@@ -72,6 +77,16 @@ class OpenAIModelDriver(LLMDriver):
         }
         self._add_to_history(assistant_msg)
 
+    def _get_max_tokens(self):
+        if self.config is not None:
+            mt = self.config.get("max_tokens")
+            if mt not in (None, '', 'N/A'):
+                try:
+                    return int(mt)
+                except Exception:
+                    return None
+        return None
+
     def _send_api_request(self, client, messages, schemas, **api_kwargs):
         # Pass temperature from api_kwargs if present, default to 0
         if 'temperature' not in api_kwargs:
@@ -83,6 +98,10 @@ class OpenAIModelDriver(LLMDriver):
             api_kwargs['tools'] = schemas
             if 'tool_choice' not in api_kwargs:
                 api_kwargs['tool_choice'] = 'auto'
+        # Set max_tokens if available
+        max_tokens = self._get_max_tokens()
+        if max_tokens is not None:
+            api_kwargs['max_tokens'] = max_tokens
         api_kwargs['model'] = self.model_name
         api_kwargs['messages'] = messages
         api_kwargs['stream'] = False
@@ -188,7 +207,7 @@ class OpenAIModelDriver(LLMDriver):
                     self._history.insert(0, {"role": "system", "content": system_prompt})
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
             schemas = generate_tool_schemas(tools) if tools else None
-            client = openai.OpenAI(api_key=self.api_key)
+            client = self._create_client()
             turn_count = 0
             while True:
                 if self.cancel_event is not None and self.cancel_event.is_set():

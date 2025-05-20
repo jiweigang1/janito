@@ -4,7 +4,7 @@ Supports both one-shot and multi-prompt scenarios.
 """
 import time
 from janito.version import __version__ as VERSION
-from janito.cli.provider_setup import setup_provider, setup_agent
+from janito.cli.provider_setup import setup_agent
 from janito.performance_collector import PerformanceCollector
 from rich.status import Status
 from rich.console import Console
@@ -19,36 +19,26 @@ class StatusRef:
 
 class PromptHandler:
     args: Any
-    provider_name: Optional[str]
-    provider_cls: Any
     agent: Any
     performance_collector: PerformanceCollector
     console: Console
+    provider_instance: Any
 
-    def __init__(self, args: Any, conversation_history) -> None:
+    def __init__(self, args: Any, conversation_history, provider_instance) -> None:
         self.temperature = getattr(args, 'temperature', None)
         """
         Initialize PromptHandler.
         :param args: CLI or programmatic arguments for provider/model selection, etc.
         :param conversation_history: LLMConversationHistory object for multi-turn chat mode.
+        :param provider_instance: An initialized provider instance.
         """
         self.args = args
         self.conversation_history = conversation_history
-        self.provider_name = None
-        self.provider_cls = None
+        self.provider_instance = provider_instance
         self.agent = None
         from janito.perf_singleton import performance_collector
         self.performance_collector = performance_collector
         self.console = Console()
-
-    def setup(self):
-        self.provider_name = setup_provider(self.args)
-        if not self.provider_name:
-            return False
-        self.provider_cls = setup_provider(self.args, return_class=True)[0]
-        # Former agent instantiation removed (single agent pattern!)
-        # System prompt template setting is handled after agent creation in ChatSession
-        return True
 
     def _handle_inner_event(self, inner_event, on_event, status):
         if on_event:

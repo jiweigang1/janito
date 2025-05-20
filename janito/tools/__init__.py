@@ -20,7 +20,11 @@ from . import python_command_runner
 from . import python_file_runner
 from . import python_stdin_runner
 
-__all__ = [
+from janito.platform_discovery import PlatformDiscovery
+from janito.tool_registry import ToolRegistry
+
+# Start with all tool exports in a list
+_tool_exports = [
     "ask_user",
     "create_directory",
     "create_file",
@@ -43,3 +47,24 @@ __all__ = [
     "python_file_runner",
     "python_stdin_runner",
 ]
+
+# Remove run_bash_command if powershell is available and not in git bash
+pd = PlatformDiscovery()
+registry = ToolRegistry()
+
+def powershell_available():
+    return bool(pd._detect_powershell())
+
+def in_git_bash():
+    return bool(pd._detect_git_bash())
+
+_disable_bash = powershell_available() and not in_git_bash()
+
+if _disable_bash:
+    registry.disable_tool("run_bash_command")
+    try:
+        _tool_exports.remove("run_bash_command")
+    except ValueError:
+        pass
+
+__all__ = _tool_exports

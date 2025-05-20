@@ -10,15 +10,14 @@ class AgentSetup:
         self.shell_state = shell_state
         self.conversation_history = conversation_history
     def setup_agents(self):
-        from janito.cli.runtime_config import runtime_config
+        from janito.cli.config import config
         tool_registry = ToolRegistry()
         all_tool_classes = tool_registry.get_tool_classes()
         templates_dir = Path(__file__).parent.parent.parent / 'agent' / 'templates' / 'profiles'
         main_template_path = str(templates_dir / 'system_prompt_template_main.txt.j2')
         main_agent = setup_agent(
-            setup_provider(runtime_config, return_class=True)[0],
-            runtime_config,
-            conversation_history=self.conversation_history,
+            setup_provider(),
+            self.conversation_history,
             tools=all_tool_classes,
             template_path=main_template_path
         )

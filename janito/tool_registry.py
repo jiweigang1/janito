@@ -34,6 +34,11 @@ class ToolRegistry:
         if name in self._tools:
             del self._tools[name]
 
+    def disable_tool(self, name: str):
+        """
+        Mark the tool as disabled (remove from registry but keep as a known tool)."""
+        self.unregister_tool(name)
+
     def get_tool(self, name: str):
         return self._tools[name]["instance"] if name in self._tools else None
 

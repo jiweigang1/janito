@@ -33,7 +33,7 @@ def get_session_id():
 
 def set_role(role):
     """Set the current role."""
-    from janito.cli.runtime_config import RuntimeConfig
+    # No longer needed: from janito.cli.runtime_config import RuntimeConfig
     rc = RuntimeConfig()
     rc.role = role
     rc.save()

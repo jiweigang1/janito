@@ -43,7 +43,7 @@ class CreateFileTool(ToolBase):
             )
         if os.path.exists(file_path) and overwrite:
             self.report_info(
-                tr("⚠️ Overwriting file '{disp_path}' (recommended only after reading the file to be overwritten)", disp_path=disp_path),
+                tr("⚠️ Overwriting file '{disp_path}'", disp_path=disp_path),
                 ReportAction.WRITE,
             )
         dir_name = os.path.dirname(file_path)
@@ -60,10 +60,9 @@ class CreateFileTool(ToolBase):
         # Perform syntax validation and append result
         validation_result = validate_file_syntax(file_path)
         caution_msg = ""
-        if overwrite:
-            caution_msg = "\n⚠️ File was overwritten. recommended only after reading the file to be overwritten"
+#        if overwrite:
+#            caution_msg = "\n⚠️ File was overwritten. recommended only after reading the file to be overwritten"
         return (
             tr("✅ Created file {new_lines} lines.", new_lines=new_lines)
-            + caution_msg
             + f"\n{validation_result}"
         )

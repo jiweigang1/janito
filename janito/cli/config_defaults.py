@@ -1,22 +1,9 @@
-# Centralized config defaults for Janito CLI
-CONFIG_DEFAULTS = {
-    "api_key": None,  # Must be set by user
-    "model": "gpt-4.1",  # Default model (available: gpt-4.1, gpt-4o, gpt-4-turbo, o3-mini, o4-mini, o4-mini-high)
-    "role": "software developer",  # Part of the Agent Profile
+from janito.cli.config import config, CONFIG_DEFAULTS
 
-    "temperature": 0.2,
-    "max_tokens": 32000,
-    "use_azure_openai": False,
-    "azure_openai_api_version": "2023-05-15",
-    "profile": "base",
-}
-
-def bootstrap_runtime_config_from_defaults(runtime_config):
+def bootstrap_runtime_config_from_defaults():
     """
-    Ensure that all keys from CONFIG_DEFAULTS are set in runtime_config
-    unless they already exist. This provides predictable defaults for all
-    runtime config accesses, especially useful at CLI or agent startup.
+    Ensure that all keys from CONFIG_DEFAULTS are set in config unless they already exist.
     """
     for k, v in CONFIG_DEFAULTS.items():
-        if k not in runtime_config.all():
-            runtime_config.set(k, v)
+        if k not in config.all():
+            config.set(k, v)

@@ -1,6 +1,6 @@
 from prompt_toolkit.formatted_text import HTML
 from janito.performance_collector import PerformanceCollector
-from janito.cli.runtime_config import runtime_config
+from janito.cli.config import config
 from janito.version import __version__ as VERSION
 
 def format_tokens(n, tag=None):
@@ -15,7 +15,10 @@ def format_tokens(n, tag=None):
     return f"<{tag}>{val}</{tag}>" if tag else val
 
 def assemble_first_line(model_name, role):
-    return f" Janito {VERSION} | Model: <model>{model_name}</model> | Role: <role>{role}</role>"
+    from janito.cli.config import config
+    max_tokens = config.get("max_tokens")
+    tokens_disp = format_tokens(max_tokens, "max-tokens")
+    return f" Janito {VERSION} | Model: <model>{model_name}</model> | Max-Tokens: {tokens_disp} | Role: <role>{role}</role>"
 
 def assemble_second_line(width, usage, msg_count, session_id=None):
     prompt_tokens = usage.get("prompt_tokens") if usage else None
@@ -56,8 +59,8 @@ def get_toolbar_func(perf: PerformanceCollector, msg_count: int, session_id=None
     from prompt_toolkit.application.current import get_app
     def get_toolbar():
         width = get_app().output.get_size().columns
-        model_name = runtime_config.get("model")
-        role = runtime_config.get("role")
+        model_name = config.get("model")
+        role = config.get("role")
         usage = perf.get_last_request_usage()
         first_line = assemble_first_line(model_name, role)
         second_line = assemble_second_line(width, usage, msg_count, session_id)

@@ -9,3 +9,12 @@ class ToolCallException(Exception):
         self.arguments = arguments
         self.original_exception = exception
         super().__init__(f"ToolCallException: {tool_name}: {error}")
+
+class MissingProviderSelectionException(Exception):
+    """
+    Raised when no provider is specified and no default provider is set.
+    """
+    def __init__(self, configured=None, supported=None):
+        self.configured = configured or []
+        self.supported = supported or []
+        super().__init__("No provider specified and no default provider is set.")

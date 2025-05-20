@@ -1,4 +1,4 @@
-from janito.cli.runtime_config import runtime_config
+from janito.cli.config import config
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 from janito.cli.console import shared_console
 
@@ -19,10 +19,10 @@ class RoleShellHandler(ShellCmdHandler):
     def run(self):
         new_role = self.after_cmd_line.strip()
         if not new_role:
-            current_role = runtime_config.get('role', '<not set>')
+            current_role = config.get('role', '<not set>')
             shared_console.print(f"[bold green]Current system role:[/bold green] {current_role}")
             return
-        runtime_config.set("role", new_role)
+        config.set("role", new_role, runtime=True)
         agent = getattr(self.shell_state, "agent", None)
         if agent and hasattr(agent, "set_template_var"):
             agent.set_template_var("role", new_role)

@@ -88,8 +88,5 @@ def print_performance(start_time, end_time, performance_collector, args):
         rich_print(Panel(table, style="on grey11", expand=True))
 
 def handle_exception(e):
-    try:
-        rich_print(f"[bold red]Error:[/bold red] {e}")
-    except ImportError:
-        print(f"Error: {e}")
+    rich_print(f"[bold red]Error:[/bold red] {e}")
     return

@@ -8,14 +8,16 @@ from janito.providers.registry import LLMProviderRegistry
 from .model_info import MODEL_SPECS
 
 class MistralAIProvider(LLMProvider):
+    provider_name = "mistralai"
+
     DEFAULT_MODEL = "mistral-medium-latest"
 
     def __init__(self, auth_manager: LLMAuthManager = None, model_name: str = None):
         self.auth_manager = auth_manager or LLMAuthManager()
-        self._api_key = self.auth_manager.get_credentials("mistralai")
+        self._api_key = self.auth_manager.get_credentials(type(self).provider_name)
         self._tool_registry = ToolRegistry()
         self._model_name = model_name if model_name else self.DEFAULT_MODEL
-        self._driver = MistralAIModelDriver("mistralai", self._model_name, self._api_key, self._tool_registry)
+        self._driver = MistralAIModelDriver(type(self).provider_name, self._model_name, self._api_key, self._tool_registry)
 
     def get_model_name(self) -> str:
         return self._model_name
@@ -29,5 +31,4 @@ class MistralAIProvider(LLMProvider):
         executor = ToolExecutor(registry=self._tool_registry, event_bus=event_bus)
         return executor.execute_by_name(tool_name, *args, **kwargs)
 
-
-LLMProviderRegistry.register("mistralai", MistralAIProvider)
+LLMProviderRegistry.register(MistralAIProvider.provider_name, MistralAIProvider)

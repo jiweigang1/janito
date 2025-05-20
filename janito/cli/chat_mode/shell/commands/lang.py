@@ -1,8 +1,8 @@
-from janito.cli.runtime_config import runtime_config
+from janito.cli.config import config
 import janito.i18n as i18n
 
 
-from janito.cli.runtime_config import runtime_config
+from janito.cli.config import config
 import janito.i18n as i18n
 from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
@@ -17,7 +17,7 @@ class LangShellHandler(ShellCmdHandler):
                 "[bold yellow]Uso: /lang [código_idioma] (ex: pt, en, es)[/bold yellow]"
             )
             return
-        runtime_config.set("lang", lang_code)
+        config.set("lang", lang_code, runtime=True)
         i18n.set_locale(lang_code)
         shared_console.print(
             f"[bold green]Idioma alterado para:[/bold green] [cyan]{lang_code}[/cyan]"

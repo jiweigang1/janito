@@ -38,7 +38,7 @@ After installation, use the `janito` command in your terminal.
 
 - **Set API Key for a Provider**
   ```bash
-  janito --set-api-key PROVIDER API_KEY
+  janito --set-api-key API_KEY [-p PROVIDER]
   ```
 
 - **Set the Default Provider**
@@ -99,7 +99,7 @@ After installation, use the `janito` command in your terminal.
 | `--list-tools`         | List all registered tools                                                   |
 | `--list-providers`     | List all supported LLM providers                                            |
 | `-l`, `--list-models`  | List models for current/selected provider                                   |
-| `--set-api-key`        | Set API key for a provider (`PROVIDER API_KEY`)                             |
+| `--set-api-key`        | Set API key for the current or selected provider (`API_KEY`). Use `-p PROVIDER` to set for a specific provider. |
 | `--set-provider`       | Set the current LLM provider                                                |
 | `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set default model for the current/selected provider. |
 | `-s`, `--system`       | Set a system prompt                                                         |
