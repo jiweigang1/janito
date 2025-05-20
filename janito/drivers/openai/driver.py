@@ -22,6 +22,7 @@ from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 
 class OpenAIModelDriver(LLMDriver):
+
     def _create_client(self):
         # Uses the standard OpenAI Python SDK
         import openai
@@ -32,6 +33,7 @@ class OpenAIModelDriver(LLMDriver):
 
     def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None, config: dict = None):
         super().__init__(provider_name, model_name, api_key, tool_registry)
+
         self.config = config or {}
         # Support for base_url or other provider-level params:
         self.base_url = self.config.get("base_url")

@@ -8,28 +8,28 @@ from janito.providers.registry import LLMProviderRegistry
 from .model_info import MODEL_SPECS
 
 class GoogleProvider(LLMProvider):
+    MODEL_SPECS = MODEL_SPECS
     """
     Provider for Google LLMs via google-google.
     Default model: 'gemini-2.5-pro-preview-05-06'.
     """
-    provider_name = "google"
+    name = "google"
 
     DEFAULT_MODEL = "gemini-2.5-pro-preview-05-06"
 
-    def __init__(self, model_name: str = None):
+    def __init__(self, config: dict = None):
         self._auth_manager = LLMAuthManager()
-        self._api_key = self._auth_manager.get_credentials(type(self).provider_name)
+        self._api_key = self._auth_manager.get_credentials(type(self).name)
         self._tool_registry = ToolRegistry()
-        self._model_name = model_name if model_name else self.DEFAULT_MODEL
+        self._config = config or {}
+        if 'model_name' not in self._config:
+            self._config['model_name'] = self.DEFAULT_MODEL
         self._driver = GoogleGenaiModelDriver(
-            type(self).provider_name,
-            self._model_name,
+            type(self).name,
             self._api_key,
+            self._config,
             self._tool_registry
         )
-
-    def get_model_name(self) -> str:
-        return self._model_name
 
     @property
     def driver(self) -> GoogleGenaiModelDriver:
@@ -40,4 +40,4 @@ class GoogleProvider(LLMProvider):
         executor = ToolExecutor(registry=self._tool_registry, event_bus=event_bus)
         return executor.execute_by_name(tool_name, *args, **kwargs)
 
-LLMProviderRegistry.register(GoogleProvider.provider_name, GoogleProvider)
+LLMProviderRegistry.register(GoogleProvider.name, GoogleProvider)

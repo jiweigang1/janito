@@ -7,27 +7,22 @@ from janito.providers.registry import LLMProviderRegistry
 from .model_info import MODEL_SPECS
 
 class AzureOpenAIProvider(LLMProvider):
-    provider_name = "azure_openai"
+    name = "azure_openai"
 
-    def get_model_spec(self, model_name):
-        """Return the MODEL_SPEC dict for a given model_name, or None if unknown."""
-        return self.MODEL_SPECS.get(model_name, None)
 
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "azure-gpt-35-turbo"
 
-    def __init__(self, model_name: str = None, config: dict = None):
+    def __init__(self, config: dict = None):
         self._auth_manager = LLMAuthManager()
-        self._api_key = self._auth_manager.get_credentials(type(self).provider_name)
+        self._api_key = self._auth_manager.get_credentials(type(self).name)
         self._tool_registry = ToolRegistry()
-        self._model_name = model_name if model_name else self.DEFAULT_MODEL
         self._params = config.copy() if config else {}
+        self._model_name = self._params.get('model_name', self.DEFAULT_MODEL)
         if "api_version" not in self._params:
             self._params["api_version"] = "2023-05-15"
-        self._driver = self.get_driver_for_model(self._model_name, config=self._params)
+        self._driver = self.get_driver_for_model(config=self._params)
 
-    def get_model_name(self) -> str:
-        return self._model_name
 
     @property
     def driver(self):
@@ -46,7 +41,7 @@ class AzureOpenAIProvider(LLMProvider):
             if missing:
                 raise ValueError(f"Missing required config for AzureOpenAIModelDriver: {', '.join(missing)}")
         final_config = dict(config or {})
-        spec = self.get_model_spec(model_name)
+        spec = self.get_model_info(model_name)
         if 'max_tokens' not in final_config or not final_config.get('max_tokens'):
             if spec and 'max_response' in spec and spec['max_response'] not in (None, '', 'N/A'):
                 try:
@@ -54,11 +49,11 @@ class AzureOpenAIProvider(LLMProvider):
                 except Exception:
                     pass
         return AzureOpenAIModelDriver(
-            type(self).provider_name,
+            type(self).name,
             model_name,
             self._api_key,
             self._tool_registry,
             final_config
         )
 
-LLMProviderRegistry.register(AzureOpenAIProvider.provider_name, AzureOpenAIProvider)
+LLMProviderRegistry.register(AzureOpenAIProvider.name, AzureOpenAIProvider)

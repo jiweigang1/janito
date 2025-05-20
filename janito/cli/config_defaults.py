@@ -6,4 +6,4 @@ def bootstrap_runtime_config_from_defaults():
     """
     for k, v in CONFIG_DEFAULTS.items():
         if k not in config.all():
-            config.set(k, v)
+            config.runtime_set(k, v)

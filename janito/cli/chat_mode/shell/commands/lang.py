@@ -17,7 +17,7 @@ class LangShellHandler(ShellCmdHandler):
                 "[bold yellow]Uso: /lang [código_idioma] (ex: pt, en, es)[/bold yellow]"
             )
             return
-        config.set("lang", lang_code, runtime=True)
+        config.runtime_set("lang", lang_code)
         i18n.set_locale(lang_code)
         shared_console.print(
             f"[bold green]Idioma alterado para:[/bold green] [cyan]{lang_code}[/cyan]"

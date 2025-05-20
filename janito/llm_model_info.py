@@ -20,7 +20,14 @@ class ModelInfo:
         d = self.__dict__.copy()
         if not self.open: d.pop("open")
         if not self.category: d.pop("category")
-        # Remove 'other' if empty
         if not self.other:
             d.pop("other")
         return d
+
+    @staticmethod
+    def get_model_info(model_specs):
+        """
+        Standard get_model_info implementation for all providers:
+        returns a list of model info dicts, one per model in the given MODEL_SPECS dict.
+        """
+        return [m.to_dict() for m in model_specs.values()]

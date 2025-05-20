@@ -11,20 +11,18 @@ class DummyProvider(LLMProvider):
     def __init__(self, api_key='testkey'):  # pragma: allowlist secret
         self._api_key = api_key
         self._tool_registry = None
-    def get_model_name(self):
-        return 'azure-model'
     @property
     def driver(self):
-        return self.get_driver_for_model('azure-model', config={})
+        return self.get_driver_for_model(config={"model_name": "azure-model"})
 
 def test_missing_required_config():
     provider = DummyProvider()
     with pytest.raises(ValueError) as exc:
-        provider.get_driver_for_model('azure-model', config={})
+        provider.get_driver_for_model(config={"model_name": "azure-model"})
     assert 'Missing required config' in str(exc.value)
     assert 'azure_endpoint' in str(exc.value)
 
 def test_present_required_config():
     provider = DummyProvider()
-    driver = provider.get_driver_for_model('azure-model', config={'azure_endpoint': 'http://example'})
+    driver = provider.get_driver_for_model(config={"model_name": "azure-model", 'azure_endpoint': 'http://example'})
     assert isinstance(driver, AzureOpenAIModelDriver)

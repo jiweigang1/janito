@@ -13,7 +13,7 @@ def print_verbose_header(agent, args):
         role_part = f" (Role: {role})" if role else ""
         parts = [
             f"Janito {VERSION}",
-            f"Provider: {agent.driver.provider_name}",
+            f"Provider: {agent.driver.name}",
             f"Model: {agent.driver.model_name}{role_part}",
             f"Driver: {agent.driver.__class__.__module__.split('.')[-2]}"
         ]

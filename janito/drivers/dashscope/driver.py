@@ -27,7 +27,9 @@ class DashScopeModelDriver(LLMDriver):
     def get_history(self):
         return list(getattr(self, '_history', []))
 
-    def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
+    def __init__(self, provider_name: str, api_key: str, config: dict = None, tool_registry: ToolRegistry = None):
+        config = config or {}
+        model_name = config.get('model_name')
         super().__init__(provider_name, model_name, api_key, tool_registry)
 
     def _add_to_history(self, message: Dict[str, Any]):
@@ -79,21 +81,19 @@ class DashScopeModelDriver(LLMDriver):
         request_id = str(uuid.uuid4())
         tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
         try:
-            self._prepare_history(messages_or_prompt, system_prompt)
+            self._process_prompt_and_system(messages_or_prompt, system_prompt)
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
             schemas = generate_tool_schemas(tools) if tools else None
             turn_count = 0
             while True:
-                if self._run_gen_turn(tools, kwargs, schemas, tool_executor, request_id, turn_count):
-                    turn_count += 1
-                    continue
-                else:
+                done = self._generation_loop_step(tools, kwargs, schemas, tool_executor, request_id, turn_count)
+                if done:
                     break
+                turn_count += 1
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
 
-    def _prepare_history(self, messages_or_prompt, system_prompt):
-        # Accumulate history across turns
+    def _process_prompt_and_system(self, messages_or_prompt, system_prompt):
         if isinstance(messages_or_prompt, str):
             user_msg = {"role": "user", "content": messages_or_prompt}
             self._add_to_history(user_msg)
@@ -101,11 +101,10 @@ class DashScopeModelDriver(LLMDriver):
             for msg in messages_or_prompt:
                 self._add_to_history(dict(msg))
         if system_prompt:
-            # Ensure system prompt is the first message if provided
             if not self._history or self._history[0].get('role') != 'system':
                 self._history.insert(0, {"role": "system", "content": system_prompt})
 
-    def _run_gen_turn(self, tools, kwargs, schemas, tool_executor, request_id, turn_count):
+    def _generation_loop_step(self, tools, kwargs, schemas, tool_executor, request_id, turn_count):
         self.publish(RequestStarted, request_id, payload={"tools": tools})
         enable_thinking = kwargs.get('think', False) or kwargs.get('enable_thinking', False)
         if 'enable_thinking' in kwargs:
@@ -118,20 +117,23 @@ class DashScopeModelDriver(LLMDriver):
         output = getattr(response, 'output', None)
         usage = getattr(response, 'usage', {})
 
+        # Handle client errors
         if status_code is not None and 400 <= status_code < 500:
             self.publish(RequestError, request_id, error=f"{error_code}: {error_message}", exception=None, traceback=None)
             self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
-            return False
+            return True
+
         self.publish(RequestFinished, request_id, response=response, status="success", usage=usage)
         if not output or not hasattr(output, 'choices') or not output.choices:
             self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
-            return False
+            return True
         message = output.choices[0].message
         content = message.get("content") if isinstance(message, dict) else getattr(message, "content", None)
         if content:
             self.handle_content_part(content, request_id)
         tool_calls = message.get("tool_calls") if isinstance(message, dict) else getattr(message, "tool_calls", None)
         if tool_calls:
+            # Prepare the assistant message and add to history
             assistant_msg = {
                 "role": "assistant",
                 "content": content,
@@ -140,7 +142,7 @@ class DashScopeModelDriver(LLMDriver):
             self._add_to_history(assistant_msg)
             for tool_call in tool_calls:
                 self.handle_function_call(tool_call, tool_executor)
-            return True  # Loop for multi-turn tool use
+            return False  # Not done
         else:
             self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
-            return False
+            return True

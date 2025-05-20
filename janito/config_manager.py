@@ -45,9 +45,8 @@ class ConfigManager:
 
     def save(self):
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
-        full_cfg = self.all(layered=True)
         with open(self.config_path, "w", encoding="utf-8") as f:
-            json.dump(full_cfg, f, indent=2)
+            json.dump(self.file_config, f, indent=2)
 
     def get(self, key, default=None):
         # Precedence: runtime_overrides > file_config > defaults
@@ -56,11 +55,15 @@ class ConfigManager:
                 return layer[key]
         return default
 
-    def set(self, key, value, runtime=False):
-        if runtime:
-            self.runtime_overrides[key] = value
-        else:
-            self.file_config[key] = value
+    def runtime_set(self, key, value):
+        self.runtime_overrides[key] = value
+
+    def file_set(self, key, value):
+        # Always reload, update, and persist
+        self._load_file_config()
+        self.file_config[key] = value
+        with open(self.config_path, "w", encoding="utf-8") as f:
+            json.dump(self.file_config, f, indent=2)
 
     def all(self, layered=False):
         merged = dict(self.defaults)
@@ -75,8 +78,8 @@ class ConfigManager:
 
     # Namespaced provider/model config
     def get_provider_config(self, provider, default=None):
-        providers = self.file_config.get('providers', {})
-        return providers.get(provider, default or {})
+        providers = self.file_config.get('providers') or {}
+        return providers.get(provider) or (default or {})
     def set_provider_config(self, provider, key, value):
         if 'providers' not in self.file_config:
             self.file_config['providers'] = {}
@@ -84,7 +87,7 @@ class ConfigManager:
             self.file_config['providers'][provider] = {}
         self.file_config['providers'][provider][key] = value
     def get_provider_model_config(self, provider, model, default=None):
-        return self.file_config.get('providers', {}).get(provider, {}).get('models', {}).get(model, default or {})
+        return self.file_config.get('providers') or {}.get(provider, {}).get('models', {}).get(model) or (default or {})
     def set_provider_model_config(self, provider, model, key, value):
         if 'providers' not in self.file_config:
             self.file_config['providers'] = {}
@@ -95,8 +98,6 @@ class ConfigManager:
         if model not in self.file_config['providers'][provider]['models']:
             self.file_config['providers'][provider]['models'][model] = {}
         self.file_config['providers'][provider]['models'][model][key] = value
-    def list_configured_providers(self):
-        return list(self.file_config.get('providers', {}).keys())
 
     # Support loading runtime overrides after init (e.g. after parsing CLI args)
     def apply_runtime_overrides(self, overrides_dict):

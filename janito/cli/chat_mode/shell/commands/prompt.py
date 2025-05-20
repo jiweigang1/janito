@@ -19,10 +19,10 @@ class RoleShellHandler(ShellCmdHandler):
     def run(self):
         new_role = self.after_cmd_line.strip()
         if not new_role:
-            current_role = config.get('role', '<not set>')
+            current_role = config.get('role') or '<not set>'
             shared_console.print(f"[bold green]Current system role:[/bold green] {current_role}")
             return
-        config.set("role", new_role, runtime=True)
+        config.runtime_set("role", new_role)
         agent = getattr(self.shell_state, "agent", None)
         if agent and hasattr(agent, "set_template_var"):
             agent.set_template_var("role", new_role)

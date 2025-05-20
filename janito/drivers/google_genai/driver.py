@@ -39,7 +39,9 @@ def extract_usage_metadata_native(usage_obj):
     return result
 
 class GoogleGenaiModelDriver(LLMDriver):
-    def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
+    def __init__(self, provider_name: str, api_key: str, config: dict = None, tool_registry: ToolRegistry = None):
+        config = config or {}
+        model_name = config.get('model_name')
         super().__init__(provider_name, model_name, api_key, tool_registry)
         self._history: List[Dict[str, Any]] = []
 
@@ -146,9 +148,10 @@ class GoogleGenaiModelDriver(LLMDriver):
             'tools': tools
         })
         response = self.send_api_request(client, conversation_contents, **api_kwargs)
+        duration = time.time() - start_time
         usage_obj = getattr(response, 'usage_metadata', None)
         usage_dict = extract_usage_metadata_native(usage_obj)
-        self.publish(RequestFinished, request_id, response=response, status='success', usage=usage_dict)
+        self.publish(RequestFinished, request_id, response=response, duration=duration, status='success', usage=usage_dict)
         candidates = getattr(response, 'candidates', None)
         if not candidates or not hasattr(candidates[0], 'content') or not hasattr(candidates[0].content, 'parts'):
             raise EmptyResponseError("Gemini API returned an empty or incomplete response.")
@@ -162,7 +165,7 @@ class GoogleGenaiModelDriver(LLMDriver):
                 had_function_call = True
             elif getattr(part, 'text', None) is not None:
                 self.handle_content_part(part, request_id)
-        return had_function_call, None
+        return had_function_call, duration
 
     def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, **kwargs):
         """
@@ -172,23 +175,28 @@ class GoogleGenaiModelDriver(LLMDriver):
         request_id = str(uuid.uuid4())
         tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
         try:
-            self._prepare_history(messages_or_prompt, system_prompt)
+            self._process_prompt_and_system(messages_or_prompt, system_prompt)
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
-            declarations = generate_tool_declarations(tools) if tools else None
-            config_dict = {}
-            if declarations:
-                config_dict["tools"] = declarations
-            conversation_contents, sys_prompt_from_history = self._conversation_history_to_driver_messages(self._history)
-            if system_prompt or sys_prompt_from_history:
-                config_dict["system_instruction"] = system_prompt or sys_prompt_from_history
-            config = genai_types.GenerateContentConfig(**config_dict) if config_dict else None
-            client = genai.Client(api_key=self.api_key)
-            self._run_turn_loop(client, config, conversation_contents, tool_executor, tools, request_id, kwargs)
+            config, conversation_contents, client = self._prepare_google_generation(tools, system_prompt)
+            turn_count = 0
+            start_time = time.time()
+            while True:
+                if self.cancel_event is not None and self.cancel_event.is_set():
+                    self.publish(RequestFinished, request_id, response=None, duration=0, status='cancelled', usage={})
+                    self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
+                    break
+                had_function_call, _ = self._process_generation_turn(
+                    client, config, conversation_contents, tool_executor, tools, request_id, start_time, kwargs
+                )
+                turn_count += 1
+                if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):
+                    continue  # Continue the loop for the next model response
+                self.publish(GenerationFinished, request_id, total_turns=turn_count)
+                break
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
 
-    def _prepare_history(self, messages_or_prompt, system_prompt):
-        # Accumulate history across turns
+    def _process_prompt_and_system(self, messages_or_prompt, system_prompt):
         if isinstance(messages_or_prompt, str):
             user_msg = {"role": "user", "content": messages_or_prompt}
             self._add_to_history(user_msg)
@@ -196,22 +204,18 @@ class GoogleGenaiModelDriver(LLMDriver):
             for msg in messages_or_prompt:
                 self._add_to_history(dict(msg))
         if system_prompt:
-            # Ensure system prompt is the first message if provided
             if not self._history or self._history[0].get('role') != 'system':
                 self._history.insert(0, {"role": "system", "content": system_prompt})
 
-    def _run_turn_loop(self, client, config, conversation_contents, tool_executor, tools, request_id, kwargs):
-        turn_count = 0
-        while True:
-            if self.cancel_event is not None and self.cancel_event.is_set():
-                self.publish(RequestFinished, request_id, response=None, status='cancelled', usage={})
-                self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
-                break
-            had_function_call, _ = self._process_generation_turn(
-                client, config, conversation_contents, tool_executor, tools, request_id, None, kwargs
-            )
-            turn_count += 1
-            if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):
-                continue  # Continue the loop for the next model response
-            self.publish(GenerationFinished, request_id, total_turns=turn_count)
-            break
+    def _prepare_google_generation(self, tools, system_prompt):
+        from google.genai import types as genai_types_local
+        declarations = generate_tool_declarations(tools) if tools else None
+        config_dict = {}
+        if declarations:
+            config_dict["tools"] = declarations
+        conversation_contents, sys_prompt_from_history = self._conversation_history_to_driver_messages(self._history)
+        if system_prompt or sys_prompt_from_history:
+            config_dict["system_instruction"] = system_prompt or sys_prompt_from_history
+        config = genai_types_local.GenerateContentConfig(**config_dict) if config_dict else None
+        client = genai.Client(api_key=self.api_key)
+        return config, conversation_contents, client

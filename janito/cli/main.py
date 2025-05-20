@@ -87,34 +87,24 @@ def handle_list_providers():
 
 def handle_list_models(args):
     """
-    List models for the specified or current provider, with better modularity for maintainability.
+    List models for the specified or current provider, using provider.get_model_info().
     """
     provider_instance = setup_provider()
     provider_name = getattr(provider_instance, 'name', None)
-    print(f"[janito debug] provider_instance.name is: {provider_name!r}")
     if not provider_name:
         print("Error: Provider must be specified with --provider or set as default before listing models.")
         sys.exit(1)
     try:
-        _handle_list_models_try(args, provider_instance)
-    except Exception as e:
-        print(f"Error listing models for provider '{provider_name}': {e}")
-    sys.exit(0)
-
-def _handle_list_models_try(args, provider_instance):
-    provider_name = getattr(provider_instance, 'name', None)
-    provider_cls = provider_instance.__class__
-    if hasattr(provider_cls, 'list_models'):
-        models = provider_cls.list_models()
-        # If models is a list of dicts with detailed info, print as table
+        models = list(provider_instance.get_model_info().values())
         if models and isinstance(models[0], dict):
             _print_models_table(models, provider_name)
         else:
             print(f"Supported models for provider '{provider_name}':")
             for m in models:
                 print(f"- {m}")
-    else:
-        print(f"Provider '{provider_name}' does not support model listing.")
+    except Exception as e:
+        print(f"Error listing models for provider '{provider_name}': {e}")
+    sys.exit(0)
 
 def _print_models_table(models, provider_name):
     from rich.table import Table
@@ -184,7 +174,7 @@ def handle_model_selection(args):
             sys.exit(1)
         if not validate_model_for_provider(provider_name, args.model):
             sys.exit(1)
-        config.set('model', args.model, runtime=True)
+        config.runtime_set('model', args.model)
 
 def set_default_system_prompt(args):
     if not getattr(args, 'system', None):
@@ -196,22 +186,16 @@ def validate_model_for_provider(provider_name, model_name):
     Returns True if available, False otherwise.
     """
     try:
-        from janito.providers.registry import LLMProviderRegistry
-        provider_cls = LLMProviderRegistry.get(provider_name)
-        # Try to call list_models if implemented
-        if hasattr(provider_cls, 'list_models'):
-            available_models = provider_cls.list_models()
-            # Expecting a list of dicts with 'name' field
-            available_names = [m["name"] for m in available_models if isinstance(m, dict) and "name" in m]
-            if model_name in available_names:
-                return True
-            else:
-                print(f"Error: Model '{model_name}' is not available for provider '{provider_name}'.")
-                print(f"Available models: {', '.join(available_names)}")
-                return False
-        else:
-            print(f"Warning: Model validation is not supported for provider '{provider_name}'. Proceeding without validation.")
+        from janito.cli.provider_setup import setup_provider
+        provider_instance = setup_provider()
+        info_dict = provider_instance.get_model_info()
+        available_names = [m["name"] for m in info_dict.values() if isinstance(m, dict) and "name" in m]
+        if model_name in available_names:
             return True
+        else:
+            print(f"Error: Model '{model_name}' is not available for provider '{provider_name}'.")
+            print(f"Available models: {', '.join(available_names)}")
+            return False
     except Exception as e:
         print(f"Error validating model for provider '{provider_name}': {e}")
         return False

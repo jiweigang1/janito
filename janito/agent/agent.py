@@ -20,6 +20,7 @@ class Agent:
         self.temperature = temperature
         self._event_lock = threading.Lock()
         self._latest_event = None
+
         self.driver = driver
         self.agent_name = agent_name or driver.get_name()
         self.state = {}

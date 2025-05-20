@@ -11,8 +11,8 @@ class LLMDriver(ABC):
     Implements the streaming event-driven interface (stream_generate) with built-in threading, queueing, and event bus logic.
     Subclasses must implement the provider-specific _run_generation method.
     """
-    def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
-        self.provider_name = provider_name
+    def __init__(self, name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
+        self.name = name
         self.model_name = model_name
         self.api_key = api_key
         self.tool_registry = tool_registry or ToolRegistry()
@@ -93,11 +93,11 @@ class LLMDriver(ABC):
 
     def get_name(self) -> str:
         """
-        Return the full name of the driver in the format provider_name/model_name.
+        Return the full name of the driver in the format name/model_name.
         Returns:
             str: The driver name.
         """
-        return f"{self.provider_name}/{self.model_name}"
+        return f"{self.name}/{self.model_name}"
 
     def get_history(self) -> List[Dict[str, Any]]:
         """

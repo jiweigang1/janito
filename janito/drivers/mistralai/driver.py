@@ -1,12 +1,3 @@
-"""
-MistralAI LLM driver.
-
-This driver manages interaction with the MistralAI API, supporting both standard chat completions and tool/function calls.
-
-Event Handling:
-----------------
-When a model response contains both content and tool calls, the driver always publishes the content event (ContentPartFound) first, followed by any tool call events, regardless of their order in the API response. This ensures that the main content is delivered before any tool execution events for downstream consumers.
-"""
 import time
 import uuid
 import traceback
@@ -24,7 +15,9 @@ class MistralAIModelDriver(LLMDriver):
     def get_history(self):
         return list(getattr(self, '_history', []))
 
-    def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
+    def __init__(self, provider_name: str, api_key: str, config: dict = None, tool_registry: ToolRegistry = None):
+        config = config or {}
+        model_name = config.get('model_name')
         super().__init__(provider_name, model_name, api_key, tool_registry)
         self._history = []
 
@@ -72,7 +65,8 @@ class MistralAIModelDriver(LLMDriver):
             'tools': tools
         })
         response = self.send_api_request(client, messages, schemas, **api_kwargs)
-        self.publish(RequestFinished, request_id, response=response, status='success', usage={})
+        duration = time.time() - start_time
+        self.publish(RequestFinished, request_id, response=response, duration=duration, status='success', usage={})
         message = response.choices[0].message
         content = message.content
         if content:
@@ -94,22 +88,22 @@ class MistralAIModelDriver(LLMDriver):
                 had_function_call = True
             # Now add the assistant message to history after all tool results are available
             self._add_to_history(assistant_msg)
-        return had_function_call, None
+        return had_function_call, duration
 
     def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, **kwargs):
         request_id = str(uuid.uuid4())
         tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
         try:
-            self._prepare_history(messages_or_prompt, system_prompt)
+            self._process_prompt_and_system(messages_or_prompt, system_prompt)
             self.publish(GenerationStarted, request_id, conversation_history=self._history)
             from mistralai import Mistral
             client = Mistral(api_key=self.api_key)
             schemas = generate_tool_schemas(tools) if tools else None
-            self._run_turn_loop(client, schemas, tools, request_id, kwargs, tool_executor)
+            self._generation_turn_loop(client, schemas, tools, request_id, kwargs, tool_executor)
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
 
-    def _prepare_history(self, messages_or_prompt, system_prompt):
+    def _process_prompt_and_system(self, messages_or_prompt, system_prompt):
         if isinstance(messages_or_prompt, str):
             self._add_to_history({"role": "user", "content": messages_or_prompt})
         elif isinstance(messages_or_prompt, list):
@@ -119,22 +113,23 @@ class MistralAIModelDriver(LLMDriver):
             if not self._history or self._history[0].get('role') != 'system':
                 self._add_to_history({"role": "system", "content": system_prompt})
 
-    def _run_turn_loop(self, client, schemas, tools, request_id, kwargs, tool_executor):
+    def _generation_turn_loop(self, client, schemas, tools, request_id, kwargs, tool_executor):
         messages = []
         max_retries = 5
         backoff_base = 1.0
         attempt = 0
         turn_count = 0
+        start_time = time.time()
         while True:
             if self.cancel_event is not None and self.cancel_event.is_set():
-                self.publish(RequestFinished, request_id, response=None, status='cancelled', usage={})
+                self.publish(RequestFinished, request_id, response=None, duration=0, status='cancelled', usage={})
                 self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
                 break
             # Retry logic for 429 errors
             while attempt <= max_retries:
                 try:
                     had_function_call, _ = self._process_generation_turn(
-                        client, messages, schemas, tools, request_id, None, kwargs, tool_executor
+                        client, messages, schemas, tools, request_id, start_time, kwargs, tool_executor
                     )
                     break
                 except Exception as e:

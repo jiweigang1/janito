@@ -52,7 +52,7 @@ class ChatSession:
         self.agent_setup.setup_agents()
         self.handler.agent = self.shell_state.agent
         # Toolbar role sync
-        current_role = config.get('role', '<not set>')
+        current_role = config.get('role') or '<not set>'
         agent = self.shell_state.agent
         if agent and hasattr(agent, "set_template_var"):
             agent.set_template_var("role", current_role)

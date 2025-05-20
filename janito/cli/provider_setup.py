@@ -17,14 +17,13 @@ def setup_provider():
         error_message = (
             "Error: No provider specified and no default provider is set.\n"
             "Providers with authentication configured:\n"
-            f"- " + "\n- ".join(config.list_configured_providers()) + "\n"
-            "Use prompt --provider PROVIDER to select one, or set a default with --set-provider PROVIDER."
+            "(no configured providers found)\n"            "Use prompt --provider PROVIDER to select one, or set a default with --set-provider PROVIDER."
         )
         raise RuntimeError(error_message)
 
     provider_cls = provider_registry.get_provider(provider_name)
     model_name = config.get('model')
-    provider_instance = provider_cls(model_name=model_name)
+    provider_instance = provider_cls(config={'model_name': model_name})
 
     return provider_instance
 

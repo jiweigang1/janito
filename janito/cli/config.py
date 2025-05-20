@@ -2,6 +2,7 @@ from janito.config_manager import ConfigManager
 # Centralized config defaults for Janito CLI
 CONFIG_DEFAULTS = {
     "api_key": None,  # Must be set by user
+    "provider": "openai",  # Default provider (OpenAI, can be overridden by user with --provider)
     "model": "gpt-4.1",  # Default model (available: gpt-4.1, gpt-4o, gpt-4-turbo, o3-mini, o4-mini, o4-mini-high)
     "role": "software developer",  # Part of the Agent Profile
     "temperature": 0.2,
@@ -31,13 +32,10 @@ DEFAULT_TERMWEB_PORT = 8088
 
 def get_termweb_port():
     port = config.get("termweb_port")
-    if port is None:
-        return DEFAULT_TERMWEB_PORT
     try:
         return int(port)
     except Exception:
         return DEFAULT_TERMWEB_PORT
 
 def set_termweb_port(port):
-    config.set("termweb_port", int(port))
-    config.save()
+    config.file_set("termweb_port", int(port))

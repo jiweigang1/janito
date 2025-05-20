@@ -3,7 +3,7 @@ from janito.cli.config import config
 
 def handle_verbose(shell_state=None, **kwargs):
     args = kwargs.get("args", [])
-    verbose = config.get("verbose", False)
+    verbose = config.get("verbose") or False
     if not args:
         status = "ON" if verbose else "OFF"
         console.print(
@@ -12,12 +12,12 @@ def handle_verbose(shell_state=None, **kwargs):
         return
     arg = args[0].lower()
     if arg == "on":
-        config.set("verbose", True, runtime=True)
+        config.runtime_set("verbose", True)
         console.print(
             "[bold green]/verbose:[/bold green] Verbose mode is now [bold]ON[/bold]."
         )
     elif arg == "off":
-        config.set("verbose", False, runtime=True)
+        config.runtime_set("verbose", False)
         console.print(
             "[bold green]/verbose:[/bold green] Verbose mode is now [bold]OFF[/bold]."
         )
