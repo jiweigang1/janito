@@ -12,12 +12,8 @@ class PromptHandler:
         self.args = args
         self.provider_instance = provider_instance
         self.llm_driver_config = llm_driver_config
-        self.agent = provider_instance.create_agent(
-            agent_name=getattr(llm_driver_config, 'role', None),
-            config=llm_driver_config.to_dict(),
-            system_prompt=getattr(llm_driver_config, 'system', None),
-            temperature=getattr(llm_driver_config, 'temperature', None),
-        )
+        from janito.agent.setup_agent import setup_agent
+        self.agent = setup_agent(provider_instance, llm_driver_config)
         # Setup conversation/history if needed
         self.generic_handler = GenericPromptHandler(args, [], provider_instance=provider_instance)
         self.generic_handler.agent = self.agent

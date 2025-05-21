@@ -43,7 +43,7 @@ After installation, use the `janito` command in your terminal.
 
 - **Set the Default Provider**
   ```bash
-  janito --set-provider PROVIDER
+  janito --set default_provider=provider_name
   ```
 
 - **List Supported Providers**
@@ -100,7 +100,7 @@ After installation, use the `janito` command in your terminal.
 | `--list-providers`     | List all supported LLM providers                                            |
 | `-l`, `--list-models`  | List models for current/selected provider                                   |
 | `--set-api-key`        | Set API key for the current or selected provider (`API_KEY`). Use `-p PROVIDER` to set for a specific provider. |
-| `--set-provider`       | Set the current LLM provider                                                |
+| `--set default_provider=provider_name` | Set the current LLM provider (e.g., janito --set default_provider=provider_name)                                                |
 | `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set default model for the current/selected provider. |
 | `-s`, `--system`       | Set a system prompt                                                         |
 | `-r`, `--role`         | Set the role for the agent (overrides config)                                |

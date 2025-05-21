@@ -3,7 +3,6 @@ Core PromptHandler: Handles prompt submission and response formatting for janito
 """
 import time
 from janito.version import __version__ as VERSION
-from janito.cli.provider_setup import setup_agent
 from janito.performance_collector import PerformanceCollector
 from rich.status import Status
 from rich.console import Console
@@ -12,7 +11,6 @@ from janito.driver_events import RequestStarted, RequestFinished, RequestError
 from janito.tool_events import ToolCallError
 import threading
 
-from janito.provider_config import validate_mandatory_provider_config
 from janito.cli.verbose_output import print_verbose_header
 
 class StatusRef:
@@ -27,7 +25,6 @@ class PromptHandler:
     provider_instance: Any
 
     def __init__(self, args: Any, conversation_history, provider_instance) -> None:
-        validate_mandatory_provider_config()
         self.temperature = getattr(args, 'temperature', None)
         """
         Initialize PromptHandler.

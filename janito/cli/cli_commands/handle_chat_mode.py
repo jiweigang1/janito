@@ -17,8 +17,7 @@ def handle_chat_mode(args, parser):
             from janito.cli.config import set_termweb_port, get_termweb_port
             set_termweb_port(getattr(args, 'termweb_port', get_termweb_port()))
             try:
-                from janito.cli.provider_setup import setup_provider
-                provider_instance = setup_provider()
+                                provider_instance = setup_provider()
             except RuntimeError as e:
                 from rich.console import Console
                 Console().print(f'[red][bold]Error:[/bold] {e}[/red]')

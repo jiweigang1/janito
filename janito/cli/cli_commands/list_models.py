@@ -1,7 +1,6 @@
 """
 CLI Command: List models for the specified/current provider
 """
-from janito.cli.provider_setup import setup_provider
 from janito.cli.cli_commands.model_utils import _print_models_table
 import sys
 

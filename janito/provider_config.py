@@ -4,20 +4,11 @@ ProviderConfigManager: Handles reading and writing provider configuration for ja
 from janito.config import config
 from janito.llm.auth import LLMAuthManager
 
-
-def validate_mandatory_provider_config():
-    """
-    Checks for presence of a default provider. Raises RuntimeError if missing.
-    Should be called before LLm/provider actions requiring the provider.
-    """
-    if config.get('provider', None) is None:
-        raise RuntimeError("Mandatory configuration missing: No default provider set. Set one with set_default_provider().")
-
 def get_default_provider():
-    return config.get('provider')
+    return config.get('default_provider')
 
 def set_default_provider(provider_name):
-    config.file_set('provider', provider_name)
+    config.file_set('default_provider', provider_name)
 
 def get_config_path():
     return str(config.config_path)
@@ -55,4 +46,3 @@ def set_provider_model_config(provider, model, key, value):
 
 def get_provider_model_config(provider, model):
     return config.get_provider_model_config(provider, model)
-

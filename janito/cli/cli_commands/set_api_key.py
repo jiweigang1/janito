@@ -1,7 +1,6 @@
 """
 CLI Command: Set API key for the current or selected provider
 """
-from janito.cli.provider_setup import setup_provider
 
 _provider_instance = None
 

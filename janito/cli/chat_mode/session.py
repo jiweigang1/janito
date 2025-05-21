@@ -42,12 +42,8 @@ class ChatSession:
         self.provider_instance = provider_instance
         self.llm_driver_config = llm_driver_config
         driver = provider_instance.get_driver_for_model(config=llm_driver_config.to_dict())
-        agent = provider_instance.create_agent(
-            agent_name=getattr(llm_driver_config, 'role', None),
-            config=llm_driver_config.to_dict(),
-            system_prompt=getattr(llm_driver_config, 'system', None),
-            temperature=getattr(llm_driver_config, 'temperature', None),
-        )
+        from janito.agent.setup_agent import setup_agent
+        agent = setup_agent(provider_instance, llm_driver_config)
         self.shell_state = ChatShellState(self.mem_history, [])
         self.shell_state.agent = agent
         self.agent = agent

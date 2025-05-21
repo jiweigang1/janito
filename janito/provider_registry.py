@@ -60,6 +60,13 @@ class ProviderRegistry:
             raise ValueError("Provider name must be specified.")
         return LLMProviderRegistry.get(provider_name)
 
+    def get_instance(self, provider_name):
+        """Return an instance of the provider for the given provider name."""
+        provider_class = self.get_provider(provider_name)
+        if provider_class is None:
+            raise ValueError(f"No provider class found for '{provider_name}'")
+        return provider_class()
+
 # For backward compatibility
 def list_providers():
     """Legacy function for listing providers, now uses ProviderRegistry class."""

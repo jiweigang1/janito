@@ -1,7 +1,6 @@
 """
 CLI Command: Validate and set the model provider selection
 """
-from janito.cli.provider_setup import setup_provider
 from janito.cli.config import config
 
 _provider_instance = None
