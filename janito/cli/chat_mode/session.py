@@ -31,7 +31,7 @@ class ChatShellState:
         self.main_enabled = False
 
 class ChatSession:
-    def __init__(self, console, provider_instance, llm_driver_config):
+    def __init__(self, console, provider_instance, llm_driver_config, role=None):
         self.console = console
         self.user_input_history = UserInputHistory()
         self.input_dicts = self.user_input_history.load()
@@ -43,7 +43,7 @@ class ChatSession:
         self.llm_driver_config = llm_driver_config
         driver = provider_instance.get_driver_for_model(config=llm_driver_config.to_dict())
         from janito.agent.setup_agent import setup_agent
-        agent = setup_agent(provider_instance, llm_driver_config)
+        agent = setup_agent(provider_instance, llm_driver_config, role=role)
         self.shell_state = ChatShellState(self.mem_history, [])
         self.shell_state.agent = agent
         self.agent = agent

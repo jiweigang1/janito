@@ -4,6 +4,7 @@ Verbose output formatting and error handling for janito CLI (shared for single a
 from rich import print as rich_print
 from rich.align import Align
 from rich.panel import Panel
+from rich.text import Text
 from janito.version import __version__ as VERSION
 from janito.cli.utils import format_tokens
 
@@ -21,6 +22,37 @@ def print_verbose_header(agent, args):
             parts.append("Thinking ON")
         info_line = " | ".join(part.strip() for part in parts)
         rich_print(Panel(Align(f"[cyan]{info_line}[/cyan]", align="center"), style="on grey11", expand=True))
+
+def print_verbose_info(label, content, style="green", align_content=False):
+    icon = "[bold]🟢[/bold]" if style == "green" else "[bold]🔷[/bold]"
+    panel_title = f"{icon} [bold {style}]{label}[/bold {style}]"
+    from rich.console import Console
+    from rich.align import Align
+    from rich.text import Text
+    console = Console()
+    width = console.size.width
+    obfuscated_content = content
+    # Obfuscate api_key if LLMDriverConfig
+    if hasattr(content, '__dataclass_fields__') and 'api_key' in content.__dataclass_fields__:
+        # Copy and mask the api_key
+        from copy import deepcopy
+        obfuscated_content = deepcopy(content)
+        if getattr(obfuscated_content, 'api_key', None):
+            val = getattr(obfuscated_content, 'api_key')
+            if len(val) > 8:
+                masked = val[:2] + '***' + val[-2:]
+            else:
+                masked = '***'
+            obfuscated_content.api_key = masked
+        else:
+            obfuscated_content.api_key = None
+    if align_content:
+        rendered_content = Align.center(Text(str(obfuscated_content)))
+    else:
+        rendered_content = Text(str(obfuscated_content))
+    panel = Panel(rendered_content, title=panel_title, border_style=style, expand=False, width=min(width - 8, 100))
+    console.print(Align.center(panel))
+
 
 def print_performance(start_time, end_time, performance_collector, args):
     if start_time is None or end_time is None:
@@ -76,7 +108,8 @@ def print_performance(start_time, end_time, performance_collector, args):
         while len(right) < max_len:
             right.append(("", ""))
 
-        table = Table(show_header=False, box=box.SIMPLE, pad_edge=False, style=Style(color="cyan"), expand=False)
+        from rich.table import Table
+        table = Table(show_header=False, box=box.SIMPLE, pad_edge=False, style="cyan", expand=False)
         table.add_column(justify="right")
         table.add_column(justify="left")
         table.add_column(justify="right")

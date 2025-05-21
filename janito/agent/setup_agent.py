@@ -1,9 +1,9 @@
 from pathlib import Path
 from jinja2 import Template
 
-def setup_agent(provider_instance, llm_driver_config, templates_dir=None):
+def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=None):
     """
-    Creates an agent using a rendered system prompt template.
+    Creates an agent using a rendered system prompt template, passing an explicit role.
     """
     if templates_dir is None:
         # Set default template directory
@@ -14,12 +14,20 @@ def setup_agent(provider_instance, llm_driver_config, templates_dir=None):
         template = Template(file.read())
     # Prepare context for Jinja2 rendering from llm_driver_config
     context = llm_driver_config.to_dict()
+    context['role'] = role or "software developer"
+    # Inject current platform environment information
+    from janito.platform_discovery import PlatformDiscovery
+    pd = PlatformDiscovery()
+    context['platform'] = pd.get_platform_name()
+    context['python_version'] = pd.get_python_version()
+    context['shell_info'] = pd.detect_shell()
     rendered_prompt = template.render(**context)
-    # Create the agent as before, but now using the rendered prompt
+    # Create the agent as before, now passing the explicit role
     agent = provider_instance.create_agent(
-        agent_name=getattr(llm_driver_config, 'role', None),
+        agent_name=role or "software developer",
         config=llm_driver_config.to_dict(),
         system_prompt=rendered_prompt,
         temperature=getattr(llm_driver_config, 'temperature', None),
     )
+    agent.template_vars["role"] = context["role"]
     return agent

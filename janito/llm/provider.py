@@ -10,11 +10,42 @@ class LLMProvider(ABC):
     """
 
     name: str = None  # Must be set on subclasses
+    DEFAULT_MODEL: str = None  # Should be set by subclasses
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if not hasattr(cls, 'name') or not isinstance(getattr(cls, 'name'), str) or not cls.name:
             raise TypeError(f"Class {cls.__name__} must define a class attribute 'name' (non-empty str)")
+        if not hasattr(cls, 'DEFAULT_MODEL') or getattr(cls, 'DEFAULT_MODEL', None) is None:
+            raise TypeError(f"Class {cls.__name__} must define a class attribute 'DEFAULT_MODEL' (non-empty str)")
+
+    def fill_missing_device_info(self, config):
+        """
+        Fill missing LLMDriverConfig fields (max_tokens, temperature, etc) from MODEL_SPECS for the chosen model.
+        Mutates the config in place.
+        """
+        if not hasattr(self, 'MODEL_SPECS'):
+            return
+        model_name = getattr(config, 'model', None) or getattr(self, 'DEFAULT_MODEL', None)
+        model_info = self.MODEL_SPECS.get(model_name)
+        if not model_info:
+            return
+        # Handle common fields from model_info
+        spec_dict = model_info.to_dict() if hasattr(model_info, 'to_dict') else dict(model_info)
+        if hasattr(config, 'max_tokens') and getattr(config, 'max_tokens', None) is None:
+            val = spec_dict.get('max_tokens') or spec_dict.get('max_response')
+            if val is not None:
+                try:
+                    config.max_tokens = int(val)
+                except Exception:
+                    pass
+        if hasattr(config, 'temperature') and getattr(config, 'temperature', None) is None:
+            val = spec_dict.get('temperature', spec_dict.get('default_temp'))
+            if val is not None:
+                try:
+                    config.temperature = float(val)
+                except Exception:
+                    pass
 
 
     @property

@@ -17,25 +17,17 @@ class GoogleProvider(LLMProvider):
     name = "google"
     DEFAULT_MODEL = "gemini-2.5-pro-preview-05-06"
 
-    def __init__(self, config: dict = None):
+    def __init__(self, config: LLMDriverConfig = None):
         self._auth_manager = LLMAuthManager()
         self._api_key = self._auth_manager.get_credentials(type(self).name)
         self._tool_registry = ToolRegistry()
-        _config = config or {}
-        if 'model_name' not in _config:
-            _config['model_name'] = self.DEFAULT_MODEL
-        self._info = LLMDriverConfig(
-            model=_config.get('model_name', self.DEFAULT_MODEL),
-            api_key=self._api_key,
-            base_url=_config.get('base_url'),
-            max_tokens=_config.get('max_tokens'),
-            temperature=_config.get('temperature'),
-            top_p=_config.get('top_p'),
-            presence_penalty=_config.get('presence_penalty'),
-            frequency_penalty=_config.get('frequency_penalty'),
-            stop=_config.get('stop'),
-            extra={k: v for k, v in _config.items() if k not in ['model_name','base_url','max_tokens','temperature','top_p','presence_penalty','frequency_penalty','stop']}
-        )
+        self._info = config or LLMDriverConfig(model=None)
+        if not self._info.model:
+            self._info.model = self.DEFAULT_MODEL
+        if not self._info.api_key:
+            self._info.api_key = self._api_key
+        from janito.drivers.google_genai.driver import GoogleGenaiModelDriver
+        self.fill_missing_device_info(self._info)
         self._driver = GoogleGenaiModelDriver(self._info, self._tool_registry)
 
     @property

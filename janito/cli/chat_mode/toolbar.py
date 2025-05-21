@@ -63,9 +63,12 @@ def get_toolbar_func(perf: PerformanceCollector, msg_count: int, session_id=None
         provider_name = "?"
         model_name = "?"
         role = "?"
-        if agent is not None and hasattr(agent, "driver"):
-            provider_name = getattr(agent.driver, "name", "?")
-            model_name = getattr(agent.driver, "model_name", "?")
+        if agent is not None:
+            if hasattr(agent, "driver"):
+                provider_name = getattr(agent.driver, "name", "?")
+                model_name = getattr(agent.driver, "model_name", "?")
+            if hasattr(agent, "template_vars"):
+                role = agent.template_vars.get("role", "?")
         usage = perf.get_last_request_usage()
         first_line = assemble_first_line(provider_name, model_name, role, agent=agent)
         second_line = assemble_second_line(width, usage, msg_count, session_id)

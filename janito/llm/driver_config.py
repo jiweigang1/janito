@@ -3,12 +3,13 @@ from typing import Any, Optional
 
 @dataclass
 class LLMDriverConfig:
+    role: str = "software developer"
     """
     Common configuration container for LLM drivers.
     Holds standard attributes that most LLM drivers require (used as a config or schema reference object).
     Inspired by the OpenAI driver, but fields are generic for most LLM backends.
     """
-    model: str
+    model: str = None  # Model is required but can be set from CLI
     api_key: Optional[str] = None
     base_url: Optional[str] = None
     max_tokens: Optional[int] = None

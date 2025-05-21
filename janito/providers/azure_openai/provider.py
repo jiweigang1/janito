@@ -34,6 +34,7 @@ class AzureOpenAIProvider(LLMProvider):
             extra={k: v for k, v in _params.items() if k not in ['model_name','base_url','max_tokens','temperature','top_p','presence_penalty','frequency_penalty','stop']}
         )
         from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
+        self.fill_missing_device_info(self._info)
         self._driver = AzureOpenAIModelDriver(self._info, self._tool_registry)
 
 

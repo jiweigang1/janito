@@ -126,8 +126,9 @@ class SearchTextTool(ToolBase):
                 )
         count = sum(count for _, count in per_file_counts)
         file_word = pluralize("match", count)
+        file_word_max = file_word + (" (max)" if dir_limit_reached else "")
         self.report_success(
-            tr(" ✅ {count} {file_word}", count=count, file_word=file_word),
+            tr(" ✅ {count} {file_word}", count=count, file_word=file_word_max),
             ReportAction.READ
         )
         return info_str, dir_output, dir_limit_reached, per_file_counts

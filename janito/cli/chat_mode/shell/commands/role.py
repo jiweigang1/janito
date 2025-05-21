@@ -18,6 +18,9 @@ class RoleCommandShellHandler(ShellCmdHandler):
             # Set new role
             new_role = ' '.join(args)
             self.handler.agent.template_vars['role'] = new_role
+            # Refresh the system prompt with the new role if possible
+            if hasattr(self.handler.agent, 'set_system_using_template') and hasattr(self.handler.agent, '_system_prompt_template_file') and self.handler.agent._system_prompt_template_file:
+                self.handler.agent.set_system_using_template(self.handler.agent._system_prompt_template_file, **self.handler.agent.template_vars)
             return f"Role set to: {new_role}"
             
     def get_completions(self, document, complete_event):
