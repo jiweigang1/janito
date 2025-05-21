@@ -1,7 +1,7 @@
 from janito.llm.provider import LLMProvider
 from janito.llm.model import LLMModelInfo
 from janito.llm.auth import LLMAuthManager
-from janito.llm.driver_info import LLMDriverInfo
+from janito.llm.driver_config import LLMDriverConfig
 from janito.tool_registry import ToolRegistry
 from janito.providers.registry import LLMProviderRegistry
 
@@ -21,7 +21,7 @@ class AzureOpenAIProvider(LLMProvider):
         if "api_version" not in _params:
             _params["api_version"] = "2023-05-15"
         # Build driver info
-        self._info = LLMDriverInfo(
+        self._info = LLMDriverConfig(
             model=_model_name,
             api_key=self._api_key,
             base_url=_params.get("base_url"),

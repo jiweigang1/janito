@@ -13,8 +13,7 @@ def get_provider_instance():
         _provider_instance = setup_provider()
     return _provider_instance
 
-def handle_list_models(args):
-    provider_instance = get_provider_instance()
+def handle_list_models(args, provider_instance):
     provider_name = getattr(provider_instance, 'name', None)
     if not provider_name:
         print("Error: Provider must be specified with --provider or set as default before listing models.")

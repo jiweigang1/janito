@@ -1,5 +1,5 @@
 """
-Output formatting and error handling for janito CLI (one-shot run).
+Verbose output formatting and error handling for janito CLI (shared for single and chat modes).
 """
 from rich import print as rich_print
 from rich.align import Align

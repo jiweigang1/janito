@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 @dataclass
-class LLMDriverInfo:
+class LLMDriverConfig:
     """
     Common configuration container for LLM drivers.
     Holds standard attributes that most LLM drivers require (used as a config or schema reference object).

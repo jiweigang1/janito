@@ -11,14 +11,14 @@ from janito.providers.openai.schema_generator import generate_tool_schemas
 from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 
-from janito.llm.driver_info import LLMDriverInfo
+from janito.llm.driver_config import LLMDriverConfig
 
 class MistralAIModelDriver(LLMDriver):
     name = "mistralai"
     def get_history(self):
         return list(getattr(self, '_history', []))
 
-    def __init__(self, info: LLMDriverInfo, tool_registry: ToolRegistry = None):
+    def __init__(self, info: LLMDriverConfig, tool_registry: ToolRegistry = None):
         super().__init__('mistralai', info.model, info.api_key, tool_registry)
         self.config = info
         self._history = []

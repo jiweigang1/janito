@@ -1,0 +1,9 @@
+
+CLI:
+    janito [modifiders] [setters/getters] [user prompt]
+        modifiers: [--provider xpto ] [--model xpto] -  modifiers can affect both setters/getters and run mode
+        setters/getters: show/list/set  (--set*/--list*/--show*)
+        whem no setter or getter is provided, then we go into run mode:
+            - single_shot: when user prompt was provided in cmd line
+            - chat_mode: - no user prompt provide
+        

@@ -9,9 +9,9 @@ from janito.cli.config import config
 from pathlib import Path
 from janito.tool_registry import ToolRegistry
 
-def setup_provider():
+def setup_provider(provider_name=None):
     provider_registry = ProviderRegistry()
-    provider_name = config.get('provider')
+    provider_name = provider_name or config.get('provider')
 
     if not provider_name:
         error_message = (

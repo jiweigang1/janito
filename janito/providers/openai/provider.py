@@ -1,7 +1,7 @@
 from janito.llm.provider import LLMProvider
 from janito.llm.model import LLMModelInfo
 from janito.llm.auth import LLMAuthManager
-from janito.llm.driver_info import LLMDriverInfo
+from janito.llm.driver_config import LLMDriverConfig
 from janito.drivers.openai.driver import OpenAIModelDriver
 from janito.drivers.openai_responses.driver import OpenAIResponsesModelDriver
 from janito.tool_executor import ToolExecutor
@@ -22,7 +22,7 @@ class OpenAIProvider(LLMProvider):
         self._tool_registry = ToolRegistry()
         _config = config or {}
         _model_name = _config.get('model_name', self.DEFAULT_MODEL)
-        self._info = LLMDriverInfo(
+        self._info = LLMDriverConfig(
             model=_model_name,
             api_key=self._api_key,
             base_url=_config.get('base_url'),

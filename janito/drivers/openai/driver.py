@@ -21,16 +21,16 @@ from janito.driver_events import (
 from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 
-from janito.llm.driver_info import LLMDriverInfo
+from janito.llm.driver_config import LLMDriverConfig
 
 class OpenAIModelDriver(LLMDriver):
     name = "openai"
-    # Which fields to extract from config and LLMDriverInfo
+    # Which fields to extract from config and LLMDriverConfig
     driver_fields = {"max_tokens", "temperature", "top_p", "presence_penalty", "frequency_penalty", "stop", "base_url", "api_key"}
-    def __init__(self, info: LLMDriverInfo, tool_registry: ToolRegistry = None):
+    def __init__(self, info: LLMDriverConfig, tool_registry: ToolRegistry = None):
         super().__init__("openai", info.model, info.api_key, tool_registry)
         self.config = info
-        # Retain LLMDriverInfo object for all config, supports all param access
+        # Retain LLMDriverConfig object for all config, supports all param access
         self.base_url = info.base_url
 
     def _create_client(self):

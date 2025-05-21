@@ -43,10 +43,10 @@ class LLMProvider(ABC):
         driver_class = self._resolve_driver_class(driver_name)
         self._validate_required_config(driver_class, config, driver_name)
         # --- New: Generic driver info builder logic ---
-        from janito.llm.driver_config_builder import build_llm_driver_info
-        llm_driver_info = build_llm_driver_info(config or {}, driver_class)
+        from janito.llm.driver_config_builder import build_llm_driver_config
+        llm_driver_config = build_llm_driver_config(config or {}, driver_class)
         return driver_class(
-            llm_driver_info,
+            llm_driver_config,
             getattr(self, '_tool_registry', None)
         )
 

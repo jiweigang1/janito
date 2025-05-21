@@ -1,7 +1,7 @@
 from janito.llm.provider import LLMProvider
 from janito.llm.model import LLMModelInfo
 from janito.llm.auth import LLMAuthManager
-from janito.llm.driver_info import LLMDriverInfo
+from janito.llm.driver_config import LLMDriverConfig
 from janito.drivers.mistralai.driver import MistralAIModelDriver
 from janito.tool_registry import ToolRegistry
 from janito.providers.registry import LLMProviderRegistry
@@ -21,7 +21,7 @@ class MistralAIProvider(LLMProvider):
         _config = config or {}
         if 'model_name' not in _config:
             _config['model_name'] = self.DEFAULT_MODEL
-        self._info = LLMDriverInfo(
+        self._info = LLMDriverConfig(
             model=_config.get('model_name', self.DEFAULT_MODEL),
             api_key=self._api_key,
             base_url=_config.get('base_url'),

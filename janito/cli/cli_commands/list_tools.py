@@ -2,7 +2,7 @@
 CLI Command: List available tools
 """
 
-def handle_list_tools():
+def handle_list_tools(args=None):
     from janito.tool_registry import ToolRegistry
     import janito.tools  # Ensure all tools are registered
     registry = ToolRegistry()

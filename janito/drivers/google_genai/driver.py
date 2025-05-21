@@ -22,7 +22,7 @@ from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
 from google import genai
 from google.genai import types as genai_types
-from janito.llm.driver_info import LLMDriverInfo
+from janito.llm.driver_config import LLMDriverConfig
 
 def extract_usage_metadata_native(usage_obj):
     if usage_obj is None:
@@ -42,7 +42,7 @@ def extract_usage_metadata_native(usage_obj):
 
 class GoogleGenaiModelDriver(LLMDriver):
     name = "google_genai"
-    def __init__(self, info: LLMDriverInfo, tool_registry: ToolRegistry = None):
+    def __init__(self, info: LLMDriverConfig, tool_registry: ToolRegistry = None):
         super().__init__('google', info.model, info.api_key, tool_registry)
         self.config = info
         self._history: List[Dict[str, Any]] = []
