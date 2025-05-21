@@ -9,6 +9,8 @@ from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit import PromptSession
 from janito.cli.chat_mode.toolbar import get_toolbar_func
 from prompt_toolkit.enums import EditingMode
+from janito.cli.chat_mode.toolbar_style import toolbar_style
+from janito.cli.chat_mode.prompt_style import prompt_style
 from janito.cli.chat_mode.bindings import KeyBindingsFactory
 from janito.cli.chat_mode.shell.commands import handle_command
 
@@ -53,6 +55,7 @@ class ChatSession:
 
     def run(self):
         session = PromptSession(
+            style=toolbar_style,
             history=self.mem_history,
             editing_mode=EditingMode.EMACS,
             key_bindings=self.key_bindings,
@@ -62,7 +65,7 @@ class ChatSession:
         msg_count = 0
         while True:
             try:
-                cmd_input = session.prompt(HTML("<b>janito</b> > "))
+                cmd_input = session.prompt(HTML('<b><style class="prompt">janito</style></b><style class="prompt"> &gt; </style>'), style=prompt_style)
             except (KeyboardInterrupt, EOFError):
                 self.console.print("\n[bold yellow]Exiting chat. Goodbye![/bold yellow]")
                 break
