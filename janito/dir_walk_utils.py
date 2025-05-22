@@ -2,7 +2,7 @@ import os
 from .gitignore_utils import GitignoreFilter
 
 
-def walk_dir_with_gitignore(root_dir, max_depth=None):
+def walk_dir_with_gitignore(root_dir, max_depth=None, include_gitignored=False):
     """
     Walks the directory tree starting at root_dir, yielding (root, dirs, files) tuples,
     with .gitignore rules applied.
@@ -20,5 +20,6 @@ def walk_dir_with_gitignore(root_dir, max_depth=None):
                 # For max_depth=1, only root (depth=0). For max_depth=2, root and one level below (depth=0,1).
                 if depth > 0:
                     continue
-        dirs, files = gitignore.filter_ignored(root, dirs, files)
+        if not include_gitignored:
+            dirs, files = gitignore.filter_ignored(root, dirs, files)
         yield root, dirs, files

@@ -49,10 +49,10 @@ def assemble_second_line(width, usage, msg_count, session_id=None):
 
 def assemble_bindings_line():
     return (
-        f' <b>F1</b>: Restart conversation | '
-        f'<b>F12</b>: Do It | '
-        f'<b>Ctrl-Y</b>: Yes | '
-        f'<b>Ctrl-N</b>: No | '
+        f' <style class="key-label">F1</style>: Restart conversation | '
+        f'<style class="key-label">F12</style>: Do It | '
+        f'<style class="key-label">Ctrl-Y</style>: Yes | '
+        f'<style class="key-label">Ctrl-N</style>: No | '
         f'<b>/help</b>: Help | '
     )
 

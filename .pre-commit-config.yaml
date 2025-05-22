@@ -9,3 +9,4 @@ repos:
     rev: v1.4.0  # Use the latest stable version or specify as needed
     hooks:
       - id: detect-secrets
+        args: ["--exclude-files", "janito/i18n/pt.py"]

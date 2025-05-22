@@ -8,7 +8,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.formatted_text import HTML
-from janito.cli.chat_mode.prompt_style import prompt_style
+from janito.cli.chat_mode.prompt_style import chat_shell_style
 from prompt_toolkit.styles import Style
 toolbar_style = Style.from_dict({'bottom-toolbar': 'fg:yellow bg:darkred'})
 
@@ -87,7 +87,7 @@ class AskUserTool(ToolBase):
             style=style,
         )
 
-        prompt_icon = HTML("<prompt>💬 </prompt>")
+        prompt_icon = HTML("<inputline>💬 </inputline>")
 
         while True:
             response = session.prompt(prompt_icon)
