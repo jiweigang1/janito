@@ -64,11 +64,17 @@ class ChatSession:
         self.console.print("[bold green]Type /help for commands. Type /exit or press Ctrl+C to quit.[/bold green]")
         msg_count = 0
         while True:
-            try:
-                cmd_input = session.prompt(HTML('<b><style class="prompt">janito</style></b><style class="prompt"> &gt; </style>'), style=prompt_style)
-            except (KeyboardInterrupt, EOFError):
-                self.console.print("\n[bold yellow]Exiting chat. Goodbye![/bold yellow]")
-                break
+            # Support injected input from commands like /multi
+            injected = getattr(self.shell_state, 'injected_input', None)
+            if injected is not None:
+                cmd_input = injected
+                self.shell_state.injected_input = None
+            else:
+                try:
+                    cmd_input = session.prompt(HTML('<b><style class="prompt">janito</style></b><style class="prompt"> &gt; </style>'), style=prompt_style)
+                except (KeyboardInterrupt, EOFError):
+                    self.console.print("\n[bold yellow]Exiting chat. Goodbye![/bold yellow]")
+                    break
             cmd_input = cmd_input.strip()
             if not cmd_input:
                 continue

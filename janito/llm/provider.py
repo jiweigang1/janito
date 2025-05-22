@@ -96,10 +96,10 @@ class LLMProvider(ABC):
 
     def _get_driver_name_from_spec(self, spec):
         driver_name = None
-        if hasattr(spec, 'other') and isinstance(spec.other, dict):
-            driver_name = spec.other.get('driver', None)
-        if not driver_name and hasattr(spec, 'driver'):
+        if hasattr(spec, 'driver') and spec.driver:
             driver_name = spec.driver
+        elif hasattr(spec, 'other') and isinstance(spec.other, dict):
+            driver_name = spec.other.get('driver', None)
         return driver_name
 
     def _resolve_driver_class(self, driver_name):
@@ -107,16 +107,27 @@ class LLMProvider(ABC):
             raise NotImplementedError("No driver class found or specified for this MODEL_SPECS entry.")
         module_root = 'janito.drivers'
         probable_path = None
-        if 'OpenAIResponsesModelDriver' == driver_name:
-            probable_path = f'openai_responses.driver'
-        elif 'OpenAIModelDriver' == driver_name:
-            probable_path = f'openai.driver'
-        elif 'AzureOpenAIModelDriver' == driver_name:
-            probable_path = f'azure_openai.driver'
-        if probable_path is not None:
+        mapping = {
+            'OpenAIResponsesModelDriver': 'openai_responses.driver',
+            'OpenAIModelDriver': 'openai.driver',
+            'AzureOpenAIModelDriver': 'azure_openai.driver',
+            'GoogleGenaiModelDriver': 'google_genai.driver',
+        }
+        if driver_name in mapping:
+            probable_path = mapping[driver_name]
             module_path = f"{module_root}.{probable_path}"
             mod = importlib.import_module(module_path)
             return getattr(mod, driver_name)
+        # Attempt dynamic fallback based on convention
+        if driver_name.endswith('ModelDriver'):
+            base = driver_name[:-len('ModelDriver')]
+            mod_name = base.replace('_', '').lower()
+            module_path = f"{module_root}.{mod_name}.driver"
+            try:
+                mod = importlib.import_module(module_path)
+                return getattr(mod, driver_name)
+            except Exception:
+                pass
         raise NotImplementedError("No driver class found for driver_name: {}".format(driver_name))
 
     def _validate_required_config(self, driver_class, config, driver_name):

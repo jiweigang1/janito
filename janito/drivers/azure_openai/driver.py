@@ -6,11 +6,11 @@ from janito.llm.driver_config import LLMDriverConfig
 class AzureOpenAIModelDriver(OpenAIModelDriver):
     name = "azure_openai"
     required_config = {"azure_endpoint"}  # Update key as used in your config logic
-    def __init__(self, info: LLMDriverConfig, tool_registry=None):
+    def __init__(self, driver_config: LLMDriverConfig, tool_registry=None):
         super().__init__(info, tool_registry)
         self.azure_endpoint = getattr(info, "extra", {}).get("azure_endpoint")
         self.api_version = getattr(info, "extra", {}).get("api_version")
-        self.api_key = info.api_key
+        self.api_key = driver_config.api_key
 
     def _get_max_tokens(self):
         if self.config is not None and getattr(self.config, "max_tokens", None) not in (None, '', 'N/A'):

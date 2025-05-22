@@ -30,9 +30,9 @@ class DashScopeModelDriver(LLMDriver):
     def get_history(self):
         return list(getattr(self, '_history', []))
 
-    def __init__(self, info: LLMDriverConfig, tool_registry: ToolRegistry = None):
-        super().__init__('dashscope', info.model, info.api_key, tool_registry)
-        self.config = info
+    def __init__(self, driver_config: LLMDriverConfig, tool_registry: ToolRegistry = None):
+        super().__init__('dashscope', driver_config.model, driver_config.api_key, tool_registry)
+        self.config = driver_config
 
     def _add_to_history(self, message: Dict[str, Any]):
         self._history.append(message)

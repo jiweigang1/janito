@@ -60,6 +60,18 @@ class RequestError(DriverEvent):
     traceback: str = None
 
 @attr.s(auto_attribs=True, kw_only=True)
+class EmptyResponseEvent(DriverEvent):
+    """
+    Event indicating that an empty response was received from an LLM or API provider.
+    Used for signaling that no content or candidates were returned where some were expected,
+    which may indicate a model or infrastructure issue.
+    """
+    error: str = None
+    exception: Exception = None
+    traceback: str = None
+    details: dict = None
+
+@attr.s(auto_attribs=True, kw_only=True)
 class ContentPartFound(DriverEvent):
     """
     Event indicating that a part of the generated content was found or produced.

@@ -7,7 +7,7 @@ from janito.performance_collector import PerformanceCollector
 from rich.status import Status
 from rich.console import Console
 from typing import Any, Optional, Callable
-from janito.driver_events import RequestStarted, RequestFinished, RequestError
+from janito.driver_events import RequestStarted, RequestFinished, RequestError, EmptyResponseEvent
 from janito.tool_events import ToolCallError
 import threading
 
@@ -63,6 +63,19 @@ class PromptHandler:
             status.update(f"[bold red]Tool Error in '{tool_name}': {error_msg}[bold red]")
             self.console.print(f"[red]Tool Error in '{tool_name}': {error_msg}[red]")
             return 'break'
+        elif isinstance(inner_event, EmptyResponseEvent):
+            details = getattr(inner_event, 'details', {}) or {}
+            block_reason = details.get('block_reason')
+            block_msg = details.get('block_reason_message')
+            msg = details.get('message', 'LLM returned an empty or incomplete response.')
+            driver_name = getattr(inner_event, 'driver_name', 'unknown driver')
+            if block_reason or block_msg:
+                status.update(f"[bold yellow]Blocked by driver: {driver_name} | {block_reason or ''} {block_msg or ''}[bold yellow]")
+                self.console.print(f"[yellow]Blocked by driver: {driver_name} (empty response): {block_reason or ''}\n{block_msg or ''}[/yellow]")
+            else:
+                status.update(f"[yellow]LLM produced no output for this request (driver: {driver_name}).[/yellow]")
+                self.console.print(f"[yellow]Warning: {msg} (driver: {driver_name})[/yellow]")
+            return 'break'
         # Report unknown event types
         event_type = type(inner_event).__name__
         self.console.print(f"[yellow]Warning: Unknown event type encountered: {event_type}[yellow]")
@@ -86,6 +99,16 @@ class PromptHandler:
                             break
                 # After exiting spinner, continue with next events (if any)
             # Handle other event types outside the spinner if needed
+            elif isinstance(event, EmptyResponseEvent):
+                details = getattr(event, 'details', {}) or {}
+                block_reason = details.get('block_reason')
+                block_msg = details.get('block_reason_message')
+                msg = details.get('message', 'LLM returned an empty or incomplete response.')
+                driver_name = getattr(event, 'driver_name', 'unknown driver')
+                if block_reason or block_msg:
+                    self.console.print(f"[yellow]Blocked by driver: {driver_name} (empty response): {block_reason or ''}\n{block_msg or ''}[/yellow]")
+                else:
+                    self.console.print(f"[yellow]Warning: {msg} (driver: {driver_name})[/yellow]")
             else:
                 pass
 

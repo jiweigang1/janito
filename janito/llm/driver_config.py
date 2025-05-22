@@ -3,7 +3,6 @@ from typing import Any, Optional
 
 @dataclass
 class LLMDriverConfig:
-    role: str = "software developer"
     """
     Common configuration container for LLM drivers.
     Holds standard attributes that most LLM drivers require (used as a config or schema reference object).

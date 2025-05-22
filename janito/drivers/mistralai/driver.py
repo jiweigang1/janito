@@ -18,9 +18,9 @@ class MistralAIModelDriver(LLMDriver):
     def get_history(self):
         return list(getattr(self, '_history', []))
 
-    def __init__(self, info: LLMDriverConfig, tool_registry: ToolRegistry = None):
-        super().__init__('mistralai', info.model, info.api_key, tool_registry)
-        self.config = info
+    def __init__(self, driver_config: LLMDriverConfig, tool_registry: ToolRegistry = None):
+        super().__init__('mistralai', driver_config.model, driver_config.api_key, tool_registry)
+        self.config = driver_config
         self._history = []
 
     def _add_to_history(self, message: dict):

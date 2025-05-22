@@ -27,11 +27,11 @@ class OpenAIModelDriver(LLMDriver):
     name = "openai"
     # Which fields to extract from config and LLMDriverConfig
     driver_fields = {"max_tokens", "temperature", "top_p", "presence_penalty", "frequency_penalty", "stop", "base_url", "api_key"}
-    def __init__(self, info: LLMDriverConfig, tool_registry: ToolRegistry = None):
-        super().__init__("openai", info.model, info.api_key, tool_registry)
-        self.config = info
+    def __init__(self, driver_config: LLMDriverConfig, tool_registry: ToolRegistry = None):
+        super().__init__("openai", driver_config.model, driver_config.api_key, tool_registry)
+        self.config = driver_config
         # Retain LLMDriverConfig object for all config, supports all param access
-        self.base_url = info.base_url
+        self.base_url = driver_config.base_url
 
     def _create_client(self):
         import openai

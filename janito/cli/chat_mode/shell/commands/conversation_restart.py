@@ -48,6 +48,13 @@ def handle_restart(shell_state=None):
         shell_state.last_usage_info[k] = 0
     shell_state.last_elapsed = None
 
+    # Reset the performance collector's last usage (so toolbar immediately reflects cleared stats)
+    try:
+        from janito.perf_singleton import performance_collector
+        performance_collector.reset_last_request_usage()
+    except Exception as e:
+        shared_console.print(f"[bold yellow]Warning: Failed to reset PerformanceCollector token info:[/bold yellow] {e}")
+
     shared_console.print(
         "[bold green]Conversation history has been started (context reset).[/bold green]"
     )

@@ -8,18 +8,26 @@ from janito.cli.verbose_output import print_verbose_header, print_performance, h
 import janito.tools  # Ensure all tools are registered
 
 class PromptHandler:
-    def __init__(self, args, provider_instance, llm_driver_config):
+    def __init__(self, args, provider_instance, llm_driver_config, role=None):
         self.args = args
         self.provider_instance = provider_instance
         self.llm_driver_config = llm_driver_config
+        self.role = role
         from janito.agent.setup_agent import setup_agent
-        self.agent = setup_agent(provider_instance, llm_driver_config)
+        # Pass role to agent setup if supported
+        try:
+            self.agent = setup_agent(provider_instance, llm_driver_config, role=role)
+        except TypeError:
+            # Fallback if setup_agent does not support role
+            self.agent = setup_agent(provider_instance, llm_driver_config)
         # Setup conversation/history if needed
         self.generic_handler = GenericPromptHandler(args, [], provider_instance=provider_instance)
         self.generic_handler.agent = self.agent
 
     def handle(self) -> None:
-        user_prompt = " ".join(self.args.user_prompt).strip()
+        # Debug print to help trace root cause when prompt is missing or not parsed correctly
+
+        user_prompt = " ".join(getattr(self.args, 'user_prompt', [])).strip()
         self.generic_handler.handle_prompt(
             user_prompt,
             args=self.args,

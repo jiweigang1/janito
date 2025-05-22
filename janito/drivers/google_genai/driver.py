@@ -14,9 +14,18 @@ import traceback
 from typing import Optional, List, Dict, Any, Union
 from janito.llm.driver import LLMDriver
 from janito.drivers.google_genai.schema_generator import generate_tool_declarations
-from janito.providers.google.errors import EmptyResponseError
+# Exception for empty or incomplete responses or blocks
+class EmptyResponseError(Exception):
+    """
+    Raised when the Gemini API returns an empty or incomplete response.
+    Optionally includes a block reason and message if the response was blocked.
+    """
+    def __init__(self, message, block_reason=None, block_reason_message=None):
+        self.block_reason = block_reason
+        self.block_reason_message = block_reason_message
+        super().__init__(message)
 from janito.driver_events import (
-    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
+    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound, EmptyResponseEvent
 )
 from janito.tool_executor import ToolExecutor
 from janito.tool_registry import ToolRegistry
@@ -42,9 +51,9 @@ def extract_usage_metadata_native(usage_obj):
 
 class GoogleGenaiModelDriver(LLMDriver):
     name = "google_genai"
-    def __init__(self, info: LLMDriverConfig, tool_registry: ToolRegistry = None):
-        super().__init__('google', info.model, info.api_key, tool_registry)
-        self.config = info
+    def __init__(self, driver_config: LLMDriverConfig, tool_registry: ToolRegistry = None):
+        super().__init__('google', driver_config.model, driver_config.api_key, tool_registry)
+        self.config = driver_config
         self._history: List[Dict[str, Any]] = []
 
     def _add_to_history(self, message: Dict[str, Any]):
@@ -84,7 +93,6 @@ class GoogleGenaiModelDriver(LLMDriver):
                         genai_types_local.Content(
                             role="tool",
                             parts=[genai_types_local.Part(
-                                text=msg.get("content"),
                                 function_response={
                                     "name": meta.get("name"),
                                     "response": {"result": msg.get("content")}
@@ -153,10 +161,23 @@ class GoogleGenaiModelDriver(LLMDriver):
         duration = time.time() - start_time
         usage_obj = getattr(response, 'usage_metadata', None)
         usage_dict = extract_usage_metadata_native(usage_obj)
-        self.publish(RequestFinished, request_id, response=response, duration=duration, status='success', usage=usage_dict)
+        self.publish(RequestFinished, request_id, response=response, status='success', usage=usage_dict)
         candidates = getattr(response, 'candidates', None)
         if not candidates or not hasattr(candidates[0], 'content') or not hasattr(candidates[0].content, 'parts'):
-            raise EmptyResponseError("Gemini API returned an empty or incomplete response.")
+            # Check for block_reason details
+            block_reason = None
+            block_reason_message = None
+            prompt_feedback = getattr(response, 'prompt_feedback', None)
+            if prompt_feedback is not None:
+                block_reason = getattr(prompt_feedback, 'block_reason', None)
+                block_reason_message = getattr(prompt_feedback, 'block_reason_message', None)
+            details = {
+                "message": "Gemini API returned an empty or incomplete response.",
+                "block_reason": str(block_reason) if block_reason else None,
+                "block_reason_message": block_reason_message
+            }
+            self.publish(EmptyResponseEvent, request_id, details=details)
+            return False, duration
         parts = candidates[0].content.parts
         had_function_call = False
         for part in parts:
@@ -213,6 +234,20 @@ class GoogleGenaiModelDriver(LLMDriver):
         from google.genai import types as genai_types_local
         declarations = generate_tool_declarations(tools) if tools else None
         config_dict = {}
+        # BEGIN: Inject safety_settings with all thresholds set to BLOCK_NONE
+        all_categories = [
+            genai_types_local.HarmCategory.HARM_CATEGORY_HARASSMENT,
+            genai_types_local.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            genai_types_local.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            genai_types_local.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT
+        ]
+        config_dict["safety_settings"] = [
+            genai_types_local.SafetySetting(
+                category=cat,
+                threshold=genai_types_local.HarmBlockThreshold.BLOCK_NONE
+            ) for cat in all_categories
+        ]
+        # END: Safety settings injection
         if declarations:
             config_dict["tools"] = declarations
         conversation_contents, sys_prompt_from_history = self._conversation_history_to_driver_messages(self._history)

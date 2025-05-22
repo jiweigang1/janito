@@ -15,7 +15,7 @@ class GoogleProvider(LLMProvider):
     Default model: 'gemini-2.5-pro-preview-05-06'.
     """
     name = "google"
-    DEFAULT_MODEL = "gemini-2.5-pro-preview-05-06"
+    DEFAULT_MODEL = "gemini-2.5-flash-preview-04-17"
 
     def __init__(self, config: LLMDriverConfig = None):
         self._auth_manager = LLMAuthManager()

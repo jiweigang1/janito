@@ -1,26 +1,37 @@
 from janito.llm.model import LLMModelInfo
 
 MODEL_SPECS = {
-    "gemini-pro": LLMModelInfo(
-        name="gemini-pro",
-        context=32768,
-        max_input=32768,
+    "gemini-2.5-pro-preview-05-06": LLMModelInfo(
+        name="gemini-2.5-pro-preview-05-06",
+        context=131072,
+        max_input=131072,
         max_cot="N/A",
-        max_response=8192,
+        max_response=32768,
         thinking_supported=True,
         default_temp=0.2,
         open="google",
-        other={"driver": "GoogleGenaiModelDriver"}
+        driver="GoogleGenaiModelDriver", other={"preview": True}
     ),
-    "gemini-1.5-pro-latest": LLMModelInfo(
-        name="gemini-1.5-pro-latest",
-        context=65536,
-        max_input=65536,
+    "gemini-2.5-flash-preview-05-20": LLMModelInfo(
+        name="gemini-2.5-flash-preview-05-20",
+        context=1000000,
+        max_input=1000000,
         max_cot="N/A",
-        max_response=16384,
+        max_response=65536,
         thinking_supported=True,
         default_temp=0.2,
         open="google",
-        other={"driver": "GoogleGenaiModelDriver"}
+        driver="GoogleGenaiModelDriver", other={"preview": True, "flash": True}
+    ),
+    "gemini-2.5-flash-preview-04-17": LLMModelInfo(
+        name="gemini-2.5-flash-preview-04-17",
+        context=1000000,
+        max_input=1000000,
+        max_cot="N/A",
+        max_response=65536,
+        thinking_supported=True,
+        default_temp=0.2,
+        open="google",
+        driver="GoogleGenaiModelDriver", other={"preview": True, "flash": True}
     )
 }

@@ -10,7 +10,7 @@ MODEL_SPECS = {
         thinking_supported=False,
         default_temp=0.2,
         open=False,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen-plus": LLMModelInfo(
         name="qwen-plus",
@@ -21,7 +21,7 @@ MODEL_SPECS = {
         thinking_supported=False,
         default_temp=0.2,
         open=False,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen-turbo": LLMModelInfo(
         name="qwen-turbo",
@@ -32,7 +32,7 @@ MODEL_SPECS = {
         thinking_supported=False,
         default_temp=0.2,
         open=False,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen-plus-2025-04-28": LLMModelInfo(
         name="qwen-plus-2025-04-28",
@@ -43,7 +43,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open=False,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen-turbo-2025-04-28": LLMModelInfo(
         name="qwen-turbo-2025-04-28",
@@ -54,7 +54,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open=False,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen3-235b-a22b": LLMModelInfo(
         name="qwen3-235b-a22b",
@@ -65,7 +65,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open=True,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen3-32b": LLMModelInfo(
         name="qwen3-32b",
@@ -76,7 +76,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open=True,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen3-30b-a3b": LLMModelInfo(
         name="qwen3-30b-a3b",
@@ -87,7 +87,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open=True,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen3-14b": LLMModelInfo(
         name="qwen3-14b",
@@ -98,7 +98,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open=True,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen3-8b": LLMModelInfo(
         name="qwen3-8b",
@@ -109,7 +109,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open=True,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen3-4b": LLMModelInfo(
         name="qwen3-4b",
@@ -120,7 +120,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open=True,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen3-1.7b": LLMModelInfo(
         name="qwen3-1.7b",
@@ -131,7 +131,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open=True,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
     "qwen3-0.6b": LLMModelInfo(
         name="qwen3-0.6b",
@@ -142,6 +142,6 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open=True,
-        other={"driver": "DashScopeModelDriver"}
+        driver="DashScopeModelDriver"
     ),
 }

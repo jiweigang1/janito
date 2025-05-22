@@ -10,9 +10,9 @@ class LLMModelInfo:
     max_response: Any = "N/A"
     thinking_supported: Any = "N/A"
     default_temp: float = 0.2
-    # Additional fields for provider-special cases:
     open: Optional[Any] = None
     category: Optional[str] = None
+    driver: Optional[str] = None
     # This enables arbitrary provider-specific metadata
     other: dict = field(default_factory=dict)
 
@@ -20,6 +20,7 @@ class LLMModelInfo:
         d = self.__dict__.copy()
         if not self.open: d.pop("open")
         if not self.category: d.pop("category")
+        if not self.driver: d.pop("driver")
         if not self.other:
             d.pop("other")
         return d

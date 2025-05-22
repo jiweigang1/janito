@@ -5,6 +5,7 @@ from .lang import LangShellHandler
 from .livelogs import LivelogsShellHandler
 from .last import LastShellHandler
 from .prompt import PromptShellHandler, RoleShellHandler, ProfileShellHandler
+from .multi import MultiShellHandler
 from .role import RoleCommandShellHandler
 from .session import HistoryShellHandler
 from .termweb_log import TermwebLogTailShellHandler
@@ -26,6 +27,7 @@ COMMAND_HANDLERS = {
     "/history": HistoryShellHandler,
     "/termweb-logs": TermwebLogTailShellHandler,
     "/tools": ToolsShellHandler,
+    "/multi": MultiShellHandler,
     "/help": HelpShellHandler,
 }
 

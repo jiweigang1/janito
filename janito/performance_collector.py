@@ -157,3 +157,9 @@ class PerformanceCollector(EventHandlerBase):
         Returns the usage dict (tokens) from the most recent RequestFinished event, or None if not available.
         """
         return self._last_request_usage.copy() if self._last_request_usage else None
+
+    def reset_last_request_usage(self):
+        """
+        Clears the most recent usage dict. Use this (e.g. on session reset) to remove token/usage stats for toolbar.
+        """
+        self._last_request_usage = None
