@@ -35,7 +35,10 @@ class OpenAIModelDriver(LLMDriver):
 
     def _create_client(self):
         import openai
-        return openai.OpenAI(api_key=self.config.api_key)
+        kwargs = {"api_key": self.config.api_key}
+        if self.base_url:
+            kwargs["base_url"] = self.base_url
+        return openai.OpenAI(**kwargs)
 
     def get_history(self):
         return list(getattr(self, '_history', []))
@@ -93,8 +96,6 @@ class OpenAIModelDriver(LLMDriver):
         # Pass temperature from api_kwargs if present, default to 0
         if 'temperature' not in api_kwargs:
             pass  # Do not set temperature if not specified; use provider default
-        if self.base_url:
-            api_kwargs['base_url'] = self.base_url
         if schemas:
             api_kwargs['tools'] = schemas
             if 'tool_choice' not in api_kwargs:

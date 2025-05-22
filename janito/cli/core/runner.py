@@ -15,8 +15,18 @@ def prepare_llm_driver_config(args, modifiers):
             return None, None, None
     model = getattr(args, 'model', None)
     driver_config_data = {"model": model}
+    # Always check these settings via config precedence, unless in modifiers/CLI
+    from janito.provider_config import get_effective_setting
+    CONFIG_LOOKUP_KEYS = ("max_tokens", "base_url")
     for field in LLMDriverConfig.__dataclass_fields__:
-        if field in modifiers and field != "model":
+        if field in CONFIG_LOOKUP_KEYS:
+            if field in modifiers and modifiers[field] is not None:
+                driver_config_data[field] = modifiers[field]
+            else:
+                value = get_effective_setting(provider, model, field)
+                if value is not None:
+                    driver_config_data[field] = value
+        elif field in modifiers and field != "model":
             driver_config_data[field] = modifiers[field]
     llm_driver_config = LLMDriverConfig(**driver_config_data)
     agent_role = modifiers.get("role", "software developer")

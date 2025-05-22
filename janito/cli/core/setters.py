@@ -21,16 +21,76 @@ def handle_set(args, config_mgr=None):
             return True
         key, value = set_arg.split('=', 1)
         key, value = key.strip(), value.strip()
+        key = key.replace('-', '_')
+
         if key == 'default_provider':
             return _handle_set_default_provider(value)
-        elif '.default_model' in key:
+        if '.default_model' in key:
             return _handle_set_default_model(key, value)
-        else:
-            print(f"Error: Unknown config key '{key}'. Supported: default_provider, <provider>.default_model")
-            return True
+        if key == 'max_tokens':
+            return _handle_set_max_tokens(value)
+        if key == 'base_url':
+            return _handle_set_base_url(value)
+        if '.max_tokens' in key or '.base_url' in key:
+            return _handle_set_provider_level_setting(key, value)
+        print(f"Error: Unknown config key '{key}'. Supported: default_provider, <provider>.default_model, max_tokens, base_url, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url")
+        return True
     except Exception as e:
         print(f"Error parsing --set value: {e}")
         return True
+
+
+def _handle_set_max_tokens(value):
+    try:
+        ival = int(value)
+    except Exception:
+        print("Error: max_tokens must be set to an integer value.")
+        return True
+    global_config.file_set('max_tokens', ival)
+    print(f"Top-level max_tokens set to {ival}.")
+    return True
+
+
+def _handle_set_base_url(value):
+    global_config.file_set('base_url', value)
+    print(f"Top-level base_url set to {value}.")
+    return True
+
+
+def _handle_set_provider_level_setting(key, value):
+    parts = key.split('.')
+    if len(parts) == 2:
+        provider, par_key = parts
+        if par_key == 'max_tokens':
+            try:
+                ival = int(value)
+            except Exception:
+                print("Error: max_tokens must be set to an integer value.")
+                return True
+            global_config.set_provider_config(provider, 'max_tokens', ival)
+            print(f"max_tokens for provider '{provider}' set to {ival}.")
+            return True
+        if par_key == 'base_url':
+            global_config.set_provider_config(provider, 'base_url', value)
+            print(f"base_url for provider '{provider}' set to {value}.")
+            return True
+    elif len(parts) == 3:
+        provider, model, mk = parts
+        if mk == "max_tokens":
+            try:
+                ival = int(value)
+            except Exception:
+                print("Error: max_tokens must be set to an integer value.")
+                return True
+            global_config.set_provider_model_config(provider, model, 'max_tokens', ival)
+            print(f"max_tokens for provider '{provider}', model '{model}' set to {ival}.")
+            return True
+        if mk == "base_url":
+            global_config.set_provider_model_config(provider, model, 'base_url', value)
+            print(f"base_url for provider '{provider}', model '{model}' set to {value}.")
+            return True
+    print(f"Error: Unknown config key '{key}'. Supported: default_provider, <provider>.default_model, max_tokens, base_url, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url")
+    return True
 
 def _handle_set_default_provider(value):
     try:

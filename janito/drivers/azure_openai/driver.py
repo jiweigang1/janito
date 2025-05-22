@@ -7,9 +7,11 @@ class AzureOpenAIModelDriver(OpenAIModelDriver):
     name = "azure_openai"
     required_config = {"azure_endpoint"}  # Update key as used in your config logic
     def __init__(self, driver_config: LLMDriverConfig, tool_registry=None):
-        super().__init__(info, tool_registry)
-        self.azure_endpoint = getattr(info, "extra", {}).get("azure_endpoint")
-        self.api_version = getattr(info, "extra", {}).get("api_version")
+        super().__init__(driver_config, tool_registry)
+        if not driver_config.base_url:
+            raise ValueError("driver_config.base_url must be provided for AzureOpenAIModelDriver.")
+        self.azure_endpoint = driver_config.base_url
+        self.api_version = getattr(driver_config, "extra", {}).get("api_version")
         self.api_key = driver_config.api_key
 
     def _get_max_tokens(self):

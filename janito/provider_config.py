@@ -46,3 +46,23 @@ def set_provider_model_config(provider, model, key, value):
 
 def get_provider_model_config(provider, model):
     return config.get_provider_model_config(provider, model)
+
+def get_effective_setting(provider, model, setting):
+    """
+    Look up setting with the following order:
+      1. providers.{provider}.models.{model}.{setting}
+      2. providers.{provider}.{setting}
+      3. top-level {setting}
+      Returns None if not found.
+    """
+    # 1. provider-model
+    val = config.get_provider_model_config(provider, model).get(setting)
+    if val is not None:
+        return val
+    # 2. provider
+    val = config.get_provider_config(provider).get(setting)
+    if val is not None:
+        return val
+    # 3. top-level
+    val = config.get(setting)
+    return val

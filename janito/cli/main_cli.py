@@ -6,6 +6,7 @@ from janito.cli.core.runner import prepare_llm_driver_config, handle_runner, get
 from janito.cli.core.event_logger import setup_event_logger_if_needed, inject_debug_event_bus_if_needed
 
 definition = [
+    (["--unset"], {"metavar": "KEY", "help": "Unset (remove) a config key"}),
     (['--version'], {"action": "version", "version": "%(prog)s 1.0"}),
     (['--list-tools'], {"action": "store_true", "help": "List all registered tools"}),
     (['--show-config'], {"action": "store_true", "help": "Show the current config"}),
@@ -28,7 +29,7 @@ definition = [
 ]
 
 MODIFIER_KEYS = ["provider", "model", "role", "system", "temperature", "verbose", "raw", "no_termweb", "termweb_port"]
-SETTER_KEYS = ["set", "set_provider", "set_api_key"]
+SETTER_KEYS = ["set", "set_provider", "set_api_key", "unset"]
 GETTER_KEYS = ["show_config", "list_providers", "list_models", "list_tools"]
 
 class RunMode(enum.Enum):
@@ -64,45 +65,71 @@ class JanitoCLI:
     def run(self):
         run_mode = self.classify()
         if run_mode == RunMode.SET:
-            if handle_api_key_set(self.args):
+            if self._run_set_mode():
                 return
-            if handle_set(self.args):
-                return
-
-        provider = getattr(self.args, 'provider', None)
-        if provider is None:
-            from janito.provider_config import get_default_provider
-            provider = get_default_provider()
+        provider = self._get_provider_or_default()
         if provider is None:
             print("Error: No provider selected and no default_provider found in config. Please set a provider using '-p PROVIDER', '--set default_provider=provider_name', or configure a default provider.")
             return
         modifiers = self.collect_modifiers()
-        if getattr(self.args, 'verbose', False):
-            from janito.cli.verbose_output import print_verbose_info
-            print_verbose_info("Modifiers collected", modifiers, style="blue")
+        self._maybe_print_verbose_modifiers(modifiers)
         setup_event_logger_if_needed(self.args)
         inject_debug_event_bus_if_needed(self.args)
-
         if run_mode == RunMode.GET and (getattr(self.args, 'list_providers', False) or getattr(self.args, 'list_tools', False)):
-            if getattr(self.args, 'verbose', False):
-                from janito.cli.verbose_output import print_verbose_info
-                print_verbose_info("Validated provider/model", f"Provider: {getattr(self.args, 'provider', None)} | Model: {getattr(self.args, 'model', None)}", style="blue")
+            self._maybe_print_verbose_provider_model()
             handle_getter(self.args)
             return
         provider, llm_driver_config, agent_role = prepare_llm_driver_config(self.args, modifiers)
         if provider is None or llm_driver_config is None:
             return
+        self._maybe_print_verbose_llm_config(llm_driver_config, run_mode)
+        if run_mode == RunMode.RUN:
+            self._maybe_print_verbose_run_mode()
+            handle_runner(self.args, provider, llm_driver_config, agent_role)
+        elif run_mode == RunMode.GET:
+            handle_getter(self.args)
+
+    def _run_set_mode(self):
+        if handle_api_key_set(self.args):
+            return True
+        if handle_set(self.args):
+            return True
+        from janito.cli.core.unsetters import handle_unset
+        if handle_unset(self.args):
+            return True
+        return False
+
+    def _get_provider_or_default(self):
+        provider = getattr(self.args, 'provider', None)
+        if provider is None:
+            from janito.provider_config import get_default_provider
+            provider = get_default_provider()
+        return provider
+
+    def _maybe_print_verbose_modifiers(self, modifiers):
+        if getattr(self.args, 'verbose', False):
+            from janito.cli.verbose_output import print_verbose_info
+            print_verbose_info("Modifiers collected", modifiers, style="blue")
+
+    def _maybe_print_verbose_provider_model(self):
+        if getattr(self.args, 'verbose', False):
+            from janito.cli.verbose_output import print_verbose_info
+            print_verbose_info(
+                "Validated provider/model",
+                f"Provider: {getattr(self.args, 'provider', None)} | Model: {getattr(self.args, 'model', None)}",
+                style="blue",
+            )
+
+    def _maybe_print_verbose_llm_config(self, llm_driver_config, run_mode):
         if getattr(self.args, 'verbose', False):
             from janito.cli.verbose_output import print_verbose_info
             print_verbose_info("LLMDriverConfig", llm_driver_config, style="cyan")
             print_verbose_info("Dispatch branch", run_mode, style="cyan", align_content=True)
-        if run_mode == RunMode.RUN:
-            if getattr(self.args, 'verbose', False):
-                from janito.cli.verbose_output import print_verbose_info
-                print_verbose_info("Run mode", get_prompt_mode(self.args), style="cyan", align_content=True)
-            handle_runner(self.args, provider, llm_driver_config, agent_role)
-        elif run_mode == RunMode.GET:
-            handle_getter(self.args)
+
+    def _maybe_print_verbose_run_mode(self):
+        if getattr(self.args, 'verbose', False):
+            from janito.cli.verbose_output import print_verbose_info
+            print_verbose_info("Run mode", get_prompt_mode(self.args), style="cyan", align_content=True)
 
 if __name__ == "__main__":
     cli = JanitoCLI()
