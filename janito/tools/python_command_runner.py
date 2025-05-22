@@ -24,7 +24,7 @@ class PythonCommandRunnerTool(ToolBase):
         if not code.strip():
             self.report_warning(tr("ℹ️ Empty code provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty code provided. Operation skipped.")
-        self.report_info(
+        self.report_action(
             tr("🐍 Running: python -c ...\n{code}\n", code=code),
             ReportAction.EXECUTE
         )

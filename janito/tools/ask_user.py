@@ -29,6 +29,7 @@ class AskUserTool(ToolBase):
 
     def run(self, question: str) -> str:
 
+        print()  # Print an empty line before the question panel
         rich_print(Panel.fit(question, title=tr("Question"), style="cyan"))
 
         bindings = KeyBindings()
@@ -61,12 +62,8 @@ class AskUserTool(ToolBase):
         # prompt_style contains the prompt area and input background
         # toolbar_style contains the bottom-toolbar styling
 
-        # Compose the styles for use in this prompt
-        from prompt_toolkit.styles import merge_styles
-        style = merge_styles([
-            prompt_style,
-            toolbar_style
-        ])
+        # Use the shared chat_shell_style for input styling only
+        style = chat_shell_style
 
         def get_toolbar():
             f12_hint = ""

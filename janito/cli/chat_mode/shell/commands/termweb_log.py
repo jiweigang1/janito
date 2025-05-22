@@ -5,16 +5,6 @@ from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
 
-def is_termweb_running(port):
-    """Check if termweb is running by making an HTTP request to the root endpoint."""
-    try:
-        conn = http.client.HTTPConnection("localhost", port, timeout=0.5)
-        conn.request("GET", "/")
-        resp = conn.getresponse()
-        return resp.status == 200
-    except Exception:
-        return False
-
 class TermwebLogTailShellHandler(ShellCmdHandler):
     help_text = "Show the last lines of the latest termweb logs"
 
@@ -25,11 +15,16 @@ class TermwebLogTailShellHandler(ShellCmdHandler):
             lines = int(args[0])
         stdout_path = self.shell_state.termweb_stdout_path if self.shell_state else None
         stderr_path = self.shell_state.termweb_stderr_path if self.shell_state else None
+        status = getattr(self.shell_state, "termweb_status", None)
+        live_status = getattr(self.shell_state, "termweb_live_status", None)
+        status_checked = getattr(self.shell_state, "termweb_live_checked_time", None)
+        shared_console.print(f"[bold cyan][termweb] Current run status: {status} | Last health check: {live_status} at {status_checked}")
         if not stdout_path and not stderr_path:
             shared_console.print(
                 "[yellow][termweb] No termweb log files found for this session.[/yellow]"
             )
             return
+        stdout_lines = stderr_lines = None
         if stdout_path:
             try:
                 with open(stdout_path, encoding="utf-8") as f:
@@ -68,8 +63,8 @@ def handle_termweb_status(*args, shell_state=None, **kwargs):
     stdout_path = getattr(shell_state, "termweb_stdout_path", None)
     stderr_path = getattr(shell_state, "termweb_stderr_path", None)
     running = False
-    if port:
-        running = is_termweb_running(port)
+    if port and hasattr(shell_state, "termweb_live_status"):
+        running = shell_state.termweb_live_status == 'online'
     console.print("[bold cyan]TermWeb Server Status:[/bold cyan]")
     console.print(f"  Running: {'[green]Yes[/green]' if running else '[red]No[/red]'}")
     if pid:

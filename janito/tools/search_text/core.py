@@ -86,7 +86,7 @@ class SearchTextTool(ToolBase):
             info_str += tr(" [max_depth={max_depth}]", max_depth=max_depth)
         if count_only:
             info_str += " [count]"
-        self.report_info(
+        self.report_action(
             info_str,
             ReportAction.READ
         )

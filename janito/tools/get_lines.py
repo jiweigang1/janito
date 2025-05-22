@@ -29,7 +29,10 @@ class GetLinesTool(ToolBase):
         from janito.tool_utils import display_path
 
         disp_path = display_path(file_path)
-        self._report_read_info(disp_path, from_line, to_line)
+        self.report_action(
+            tr("📖 Read file '{disp_path}'", disp_path=disp_path),
+            ReportAction.READ,
+        )
         try:
             lines = self._read_file_lines(file_path)
             selected, selected_len, total_lines = self._select_lines(
@@ -41,29 +44,11 @@ class GetLinesTool(ToolBase):
             )
             return header + "".join(selected)
         except FileNotFoundError as e:
-            self.report_warning(tr("❗ not found"), ReportAction.READ)
+            self.report_warning(tr("❗ not found"))
             return f"Error reading file: {e}"
         except Exception as e:
-            self.report_error(tr(" ❌ Error: {error}", error=e), ReportAction.READ)
+            self.report_error(tr(" ❌ Error: {error}", error=e))
             return tr("Error reading file: {error}", error=e)
-
-    def _report_read_info(self, disp_path, from_line, to_line):
-        """Report the info message for reading lines."""
-        if from_line and to_line:
-            self.report_info(
-                tr(
-                    "📖 Read file '{disp_path}' {from_line}-{to_line}",
-                    disp_path=disp_path,
-                    from_line=from_line,
-                    to_line=to_line,
-                ),
-                ReportAction.READ,
-            )
-        else:
-            self.report_info(
-                tr("📖 Read file '{disp_path}'", disp_path=disp_path),
-                ReportAction.READ,
-            )
 
     def _read_file_lines(self, file_path):
         """Read all lines from the file."""
@@ -90,8 +75,7 @@ class GetLinesTool(ToolBase):
                         " ✅ {selected_len} {line_word} (end)",
                         selected_len=selected_len,
                         line_word=pluralize("line", selected_len),
-                    ),
-                    ReportAction.READ,
+                    )
                 )
             elif to_line < total_lines:
                 self.report_success(
@@ -100,8 +84,7 @@ class GetLinesTool(ToolBase):
                         selected_len=selected_len,
                         line_word=pluralize("line", selected_len),
                         remaining=total_lines - to_line,
-                    ),
-                    ReportAction.READ,
+                    )
                 )
         else:
             self.report_success(
@@ -109,8 +92,7 @@ class GetLinesTool(ToolBase):
                     " ✅ {selected_len} {line_word} (all)",
                     selected_len=selected_len,
                     line_word=pluralize("line", selected_len),
-                ),
-                ReportAction.READ,
+                )
             )
 
     def _format_header(self, disp_path, from_line, to_line, selected_len, total_lines):

@@ -21,7 +21,7 @@ class PythonFileRunnerTool(ToolBase):
     """
 
     def run(self, file_path: str, timeout: int = 60) -> str:
-        self.report_info(
+        self.report_action(
             tr("🚀 Running: python {file_path}", file_path=file_path),
             ReportAction.EXECUTE
         )

@@ -11,6 +11,7 @@ from .session import HistoryShellHandler
 from .termweb_log import TermwebLogTailShellHandler
 from .tools import ToolsShellHandler
 from .help import HelpShellHandler
+from .track import TrackShellHandler
 from janito.cli.console import shared_console
 
 COMMAND_HANDLERS = {
@@ -29,7 +30,11 @@ COMMAND_HANDLERS = {
     "/tools": ToolsShellHandler,
     "/multi": MultiShellHandler,
     "/help": HelpShellHandler,
+    "/track": TrackShellHandler,
 }
+
+def get_shell_command_names():
+    return sorted(cmd for cmd in COMMAND_HANDLERS.keys() if cmd.startswith('/'))
 
 def handle_command(command, shell_state=None):
     parts = command.strip().split(maxsplit=1)

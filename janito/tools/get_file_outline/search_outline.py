@@ -13,12 +13,9 @@ class SearchOutlineTool(ToolBase):
         from janito.tool_utils import display_path
         from janito.i18n import tr
 
-        self.report_info(
+        self.report_action(
+            tr("🔍 Searching for outline in '{disp_path}'", disp_path=display_path(file_path)),
             ReportAction.READ,
-            tr(
-                "🔍 Searching for outline in '{disp_path}'",
-                disp_path=display_path(file_path),
-            ),
         )
         # ... rest of implementation ...
         # Example warnings and successes:

@@ -19,7 +19,7 @@ class GetFileOutlineTool(ToolBase):
 
     def run(self, file_path: str) -> str:
         try:
-            self.report_info(
+            self.report_action(
                 tr("📄 Outline file '{disp_path}' ...", disp_path=display_path(file_path)),
                 ReportAction.READ,
             )

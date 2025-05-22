@@ -17,13 +17,13 @@ class OpenUrlTool(ToolBase):
 
     def run(self, url: str) -> str:
         if not url.strip():
-            self.report_warning(tr("ℹ️ Empty URL provided."), ReportAction.OPEN)
+            self.report_warning(tr("ℹ️ Empty URL provided."))
             return tr("Warning: Empty URL provided. Operation skipped.")
-        self.report_info(tr("🌐 Opening URL '{url}' ...", url=url), ReportAction.READ)
+        self.report_action(tr("🌐 Opening URL '{url}' ...", url=url), ReportAction.READ)
         try:
             webbrowser.open(url)
         except Exception as err:
-            self.report_error(tr("❗ Error opening URL: {url}: {err}", url=url, err=str(err)), ReportAction.OPEN)
+            self.report_error(tr("❗ Error opening URL: {url}: {err}", url=url, err=str(err)))
             return tr("Warning: Error opening URL: {url}: {err}", url=url, err=str(err))
-        self.report_success(tr("✅ URL opened in browser: {url}", url=url), ReportAction.WRITE)
+        self.report_success(tr("✅ URL opened in browser: {url}", url=url))
         return tr("URL opened in browser: {url}", url=url)

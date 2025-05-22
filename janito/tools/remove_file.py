@@ -29,7 +29,7 @@ class RemoveFileTool(ToolBase):
         disp_path = display_path(original_path)
         backup_path = None
         # Report initial info about what is going to be removed
-        self.report_info(
+        self.report_action(
             tr("🗑️ Remove file '{disp_path}' ...", disp_path=disp_path),
             ReportAction.WRITE,
         )

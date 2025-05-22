@@ -24,7 +24,7 @@ class CreateDirectoryTool(ToolBase):
         # file_path = expand_path(file_path)
         # Using file_path as is
         disp_path = display_path(file_path)
-        self.report_info(
+        self.report_action(
             tr("📁 Create directory '{disp_path}' ...", disp_path=disp_path),
             ReportAction.WRITE,
         )
@@ -35,8 +35,7 @@ class CreateDirectoryTool(ToolBase):
                         tr(
                             "❌ Path '{disp_path}' exists and is not a directory.",
                             disp_path=disp_path,
-                        ),
-                        ReportAction.CREATE,
+                        )
                     )
                     return tr(
                         "❌ Path '{disp_path}' exists and is not a directory.",
@@ -46,15 +45,14 @@ class CreateDirectoryTool(ToolBase):
                     tr(
                         "❗ Directory '{disp_path}' already exists.",
                         disp_path=disp_path,
-                    ),
-                    ReportAction.CREATE,
+                    )
                 )
                 return tr(
                     "❗ Cannot create directory: '{disp_path}' already exists.",
                     disp_path=disp_path,
                 )
             os.makedirs(file_path, exist_ok=True)
-            self.report_success(tr("✅ Directory created"), ReportAction.WRITE)
+            self.report_success(tr("✅ Directory created"))
             return tr(
                 "✅ Successfully created the directory at '{disp_path}'.",
                 disp_path=disp_path,
@@ -65,7 +63,6 @@ class CreateDirectoryTool(ToolBase):
                     "❌ Error creating directory '{disp_path}': {error}",
                     disp_path=disp_path,
                     error=e,
-                ),
-                ReportAction.CREATE,
+                )
             )
             return tr("❌ Cannot create directory: {error}", error=e)

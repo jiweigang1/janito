@@ -24,7 +24,7 @@ class RemoveDirectoryTool(ToolBase):
 
     def run(self, file_path: str, recursive: bool = False) -> str:
         disp_path = display_path(file_path)
-        self.report_info(
+        self.report_action(
             tr("🗃️ Remove directory '{disp_path}' ...", disp_path=disp_path),
             ReportAction.WRITE,
         )

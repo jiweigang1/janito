@@ -53,7 +53,7 @@ class CopyFileTool(ToolBase):
             os.makedirs(os.path.dirname(dst), exist_ok=True)
             shutil.copy2(src, dst)
             note = "\n⚠️ Overwrote existing file. (recommended only after reading the file to be overwritten)" if (os.path.exists(dst) and overwrite) else ""
-            self.report_success(tr("✅ Copied '{src}' to '{dst}'", src=disp_src, dst=disp_dst), ReportAction.WRITE)
+            self.report_success(tr("✅ Copied '{src}' to '{dst}'", src=disp_src, dst=disp_dst))
             return tr("✅ Copied '{src}' to '{dst}'", src=disp_src, dst=disp_dst) + note
         except Exception as e:
             return tr("❗ Copy failed from '{src}' to '{dst}': {err}", src=disp_src, dst=disp_dst, err=str(e))

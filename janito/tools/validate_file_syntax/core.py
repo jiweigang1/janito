@@ -85,7 +85,7 @@ class ValidateFileSyntaxTool(ToolBase):
 
     def run(self, file_path: str) -> str:
         disp_path = display_path(file_path)
-        self.report_info(
+        self.report_action(
             tr(
                 "🔎 Validate syntax for file '{disp_path}' ...",
                 disp_path=disp_path,

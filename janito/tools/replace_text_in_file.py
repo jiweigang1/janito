@@ -51,7 +51,7 @@ class ReplaceTextInFileTool(ToolBase):
             replacement_text,
             file_path,
         )
-        self.report_info(info_msg, ReportAction.WRITE)
+        self.report_action(info_msg, ReportAction.WRITE)
         try:
             content = self._read_file_content(file_path)
             match_lines = self._find_match_lines(content, search_text)

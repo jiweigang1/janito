@@ -4,7 +4,7 @@ chat_shell_style = Style.from_dict({
     'prompt': 'bg:#2323af #ffffff bold',
     '': 'bg:#005fdd #ffffff',  # blue background for input area
     'bottom-toolbar': 'fg:#2323af bg:yellow',
-    'key-label': 'fg:#2323af bg:yellow bold',
+    'key-label': 'bg:#ff9500 fg:#232323 bold',
     'provider': 'fg:#117fbf',
     'model': 'fg:#1f5fa9',
     'role': 'fg:#e87c32 bold',

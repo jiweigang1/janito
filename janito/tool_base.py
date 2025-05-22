@@ -18,56 +18,68 @@ class ToolBase:
     def event_bus(self, bus):
         self._event_bus = bus or default_event_bus
 
-    def report_info(self, message: str, action: ReportAction, context: dict = None):
+    def report_action(self, message: str, action: ReportAction, context: dict = None):
+        """
+        Report that a tool action is starting. This should be the first reporting call for every tool action.
+        """
+        self._event_bus.publish(ReportEvent(
+            subtype=ReportSubtype.ACTION_INFO,
+            message="  " + message,
+            action=action,
+            tool=self.name,
+            context=context
+        ))
+
+    def report_info(self, message: str, context: dict = None):
         self._event_bus.publish(ReportEvent(
             subtype=ReportSubtype.ACTION_INFO,
             message=message,
-            action=action,
+            action=None,
             tool=self.name,
             context=context
         ))
 
-    def report_error(self, message: str, action: ReportAction, context: dict = None):
+    def report_error(self, message: str, context: dict = None):
         self._event_bus.publish(ReportEvent(
             subtype=ReportSubtype.ERROR,
             message=message,
-            action=action,
+            action=None,
             tool=self.name,
             context=context
         ))
 
-    def report_success(self, message: str, action: ReportAction, context: dict = None):
+    def report_success(self, message: str, context: dict = None):
         self._event_bus.publish(ReportEvent(
             subtype=ReportSubtype.SUCCESS,
             message=message,
-            action=action,
+            action=None,
             tool=self.name,
             context=context
         ))
 
-    def report_warning(self, message: str, action: ReportAction, context: dict = None):
+    def report_warning(self, message: str, context: dict = None):
         self._event_bus.publish(ReportEvent(
             subtype=ReportSubtype.WARNING,
             message=message,
-            action=action,
+            action=None,
             tool=self.name,
             context=context
         ))
 
-    def report_stdout(self, message: str, action: ReportAction, context: dict = None):
+    def report_stdout(self, message: str, context: dict = None):
         self._event_bus.publish(ReportEvent(
             subtype=ReportSubtype.STDOUT,
             message=message,
-            action=action,
+            action=None,
             tool=self.name,
             context=context
         ))
 
-    def report_stderr(self, message: str, action: ReportAction, context: dict = None):
+    def report_stderr(self, message: str, context: dict = None):
         self._event_bus.publish(ReportEvent(
             subtype=ReportSubtype.STDERR,
             message=message,
-            action=action,
+            action=None,
             tool=self.name,
             context=context
         ))

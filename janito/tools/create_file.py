@@ -45,7 +45,7 @@ class CreateFileTool(ToolBase):
         is_overwrite = os.path.exists(file_path) and overwrite
         if is_overwrite:
             # Overwrite branch: log only overwrite warning (no create message)
-            self.report_info(
+            self.report_action(
                 tr("⚠️ Overwriting file '{disp_path}'", disp_path=disp_path),
                 ReportAction.WRITE,
             )
@@ -54,7 +54,7 @@ class CreateFileTool(ToolBase):
             os.makedirs(dir_name, exist_ok=True)
         if not is_overwrite:
             # Create branch: log file creation message
-            self.report_info(
+            self.report_action(
                 tr("📝 Create file '{disp_path}' ...", disp_path=disp_path),
                 ReportAction.WRITE,
             )

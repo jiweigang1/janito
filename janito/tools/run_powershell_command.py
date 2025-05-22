@@ -132,7 +132,7 @@ class RunPowerShellCommandTool(ToolBase):
             return tr("Warning: Empty command provided. Operation skipped.")
         encoding_prefix = "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; "
         command_with_encoding = encoding_prefix + command
-        self.report_info(
+        self.report_action(
             tr("🖥️ Running PowerShell command: {command} ...\n", command=command),
             ReportAction.EXECUTE,
         )

@@ -48,7 +48,7 @@ def handle_runner(args, provider, llm_driver_config, agent_role):
         from janito.cli.chat_mode.session import ChatSession
         from rich.console import Console
         console = Console()
-        session = ChatSession(console, provider_instance, llm_driver_config, role=agent_role)
+        session = ChatSession(console, provider_instance, llm_driver_config, role=agent_role, args=args)
         session.run()
 
 def get_prompt_mode(args):

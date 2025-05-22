@@ -47,7 +47,7 @@ class MoveFileTool(ToolBase):
                 return err_msg
 
         try:
-            self.report_info(
+            self.report_action(
                 tr(
                     "📝 Moving from '{disp_src}' to '{disp_dest}' ...",
                     disp_src=disp_src,
@@ -56,7 +56,7 @@ class MoveFileTool(ToolBase):
                 ReportAction.WRITE,
             )
             shutil.move(src, dest)
-            self.report_success(tr("✅ Move complete."), ReportAction.WRITE)
+            self.report_success(tr("✅ Move complete."))
             msg = tr("✅ Move complete.")
             if backup_path:
                 msg += tr(
@@ -65,14 +65,13 @@ class MoveFileTool(ToolBase):
                 )
             return msg
         except Exception as e:
-            self.report_error(tr("❌ Error moving: {error}", error=e), ReportAction.MOVE)
+            self.report_error(tr("❌ Error moving: {error}", error=e))
             return tr("❌ Error moving: {error}", error=e)
 
     def _validate_source(self, src, disp_src):
         if not os.path.exists(src):
             self.report_error(
-                tr("❌ Source '{disp_src}' does not exist.", disp_src=disp_src),
-                ReportAction.MOVE,
+                tr("❌ Source '{disp_src}' does not exist.", disp_src=disp_src)
             )
             return (
                 False,
@@ -87,8 +86,7 @@ class MoveFileTool(ToolBase):
                 tr(
                     "❌ Source path '{disp_src}' is neither a file nor a directory.",
                     disp_src=disp_src,
-                ),
-                ReportAction.MOVE,
+                )
             )
             return (
                 False,

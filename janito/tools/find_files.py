@@ -59,7 +59,7 @@ class FindFilesTool(ToolBase):
                 if max_depth is not None and max_depth > 0
                 else ""
             )
-            self.report_info(
+            self.report_action(
                 tr(
                     "🔍 Search for files '{pattern}' in '{disp_path}'{depth_msg} ...",
                     pattern=pattern,

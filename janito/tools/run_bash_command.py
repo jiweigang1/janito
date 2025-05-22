@@ -42,7 +42,7 @@ class RunBashCommandTool(ToolBase):
         if not command.strip():
             self.report_warning(tr("ℹ️ Empty command provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty command provided. Operation skipped.")
-        self.report_info(
+        self.report_action(
             tr("🖥️ Run bash command: {command} ...\n", command=command),
             ReportAction.EXECUTE,
         )

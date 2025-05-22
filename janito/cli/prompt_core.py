@@ -139,7 +139,7 @@ class PromptHandler:
             self._process_event_iter(event_iter, on_event)
         except KeyboardInterrupt:
             cancel_event.set()
-            self.console.print("[red]Request cancelled.[red]")
+            self.console.print("[red]Request interrupted.[red]")
         # No return value; performance timing removed
 
     def run_prompts(self, prompts: list, raw: bool = False, on_event: Optional[Callable] = None) -> None:
