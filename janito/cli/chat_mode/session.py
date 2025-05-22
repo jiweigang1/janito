@@ -48,7 +48,8 @@ class ChatSession:
         self.llm_driver_config = llm_driver_config
         driver = provider_instance.get_driver_for_model(config=llm_driver_config.to_dict())
         from janito.agent.setup_agent import setup_agent
-        agent = setup_agent(provider_instance, llm_driver_config, role=role)
+        zero_mode = getattr(args, 'zero', False) if args else False
+        agent = setup_agent(provider_instance, llm_driver_config, role=role, zero_mode=zero_mode)
         self.shell_state = ChatShellState(self.mem_history, [])
         self.shell_state.agent = agent
         self.agent = agent

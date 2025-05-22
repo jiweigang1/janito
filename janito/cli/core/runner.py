@@ -34,6 +34,7 @@ def prepare_llm_driver_config(args, modifiers):
 
 
 def handle_runner(args, provider, llm_driver_config, agent_role):
+    zero_mode = getattr(args, 'zero', False)
     from janito.provider_registry import ProviderRegistry
     provider_instance = ProviderRegistry().get_instance(provider, llm_driver_config)
     mode = get_prompt_mode(args)

@@ -1,10 +1,20 @@
 from pathlib import Path
 from jinja2 import Template
 
-def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=None):
+def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=None, zero_mode=False):
     """
     Creates an agent using a rendered system prompt template, passing an explicit role.
     """
+    if zero_mode:
+        agent = provider_instance.create_agent(
+            agent_name=role or "software developer",
+            config=llm_driver_config.to_dict(),
+            system_prompt=None,
+            tools=[],
+            temperature=getattr(llm_driver_config, 'temperature', None),
+        )
+        return agent
+    # Normal flow
     if templates_dir is None:
         # Set default template directory
         templates_dir = Path(__file__).parent / "templates" / "profiles"

@@ -6,6 +6,7 @@ from janito.cli.core.runner import prepare_llm_driver_config, handle_runner, get
 from janito.cli.core.event_logger import setup_event_logger_if_needed, inject_debug_event_bus_if_needed
 
 definition = [
+    (['-z', '--zero'], {"action": "store_true", "help": "IDE zero mode: disables system prompt & all tools for raw LLM interaction"}),
     (["--unset"], {"metavar": "KEY", "help": "Unset (remove) a config key"}),
     (['--version'], {"action": "version", "version": "%(prog)s 1.0"}),
     (['--list-tools'], {"action": "store_true", "help": "List all registered tools"}),

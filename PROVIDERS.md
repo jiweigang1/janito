@@ -13,6 +13,23 @@ provider = OpenAIProvider(model_name="gpt-4o", config={"base_url": "https://api.
 
 ---
 
+### anthropic
+
+**Description:** Anthropic Claude v3 (Opus, Sonnet, Haiku), via official Anthropic API.
+
+**Models:**
+- claude-3-opus-20240229: Most advanced, very high context and reasoning.
+- claude-3-sonnet-20240229: Fast, large-context, good for chat.
+- claude-3-haiku-20240307: Fastest, cheap, smaller context.
+
+**Auth:**
+- Expects official Claude API key via credential system or environment variables (e.g. ANTHROPIC_API_KEY).
+
+**Usage:**
+- Use provider name `anthropic` in CLI/config. Model selection applies as above.
+
+---
+
 ### azure_openai
 
 **Description:** Azure-hosted OpenAI models (API-compatible, may require endpoint and version)
