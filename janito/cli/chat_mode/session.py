@@ -9,7 +9,6 @@ from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit import PromptSession
 from janito.cli.chat_mode.toolbar import get_toolbar_func
 from prompt_toolkit.enums import EditingMode
-from janito.cli.chat_mode.toolbar_style import toolbar_style
 from janito.cli.chat_mode.prompt_style import prompt_style
 from janito.cli.chat_mode.bindings import KeyBindingsFactory
 from janito.cli.chat_mode.shell.commands import handle_command
@@ -54,12 +53,14 @@ class ChatSession:
         self.key_bindings = KeyBindingsFactory.create()
 
     def run(self):
+        from prompt_toolkit.styles import Style
         session = PromptSession(
-            style=toolbar_style,
+            style=Style.from_dict({ 'bottom-toolbar': 'fg:yellow bg:darkred' }),
+
             history=self.mem_history,
             editing_mode=EditingMode.EMACS,
             key_bindings=self.key_bindings,
-            bottom_toolbar=get_toolbar_func(self.performance_collector, msg_count=0, agent=self.agent),
+            bottom_toolbar=HTML('<b>Press ENTER after typing.</b>'),
         )
         self.console.print("[bold green]Type /help for commands. Type /exit or press Ctrl+C to quit.[/bold green]")
         msg_count = 0

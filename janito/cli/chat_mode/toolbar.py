@@ -49,11 +49,11 @@ def assemble_second_line(width, usage, msg_count, session_id=None):
 
 def assemble_bindings_line():
     return (
-        f" <b>F1</b>: Restart conversation | "
-        f"<b>F12</b>: Do It | "
-        f"<b>Ctrl-Y</b>: Yes | "
-        f"<b>Ctrl-N</b>: No | "
-        f"<b>/help</b>: Help | "
+        f' <b>F1</b>: Restart conversation | '
+        f'<b>F12</b>: Do It | '
+        f'<b>Ctrl-Y</b>: Yes | '
+        f'<b>Ctrl-N</b>: No | '
+        f'<b>/help</b>: Help | '
     )
 
 def get_toolbar_func(perf: PerformanceCollector, msg_count: int, session_id=None, agent=None):

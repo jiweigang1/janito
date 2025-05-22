@@ -8,7 +8,9 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.formatted_text import HTML
+from janito.cli.chat_mode.prompt_style import prompt_style
 from prompt_toolkit.styles import Style
+toolbar_style = Style.from_dict({'bottom-toolbar': 'fg:yellow bg:darkred'})
 
 
 @register_tool(name="ask_user")
@@ -55,13 +57,16 @@ class AskUserTool(ToolBase):
             buf.validate_and_handle()
             _f12_index["value"] = (idx + 1) % len(_f12_instructions)
 
-        style = Style.from_dict(
-            {
-                "bottom-toolbar": "bg:#333333 #ffffff",
-                "b": "bold",
-                "prompt": "bold bg:#000080 #ffffff",
-            }
-        )
+                # Use shared CLI styles
+        # prompt_style contains the prompt area and input background
+        # toolbar_style contains the bottom-toolbar styling
+
+        # Compose the styles for use in this prompt
+        from prompt_toolkit.styles import merge_styles
+        style = merge_styles([
+            prompt_style,
+            toolbar_style
+        ])
 
         def get_toolbar():
             f12_hint = ""
