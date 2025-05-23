@@ -11,6 +11,7 @@ from .model_info import MODEL_SPECS
 class MistralAIProvider(LLMProvider):
     MODEL_SPECS = MODEL_SPECS
     name = "mistralai"
+    maintainer = "Needs maintainer"
 
     DEFAULT_MODEL = "mistral-medium-latest"
 

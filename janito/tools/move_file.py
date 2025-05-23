@@ -7,7 +7,7 @@ from janito.report_events import ReportAction
 from janito.i18n import tr
 
 
-@register_tool(name="move_file")
+@register_tool
 class MoveFileTool(ToolBase):
     """
     Move a file or directory from src_path to dest_path.
@@ -20,6 +20,7 @@ class MoveFileTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
+    name = "move_file"
 
     def run(
         self,

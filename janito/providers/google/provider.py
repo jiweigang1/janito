@@ -10,6 +10,7 @@ from .model_info import MODEL_SPECS
 
 class GoogleProvider(LLMProvider):
     MODEL_SPECS = MODEL_SPECS
+    maintainer = "Needs maintainer"
     """
     Provider for Google LLMs via google-google.
     Default model: 'gemini-2.5-pro-preview-05-06'.

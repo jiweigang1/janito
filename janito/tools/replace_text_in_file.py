@@ -6,7 +6,7 @@ import shutil
 import re
 from janito.tools.validate_file_syntax.core import validate_file_syntax
 
-@register_tool(name="replace_text_in_file")
+@register_tool
 class ReplaceTextInFileTool(ToolBase):
     """
     Replace exact occurrences of a given text in a file.
@@ -27,6 +27,7 @@ class ReplaceTextInFileTool(ToolBase):
             - "No changes made. [Warning: Search text not found in file] Please review the original file."
             - "Error replacing text: <error message>"
     """
+    name = "replace_text_in_file"
 
     def run(
         self,

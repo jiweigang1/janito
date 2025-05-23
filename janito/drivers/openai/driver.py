@@ -188,7 +188,12 @@ class OpenAIModelDriver(LLMDriver):
             had_function_call = False
         return had_function_call, None
 
-    def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, **kwargs):
+    def _generate_schemas(self, tools):
+        # OpenAI and OpenAI-compatible drivers use OpenAISchemaGenerator
+        from janito.providers.openai.schema_generator import generate_tool_schemas
+        return generate_tool_schemas(tools) if tools else None
+
+    def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, schemas=None, **kwargs):
         """
         Run a conversation using the provided messages or prompt.
         The driver manages its own internal conversation history.
@@ -208,7 +213,7 @@ class OpenAIModelDriver(LLMDriver):
                 if not self._history or self._history[0].get('role') != 'system':
                     self._history.insert(0, {"role": "system", "content": system_prompt})
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
-            schemas = generate_tool_schemas(tools) if tools else None
+            # schemas now passed as argument, no longer generated here
             client = self._create_client()
             turn_count = 0
             while True:
@@ -225,4 +230,5 @@ class OpenAIModelDriver(LLMDriver):
                 self.publish(GenerationFinished, request_id, total_turns=turn_count)
                 break
         except Exception as e:
+            print(f"[DEBUG] OpenAIModelDriver publishing RequestError: {e}")
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())

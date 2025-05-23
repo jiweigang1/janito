@@ -8,8 +8,8 @@ import tempfile
 import threading
 
 
-@register_tool(name="run_powershell_command")
-class RunPowerShellCommandTool(ToolBase):
+@register_tool
+class RunPowershellCommandTool(ToolBase):
     """
     Execute a non-interactive command using the PowerShell shell and capture live output.
     This tool explicitly invokes 'powershell.exe' (on Windows) or 'pwsh' (on other platforms if available).
@@ -24,6 +24,7 @@ class RunPowerShellCommandTool(ToolBase):
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
+    name = "run_powershell_command"
 
     def _confirm_and_warn(self, command, require_confirmation, requires_user_input):
         if requires_user_input:

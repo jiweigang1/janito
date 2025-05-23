@@ -38,6 +38,14 @@ class LLMDriver(ABC):
     def model_name(self, value):
         self._model_name = value
 
+    def _generate_schemas(self, tools):
+        """
+        Universal early tool schema validation for all drivers that support tools.
+        Should be overridden for provider-specific schema logic.
+        The default implementation returns None.
+        """
+        return None
+
     def stream_generate(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str] = None, tools: Optional[list] = None, **kwargs):
         """
         Stream generation events from the LLM driver in a thread-safe, cancellable manner.
@@ -51,6 +59,18 @@ class LLMDriver(ABC):
             tools (Optional[list]): Optional list of tools/functions.
             **kwargs: Additional driver-specific parameters.
         """
+        # --- EARLY TOOL SCHEMA VALIDATION ---
+        schemas = None
+        try:
+            schemas = self._generate_schemas(tools)
+        except Exception as exc:
+            import traceback
+            tb_str = traceback.format_exc()
+            # Raise immediately so error is not deferred to the thread
+            raise RuntimeError(
+                f"Tool schema validation failed before thread start: {exc}\nTraceback:\n{tb_str}"
+            ) from exc
+        # ---
         event_queue = queue.Queue()
         cancel_event = kwargs.pop('cancel_event', None)
         if cancel_event is None:
@@ -64,7 +84,7 @@ class LLMDriver(ABC):
         self.event_bus = QueueEventBus()
         def generation_thread():
             try:
-                self._run_generation(messages_or_prompt, system_prompt, tools, **kwargs)
+                self._run_generation(messages_or_prompt, system_prompt, tools, schemas=schemas, **kwargs)
             except Exception as exc:
                 import traceback
                 tb_str = traceback.format_exc()

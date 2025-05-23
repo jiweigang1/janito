@@ -8,7 +8,7 @@ import os
 import zipfile
 
 
-@register_tool(name="remove_directory")
+@register_tool
 class RemoveDirectoryTool(ToolBase):
     """
     Remove a directory.
@@ -21,6 +21,7 @@ class RemoveDirectoryTool(ToolBase):
             - "Directory removed: /path/to/dir"
             - "Error removing directory: <error message>"
     """
+    name = "remove_directory"
 
     def run(self, file_path: str, recursive: bool = False) -> str:
         disp_path = display_path(file_path)

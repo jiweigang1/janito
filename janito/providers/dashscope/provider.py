@@ -12,6 +12,7 @@ from .model_info import MODEL_SPECS
 class DashScopeProvider(LLMProvider):
     MODEL_SPECS = MODEL_SPECS
     name = "dashscope"
+    maintainer = "Needs maintainer"
     DEFAULT_MODEL = "qwen3-235b-a22b"
 
     def __init__(self, config: LLMDriverConfig = None):

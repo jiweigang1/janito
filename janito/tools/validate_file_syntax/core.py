@@ -59,11 +59,11 @@ def validate_file_syntax(
         return _handle_validation_error(e, report_warning)
 
 
-@register_tool(name="validate_file_syntax")
+@register_tool
 class ValidateFileSyntaxTool(ToolBase):
     """
     Validate a file for syntax issues.
-
+    
     Supported types:
       - Python (.py, .pyw)
       - JSON (.json)

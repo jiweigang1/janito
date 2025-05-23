@@ -10,20 +10,22 @@ from janito.i18n import tr
 from janito.tools.validate_file_syntax.core import validate_file_syntax
 
 
-@register_tool(name="create_file")
+@register_tool
 class CreateFileTool(ToolBase):
     """
     Create a new file with the given content.
+    
     Args:
         file_path (str): Path to the file to create.
         content (str): Content to write to the file.
-        overwrite (bool, optional): Overwrite existing file if True. Default: False. recommended only after reading the file to be overwritten
+        overwrite (bool, optional): Overwrite existing file if True. Default: False. Recommended only after reading the file to be overwritten.
     Returns:
         str: Status message indicating the result. Example:
             - "✅ Successfully created the file at ..."
-
+    
     Note: Syntax validation is automatically performed after this operation.
     """
+    name = "create_file"
 
     def run(self, file_path: str, content: str, overwrite: bool = False) -> str:
         expanded_file_path = file_path  # Using file_path as is

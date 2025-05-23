@@ -189,7 +189,12 @@ class GoogleGenaiModelDriver(LLMDriver):
                 self.handle_content_part(part, request_id)
         return had_function_call, duration
 
-    def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, **kwargs):
+    def _generate_schemas(self, tools):
+        # Google Gemini driver uses Google's FunctionDeclaration mechanism
+        from janito.drivers.google_genai.schema_generator import generate_tool_declarations
+        return generate_tool_declarations(tools) if tools else None
+
+    def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, schemas=None, **kwargs):
         """
         Run a conversation using the provided messages or prompt.
         The driver manages its own internal conversation history.
@@ -199,7 +204,11 @@ class GoogleGenaiModelDriver(LLMDriver):
         try:
             self._process_prompt_and_system(messages_or_prompt, system_prompt)
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
+            # Instead of generating declarations, use precomputed schemas if provided
             config, conversation_contents, client = self._prepare_google_generation(tools, system_prompt)
+            # Patch config to use externally validated schemas if present
+            if schemas:
+                config.tools = schemas
             turn_count = 0
             start_time = time.time()
             while True:

@@ -9,8 +9,9 @@ from .model_info import MODEL_SPECS
 
 class AzureOpenAIProvider(LLMProvider):
     name = "azure_openai"
+    maintainer = "João Pinto <lamego.pinto@gmail.com>"
     MODEL_SPECS = MODEL_SPECS
-    DEFAULT_MODEL = "azure-gpt-35-turbo"
+    DEFAULT_MODEL = "azure_openai_deployment"
 
     def __init__(self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None):
         self._auth_manager = auth_manager or LLMAuthManager()

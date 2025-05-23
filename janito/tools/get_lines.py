@@ -5,7 +5,7 @@ from janito.tool_utils import pluralize
 from janito.i18n import tr
 
 
-@register_tool(name="get_lines")
+@register_tool
 class GetLinesTool(ToolBase):
     """
     Read lines from a file. You can specify a line range, or read the entire file by simply omitting the from_line and to_line parameters.
@@ -24,6 +24,7 @@ class GetLinesTool(ToolBase):
             - "Error reading file: <error message>"
             - "❗ not found"
     """
+    name = "get_lines"
 
     def run(self, file_path: str, from_line: int = None, to_line: int = None) -> str:
         from janito.tool_utils import display_path

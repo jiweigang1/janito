@@ -7,10 +7,11 @@ from janito.i18n import tr
 from janito.tool_utils import pluralize
 
 
-@register_tool(name="fetch_url")
+@register_tool
 class FetchUrlTool(ToolBase):
     """
     Fetch the content of a web page and extract its text.
+    
     Args:
         url (str): The URL of the web page to fetch.
         search_strings (list[str], optional): Strings to search for in the page content.
@@ -20,6 +21,7 @@ class FetchUrlTool(ToolBase):
             - "No lines found for the provided search strings."
             - "Warning: Empty URL provided. Operation skipped."
     """
+    name = "fetch_url"
 
     def run(self, url: str, search_strings: list[str] = None) -> str:
         if not url.strip():

@@ -14,12 +14,13 @@ class ToolRegistry:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def register_tool(self, tool_class: Type, name: str = None):
+    def register_tool(self, tool_class: Type):
         instance = tool_class()
         if not hasattr(instance, "run") or not callable(instance.run):
             raise TypeError(f"Tool '{tool_class.__name__}' must implement a callable 'run' method.")
-        tool_name = name or getattr(instance, 'name', tool_class.__name__)
-        # Set required attributes for downstream use
+        tool_name = getattr(instance, 'name', None)
+        if not tool_name or not isinstance(tool_name, str):
+            raise ValueError(f"Tool '{tool_class.__name__}' must provide a class attribute 'name' (str) for its registration name.")
         tool_class._tool_run_method = instance.run
         tool_class._tool_name = tool_name
         if tool_name in self._tools:
@@ -48,9 +49,9 @@ class ToolRegistry:
     def get_tool_classes(self):
         return [entry["class"] for entry in self._tools.values()]
 
-def register_tool(tool=None, *, name: str = None):
+def register_tool(tool=None):
     def decorator(cls):
-        ToolRegistry().register_tool(cls, name=name)
+        ToolRegistry().register_tool(cls)
         return cls
     if tool is None:
         return decorator

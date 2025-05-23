@@ -13,19 +13,21 @@ from prompt_toolkit.styles import Style
 toolbar_style = Style.from_dict({'bottom-toolbar': 'fg:yellow bg:darkred'})
 
 
-@register_tool(name="ask_user")
+@register_tool
 class AskUserTool(ToolBase):
     """
-    Request clarification or input from the user whenever there is uncertainty, ambiguity, missing information, or multiple valid options. Returns the user's response as a string.
+    Prompts the user for clarification or input with a question.
 
     Args:
         question (str): The question to ask the user.
+
     Returns:
         str: The user's response as a string. Example:
             - "Yes"
             - "No"
             - "Some detailed answer..."
     """
+    name = "ask_user"
 
     def run(self, question: str) -> str:
 

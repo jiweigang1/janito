@@ -7,7 +7,7 @@ from janito.tool_utils import display_path
 from janito.report_events import ReportAction
 from janito.i18n import tr
 
-@register_tool(name="copy_file")
+@register_tool
 class CopyFileTool(ToolBase):
     """
     Copy one or more files to a target directory, or copy a single file to a new file.
@@ -20,6 +20,7 @@ class CopyFileTool(ToolBase):
     Returns:
         str: Status string for each copy operation.
     """
+    name = "copy_file"
 
     def run(self, sources: str, target: str, overwrite: bool = False) -> str:
         source_list = [src for src in sources.split() if src]

@@ -7,7 +7,7 @@ from janito.i18n import tr
 import os
 
 
-@register_tool(name="create_directory")
+@register_tool
 class CreateDirectoryTool(ToolBase):
     """
     Create a new directory at the specified file_path.
@@ -15,9 +15,10 @@ class CreateDirectoryTool(ToolBase):
         file_path (str): Path for the new directory.
     Returns:
         str: Status message indicating the result. Example:
-            - "✅ Successfully created the directory at ..."
-            - "❗ Cannot create directory: ..."
+            - "5c5 Successfully created the directory at ..."
+            - "5d7 Cannot create directory: ..."
     """
+    name = "create_directory"
 
     def run(self, file_path: str) -> str:
         # file_path = expand_path(file_path)

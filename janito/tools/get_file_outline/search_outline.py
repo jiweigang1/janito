@@ -3,7 +3,9 @@ from janito.report_events import ReportAction
 from janito.tool_registry import register_tool
 
 
-@register_tool(name="search_outline")
+@register_tool
+class SearchOutlineTool(ToolBase):
+    name = "search_outline"
 class SearchOutlineTool(ToolBase):
     """
     Tool for searching outlines in files.

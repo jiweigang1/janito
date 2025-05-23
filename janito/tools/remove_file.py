@@ -8,7 +8,7 @@ from janito.report_events import ReportAction
 from janito.i18n import tr
 
 
-@register_tool(name="remove_file")
+@register_tool
 class RemoveFileTool(ToolBase):
     """
     Remove a file at the specified path.
@@ -18,9 +18,10 @@ class RemoveFileTool(ToolBase):
         backup (bool, optional): If True, create a backup (.bak) before removing. Recommend using backup=True only in the first call to avoid redundant backups. Defaults to False.
     Returns:
         str: Status message indicating the result. Example:
-            - "✅ Successfully removed the file at ..."
-            - "❗ Cannot remove file: ..."
+            - "			 Successfully removed the file at ..."
+            - "			 Cannot remove file: ..."
     """
+    name = "remove_file"
 
     def run(self, file_path: str, backup: bool = False) -> str:
         original_path = file_path

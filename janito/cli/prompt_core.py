@@ -41,6 +41,8 @@ class PromptHandler:
         self.console = Console()
 
     def _handle_inner_event(self, inner_event, on_event, status):
+        # DEBUG: Print event type and representation for troubleshooting
+        print(f"[DEBUG] _handle_inner_event received: {type(inner_event).__name__} -> {inner_event}")
         if on_event:
             on_event(inner_event)
         if isinstance(inner_event, RequestFinished):
@@ -136,6 +138,11 @@ class PromptHandler:
         try:
             event_iter = self.agent.chat(user_prompt, raw=raw, cancel_event=cancel_event)
             event_iter = iter(event_iter)
+            import itertools
+            event_iter = itertools.tee(event_iter, 2)[0]  # make a tee copy for debug
+            for _debug_event in event_iter:
+                print(f"[DEBUG] run_prompt event_iter yielded: {type(_debug_event).__name__} -> {_debug_event}")
+                break  # print only the first event, then use as normal
             self._process_event_iter(event_iter, on_event)
         except KeyboardInterrupt:
             cancel_event.set()

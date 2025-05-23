@@ -92,7 +92,12 @@ class MistralAIModelDriver(LLMDriver):
             self._add_to_history(assistant_msg)
         return had_function_call, duration
 
-    def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, **kwargs):
+    def _generate_schemas(self, tools):
+        # Mistral driver uses OpenAI-style schema generator
+        from janito.providers.openai.schema_generator import generate_tool_schemas
+        return generate_tool_schemas(tools) if tools else None
+
+    def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, schemas=None, **kwargs):
         request_id = str(uuid.uuid4())
         tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
         try:
@@ -100,7 +105,6 @@ class MistralAIModelDriver(LLMDriver):
             self.publish(GenerationStarted, request_id, conversation_history=self._history)
             from mistralai import Mistral
             client = Mistral(api_key=self.api_key)
-            schemas = generate_tool_schemas(tools) if tools else None
             self._generation_turn_loop(client, schemas, tools, request_id, kwargs, tool_executor)
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())

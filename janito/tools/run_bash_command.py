@@ -8,7 +8,7 @@ import sys
 import os
 import threading
 
-@register_tool(name="run_bash_command")
+@register_tool
 class RunBashCommandTool(ToolBase):
     """
     Execute a non-interactive command using the bash shell and capture live output.
@@ -21,6 +21,7 @@ class RunBashCommandTool(ToolBase):
     Returns:
         str: File paths and line counts for stdout and stderr.
     """
+    name = "run_bash_command"
 
     def _stream_output(self, stream, file_obj, report_func, count_func, counter):
         for line in stream:

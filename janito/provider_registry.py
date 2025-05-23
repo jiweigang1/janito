@@ -30,25 +30,42 @@ class ProviderRegistry:
 
         table = Table(title="Supported LLM Providers")
         table.add_column("Provider", style="cyan")
+        table.add_column("Maintainer", style="yellow", justify="center")
         table.add_column("Auth", style="green", justify="center")
         table.add_column("Model Names", style="magenta")
         # Gather data and sort by auth configured
         rows = []
         for p in providers:
             creds = auth_manager.get_credentials(p)
-            configured = "✅" if creds else ""
+            configured = "✅ Auth" if creds else ""
             model_names = "-"
+            maintainer = ""
+            try:
+                provider_class = LLMProviderRegistry.get(p)
+                _maintainer_val = getattr(provider_class, "maintainer", "-")
+                if _maintainer_val == "Needs maintainer":
+                    # Show in red with emoji 🚨
+                    maintainer = "[red]🚨 Needs maintainer[/red]"
+                else:
+                    maintainer = f"👤 {_maintainer_val}"
+            except Exception:
+                maintainer = "-"
             try:
                 if p in provider_to_specs:
                     mod = __import__(provider_to_specs[p], fromlist=["MODEL_SPECS"])
                     model_names = ", ".join(mod.MODEL_SPECS.keys())
             except Exception as e:
                 model_names = "(Error)"
-            rows.append((p, configured, model_names))
-        # Sort with configured (check) first
-        rows.sort(key=lambda r: r[1] != "✅")
-        for idx, (p, configured, model_names) in enumerate(rows):
-            table.add_row(p, configured, model_names)
+            rows.append((p, maintainer, configured, model_names))
+        # Sort: 1) Maintained first, 2) Auth next
+        def maintainer_sort_key(row):
+            maint = row[1]
+            is_needs_maint = "Needs maintainer" in maint
+            return (is_needs_maint, row[2] != "✅ Auth")
+        rows.sort(key=maintainer_sort_key)
+
+        for idx, (p, maintainer, configured, model_names) in enumerate(rows):
+            table.add_row(p, maintainer, configured, model_names)
             if idx != len(rows) - 1:
                 table.add_section()
         console.print(table)

@@ -9,7 +9,7 @@ from .match_lines import read_file_lines
 from .traverse_directory import traverse_directory
 
 
-@register_tool(name="search_text")
+@register_tool
 class SearchTextTool(ToolBase):
     """
     Search for a text pattern (regex or plain string) in all files within one or more directories or file paths and return matching lines or counts. Respects .gitignore.
@@ -25,6 +25,7 @@ class SearchTextTool(ToolBase):
              If count_only is True, returns per-file and total match counts.
         If max_results is reached, appends a note to the output.
     """
+    name = "search_text"
 
     def _handle_file(
         self,

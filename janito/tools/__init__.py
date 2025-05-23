@@ -14,11 +14,10 @@ from . import remove_file
 from . import replace_text_in_file
 from . import run_bash_command
 from . import run_powershell_command
-from . import present_choices
 from . import search_text
-from . import python_command_runner
-from . import python_file_runner
-from . import python_stdin_runner
+from . import python_command_run
+from . import python_file_run
+from . import python_code_run
 
 from janito.platform_discovery import PlatformDiscovery
 from janito.tool_registry import ToolRegistry
@@ -41,11 +40,10 @@ _tool_exports = [
     "replace_text_in_file",
     "run_bash_command",
     "run_powershell_command",
-    "present_choices",
     "search_text",
-    "python_command_runner",
-    "python_file_runner",
-    "python_stdin_runner",
+    "python_command_run",
+    "python_file_run",
+    "python_code_run",
 ]
 
 # Remove run_bash_command if powershell is available and not in git bash

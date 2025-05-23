@@ -5,7 +5,7 @@ from janito.report_events import ReportAction
 from janito.i18n import tr
 
 
-@register_tool(name="open_url")
+@register_tool
 class OpenUrlTool(ToolBase):
     """
     Open the supplied URL in the default web browser.
@@ -14,6 +14,7 @@ class OpenUrlTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
+    name = "open_url"
 
     def run(self, url: str) -> str:
         if not url.strip():

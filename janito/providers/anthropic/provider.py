@@ -9,6 +9,7 @@ from .model_info import MODEL_SPECS
 
 class AnthropicProvider(LLMProvider):
     name = "anthropic"
+    maintainer = "Needs maintainer"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "claude-3-opus-20240229"
 
