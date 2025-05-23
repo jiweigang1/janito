@@ -140,13 +140,12 @@ class PromptHandler:
             import itertools
             event_iter = itertools.tee(event_iter, 2)[0]  # make a tee copy for debug
             for _debug_event in event_iter:
-                print(f"[DEBUG] run_prompt event_iter yielded: {type(_debug_event).__name__} -> {_debug_event}")
+
                 break  # print only the first event, then use as normal
             self._process_event_iter(event_iter, on_event)
         except KeyboardInterrupt:
             cancel_event.set()
             self.console.print("[red]Request interrupted.[red]")
-        # No return value; performance timing removed
 
     def run_prompts(self, prompts: list, raw: bool = False, on_event: Optional[Callable] = None) -> None:
         """

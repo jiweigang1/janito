@@ -3,6 +3,8 @@ Session management for Janito Chat CLI.
 Defines ChatSession and ChatShellState classes.
 """
 import types
+from rich.console import Console
+from rich.rule import Rule
 from prompt_toolkit.history import InMemoryHistory
 from janito.cli.chat_mode.shell.input_history import UserInputHistory
 from prompt_toolkit.formatted_text import HTML
@@ -139,6 +141,10 @@ class ChatSession:
             try:
                 self._prompt_handler.run_prompt(cmd_input)
                 self.msg_count += 1
+                # After prompt, print the stat line using the shared core function
+                from janito.formatting_token import print_token_message_summary
+                usage = self.performance_collector.get_last_request_usage()
+                print_token_message_summary(self.console, self.msg_count, usage)
             except Exception as exc:
                 self.console.print(f"[red]Exception in agent: {exc}[/red]")
                 import traceback

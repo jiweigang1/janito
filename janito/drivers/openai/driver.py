@@ -230,5 +230,5 @@ class OpenAIModelDriver(LLMDriver):
                 self.publish(GenerationFinished, request_id, total_turns=turn_count)
                 break
         except Exception as e:
-            print(f"[DEBUG] OpenAIModelDriver publishing RequestError: {e}")
+
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
