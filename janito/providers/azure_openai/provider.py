@@ -38,27 +38,17 @@ class AzureOpenAIProvider(LLMProvider):
         executor = ToolExecutor(registry=self._tool_registry, event_bus=event_bus)
         return executor.execute_by_name(tool_name, *args, **kwargs)
 
-    def get_driver_for_model(self, model_name: str, config: LLMDriverConfig = None):
+    def get_driver_for_model(self, config: dict = None):
         from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
         required = getattr(AzureOpenAIModelDriver, 'required_config', None)
         if required:
-            missing = [k for k in required if not hasattr(config, k) or getattr(config, k) in (None, "")]
+            missing = [k for k in required if not config or k not in config or config.get(k) in (None, "")]
             if missing:
                 raise ValueError(f"Missing required config for AzureOpenAIModelDriver: {', '.join(missing)}")
-        driver_config = config or LLMDriverConfig(model=None)
-        if not getattr(driver_config, 'model', None):
-            driver_config.model = model_name
-        # Optionally set missing max_tokens from spec (match OpenAI logic, assume mutability acceptable)
-        if not getattr(driver_config, 'max_tokens', None):
-            spec = self.get_model_info(model_name)
-            max_response = spec.get('max_response', None) if spec else None
-            if max_response not in (None, '', 'N/A'):
-                try:
-                    driver_config.max_tokens = int(max_response)
-                except Exception:
-                    pass
+        from janito.llm.driver_config_builder import build_llm_driver_config
+        llm_driver_config = build_llm_driver_config(config or {}, AzureOpenAIModelDriver)
         return AzureOpenAIModelDriver(
-            driver_config,
+            llm_driver_config,
             self._tool_registry
         )
 
