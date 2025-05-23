@@ -12,6 +12,14 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.7"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["janito*"]
+
+[tool.setuptools.package-data]
+# Ensure prompt templates are included in the wheel
+"janito.agent.templates.profiles" = ["*.j2"]
+
 [project.scripts]
 janito = "janito.__main__:main"
 

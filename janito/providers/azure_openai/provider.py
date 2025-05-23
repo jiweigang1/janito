@@ -40,11 +40,7 @@ class AzureOpenAIProvider(LLMProvider):
 
     def get_driver_for_model(self, config: dict = None):
         from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
-        required = getattr(AzureOpenAIModelDriver, 'required_config', None)
-        if required:
-            missing = [k for k in required if not config or k not in config or config.get(k) in (None, "")]
-            if missing:
-                raise ValueError(f"Missing required config for AzureOpenAIModelDriver: {', '.join(missing)}")
+        self._validate_required_config(AzureOpenAIModelDriver, config, "AzureOpenAIModelDriver")
         from janito.llm.driver_config_builder import build_llm_driver_config
         llm_driver_config = build_llm_driver_config(config or {}, AzureOpenAIModelDriver)
         return AzureOpenAIModelDriver(
