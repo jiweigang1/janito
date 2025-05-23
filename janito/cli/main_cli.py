@@ -68,6 +68,13 @@ class JanitoCLI:
         if run_mode == RunMode.SET:
             if self._run_set_mode():
                 return
+        # Special handling: provider is not required for list_providers, list_tools, show_config
+        if run_mode == RunMode.GET and (getattr(self.args, 'list_providers', False)
+                                        or getattr(self.args, 'list_tools', False)
+                                        or getattr(self.args, 'show_config', False)):
+            self._maybe_print_verbose_provider_model()
+            handle_getter(self.args)
+            return
         provider = self._get_provider_or_default()
         if provider is None:
             print("Error: No provider selected and no default_provider found in config. Please set a provider using '-p PROVIDER', '--set default_provider=provider_name', or configure a default provider.")
@@ -76,10 +83,6 @@ class JanitoCLI:
         self._maybe_print_verbose_modifiers(modifiers)
         setup_event_logger_if_needed(self.args)
         inject_debug_event_bus_if_needed(self.args)
-        if run_mode == RunMode.GET and (getattr(self.args, 'list_providers', False) or getattr(self.args, 'list_tools', False)):
-            self._maybe_print_verbose_provider_model()
-            handle_getter(self.args)
-            return
         provider, llm_driver_config, agent_role = prepare_llm_driver_config(self.args, modifiers)
         if provider is None or llm_driver_config is None:
             return
