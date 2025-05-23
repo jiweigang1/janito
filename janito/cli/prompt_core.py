@@ -41,8 +41,7 @@ class PromptHandler:
         self.console = Console()
 
     def _handle_inner_event(self, inner_event, on_event, status):
-        # DEBUG: Print event type and representation for troubleshooting
-        print(f"[DEBUG] _handle_inner_event received: {type(inner_event).__name__} -> {inner_event}")
+
         if on_event:
             on_event(inner_event)
         if isinstance(inner_event, RequestFinished):
