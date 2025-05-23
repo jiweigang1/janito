@@ -45,7 +45,9 @@ class AzureOpenAIProvider(LLMProvider):
             missing = [k for k in required if not hasattr(config, k) or getattr(config, k) in (None, "")]
             if missing:
                 raise ValueError(f"Missing required config for AzureOpenAIModelDriver: {', '.join(missing)}")
-        driver_config = config or LLMDriverConfig(model=model_name)
+        driver_config = config or LLMDriverConfig(model=None)
+        if not getattr(driver_config, 'model', None):
+            driver_config.model = model_name
         # Optionally set missing max_tokens from spec (match OpenAI logic, assume mutability acceptable)
         if not getattr(driver_config, 'max_tokens', None):
             spec = self.get_model_info(model_name)
@@ -56,11 +58,8 @@ class AzureOpenAIProvider(LLMProvider):
                 except Exception:
                     pass
         return AzureOpenAIModelDriver(
-            type(self).name,
-            model_name,
-            self._api_key,
-            self._tool_registry,
-            driver_config
+            driver_config,
+            self._tool_registry
         )
 
 LLMProviderRegistry.register(AzureOpenAIProvider.name, AzureOpenAIProvider)
