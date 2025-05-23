@@ -1,6 +1,5 @@
 from janito.tool_registry import register_tool
 
-# from janito.agent.tools_utils.expand_path import expand_path
 from janito.tool_utils import display_path
 from janito.tool_base import ToolBase
 from janito.report_events import ReportAction

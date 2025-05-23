@@ -1,6 +1,5 @@
 from quart import Quart, send_from_directory, request, jsonify, websocket
 import os
-from janito.agent.tools_utils.dir_walk_utils import walk_dir_with_gitignore
 
 app = Quart(__name__)
 
