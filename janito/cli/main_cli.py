@@ -8,7 +8,7 @@ from janito.cli.core.event_logger import setup_event_logger_if_needed, inject_de
 definition = [
     (['-z', '--zero'], {"action": "store_true", "help": "IDE zero mode: disables system prompt & all tools for raw LLM interaction"}),
     (["--unset"], {"metavar": "KEY", "help": "Unset (remove) a config key"}),
-    (['--version'], {"action": "version", "version": "%(prog)s 1.0"}),
+    (['--version'], {"action": "version", "version": None}),
     (['--list-tools'], {"action": "store_true", "help": "List all registered tools"}),
     (['--show-config'], {"action": "store_true", "help": "Show the current config"}),
     (['--list-providers'], {"action": "store_true", "help": "List supported LLM providers"}),
@@ -51,6 +51,10 @@ class JanitoCLI:
 
     def _define_args(self):
         for argnames, argkwargs in definition:
+            # Patch version argument dynamically with real version
+            if '--version' in argnames:
+                from janito import __version__ as janito_version
+                argkwargs['version'] = f"Janito {janito_version}"
             self.parser.add_argument(*argnames, **argkwargs)
 
     def collect_modifiers(self):
