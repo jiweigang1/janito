@@ -14,6 +14,14 @@ import traceback
 from typing import Optional, List, Dict, Any, Union
 from janito.llm.driver import LLMDriver
 from janito.drivers.google_genai.schema_generator import generate_tool_declarations
+from janito.driver_events import (
+    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound, EmptyResponseEvent
+)
+from janito.tool_executor import ToolExecutor
+from janito.tool_registry import ToolRegistry
+from google import genai
+from google.genai import types as genai_types
+from janito.llm.driver_config import LLMDriverConfig
 # Exception for empty or incomplete responses or blocks
 class EmptyResponseError(Exception):
     """
@@ -24,15 +32,6 @@ class EmptyResponseError(Exception):
         self.block_reason = block_reason
         self.block_reason_message = block_reason_message
         super().__init__(message)
-from janito.driver_events import (
-    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound, EmptyResponseEvent
-)
-from janito.tool_executor import ToolExecutor
-from janito.tool_registry import ToolRegistry
-from google import genai
-from google.genai import types as genai_types
-from janito.llm.driver_config import LLMDriverConfig
-
 def extract_usage_metadata_native(usage_obj):
     if usage_obj is None:
         return {}

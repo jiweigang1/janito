@@ -4,6 +4,8 @@ import tempfile
 import time
 import http.client
 import os
+import threading
+import queue
 from rich.console import Console
 from janito.cli._termweb_log_utils import print_termweb_logs
 from janito.i18n import tr
@@ -25,8 +27,6 @@ def wait_for_termweb(port, timeout=3.0):
         time.sleep(0.1)
     return False
 
-import threading
-import queue
 
 def termweb_start_and_watch(shell_state, shellstate_lock, selected_port=None):
     """

@@ -37,6 +37,13 @@ class ChatShellState:
 
 class ChatSession:
     def __init__(self, console, provider_instance=None, llm_driver_config=None, role=None, args=None):
+        from janito.cli.prompt_core import PromptHandler as GenericPromptHandler
+        self._prompt_handler = GenericPromptHandler(
+            args=None,
+            conversation_history=None if not hasattr(self, 'shell_state') else self.shell_state.conversation_history,
+            provider_instance=provider_instance
+        )
+        self._prompt_handler.agent = None  # Will be set below if agent exists
         self.console = console
         self.user_input_history = UserInputHistory()
         self.input_dicts = self.user_input_history.load()
@@ -56,6 +63,9 @@ class ChatSession:
         from janito.perf_singleton import performance_collector
         self.performance_collector = performance_collector
         self.key_bindings = KeyBindingsFactory.create()
+        # Attach agent to prompt handler now that agent is initialized
+        self._prompt_handler.agent = self.agent
+        self._prompt_handler.conversation_history = self.shell_state.conversation_history
 
         # TERMWEB logic migrated from runner
         self.termweb_support = False
@@ -105,98 +115,65 @@ class ChatSession:
             self.shell_state.termweb_status = 'offline'
 
     def run(self):
-        from prompt_toolkit.application import get_app
-        # Use prompt_toolkit application timer for periodic refresh
-        termweb_queue = None
-        if hasattr(self, 'termweb_support') and self.termweb_support:
-            if 'termweb_queue' in locals():
-                termweb_queue = locals()['termweb_queue']
-        def timer_refresh():
-            try:
-                if termweb_queue and getattr(self.shell_state, 'termweb_status', None) == 'starting':
-                    try:
-                        res = termweb_queue.get(timeout=0.01)
-                        termweb_proc, started, termweb_stdout_path, termweb_stderr_path, termweb_port = res
-                        self.shell_state.termweb_port = termweb_port if started else None
-                        self.shell_state.termweb_stdout_path = termweb_stdout_path
-                        self.shell_state.termweb_stderr_path = termweb_stderr_path
-                        self.shell_state.termweb_status = 'online' if started else 'offline'
-                        print(f"[PERIODIC_REFRESH] Got result from startup queue. New status: {self.shell_state.termweb_status}")
-                    except Exception:
-                        pass
-                app = get_app(return_none=True)
-                if app:
-                    app.invalidate()
-            except Exception:
-                pass
-        # Register the timer after application is initialized, see after session below
+        session = self._create_prompt_session()
+        self.console.print("[bold green]Type /help for commands. Type /exit or press Ctrl+C to quit.[/bold green]")
+        self._chat_loop(session)
 
-        session = PromptSession(
+    def _chat_loop(self, session):
+        self.msg_count = 0
+        timer_started = False
+        while True:
+            if not timer_started:
+                timer_started = True
+            cmd_input = self._handle_input(session)
+            if cmd_input is None:
+                break
+            if not cmd_input:
+                continue
+            if self._handle_exit_conditions(cmd_input):
+                break
+            if cmd_input.startswith("/"):
+                handle_command(cmd_input, shell_state=self.shell_state)
+                continue
+            self.user_input_history.append(cmd_input)
+            try:
+                self._prompt_handler.run_prompt(cmd_input)
+                self.msg_count += 1
+            except Exception as exc:
+                self.console.print(f"[red]Exception in agent: {exc}[/red]")
+                import traceback
+                self.console.print(traceback.format_exc())
+
+    def _create_prompt_session(self):
+        return PromptSession(
             style=chat_shell_style,
             completer=ShellCommandCompleter(),
             history=self.mem_history,
             editing_mode=EditingMode.EMACS,
             key_bindings=self.key_bindings,
             bottom_toolbar=lambda: get_toolbar_func(
-                self.performance_collector, msg_count, self.shell_state
+                self.performance_collector, 0, self.shell_state
             )(),
         )
-        self.console.print("[bold green]Type /help for commands. Type /exit or press Ctrl+C to quit.[/bold green]")
-        msg_count = 0
-        timer_started = False
-        while True:
-            # Register timer after first session.prompt(), when Application is definitely available
-            if not timer_started:
-                from prompt_toolkit.application import get_app
-                app = get_app()
-                if hasattr(app, 'create_timer'):
-                    app.create_timer(0.5, timer_refresh, repeat=True)
-                    timer_started = True
 
-            # Support injected input from commands like /multi
-            injected = getattr(self.shell_state, 'injected_input', None)
-            if injected is not None:
-                cmd_input = injected
-                self.shell_state.injected_input = None
-            else:
-                try:
-                    cmd_input = session.prompt(HTML("<inputline>💬 </inputline>"))
-                except (KeyboardInterrupt, EOFError):
-                    self.console.print("\n[bold yellow]Exiting chat. Goodbye![/bold yellow]")
-                    break
-            cmd_input = cmd_input.strip()
-            if not cmd_input:
-                continue
-            if cmd_input.lower() in ("/exit", ":q", ":quit"):
-                self.console.print("[bold yellow]Exiting chat. Goodbye![/bold yellow]")
-                should_refresh = False
-                refresh_thread.join(timeout=1)
-                break
-            if cmd_input.lower() in ("/exit", ":q", ":quit"):
-                self.console.print("[bold yellow]Exiting chat. Goodbye![/bold yellow]")
-                should_refresh = False
-                refresh_thread.join(timeout=1)
-                break
-            if cmd_input.startswith("/"):
-                handle_command(cmd_input, shell_state=self.shell_state)
-                continue
-            # Save input to history
-            self.user_input_history.append(cmd_input)
-            # Send input to agent and print response
+    def _handle_input(self, session):
+        injected = getattr(self.shell_state, 'injected_input', None)
+        if injected is not None:
+            cmd_input = injected
+            self.shell_state.injected_input = None
+        else:
             try:
-                # Use GenericPromptHandler for unified prompt handling
-                from janito.cli.prompt_core import PromptHandler as GenericPromptHandler
-                if not hasattr(self, '_prompt_handler'):
-                    # Create once and reuse
-                    self._prompt_handler = GenericPromptHandler(
-                        args=None,  # No CLI args in chat mode
-                        conversation_history=self.shell_state.conversation_history,
-                        provider_instance=self.provider_instance
-                    )
-                    self._prompt_handler.agent = self.agent
-                self._prompt_handler.run_prompt(cmd_input)
-                msg_count += 1
-            except Exception as exc:
-                self.console.print(f"[red]Exception in agent: {exc}[/red]")
-                import traceback
-                self.console.print(traceback.format_exc())
+                cmd_input = session.prompt(HTML("<inputline>💬 </inputline>"))
+            except (KeyboardInterrupt, EOFError):
+                self._handle_exit()
+                return None
+        return cmd_input.strip()
+
+    def _handle_exit(self):
+        self.console.print("[bold yellow]Exiting chat. Goodbye![/bold yellow]")
+
+    def _handle_exit_conditions(self, cmd_input):
+        if cmd_input.lower() in ("/exit", ":q", ":quit"):
+            self._handle_exit()
+            return True
+        return False

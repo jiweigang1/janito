@@ -20,13 +20,13 @@ class OpenAIProvider(LLMProvider):
         self.auth_manager = auth_manager or LLMAuthManager()
         self._api_key = self.auth_manager.get_credentials(type(self).name)
         self._tool_registry = ToolRegistry()
-        self._info = config or LLMDriverConfig(model=None)
-        if not self._info.model:
-            self._info.model = self.DEFAULT_MODEL
-        if not self._info.api_key:
-            self._info.api_key = self._api_key
-        self.fill_missing_device_info(self._info)
-        self._driver = OpenAIModelDriver(self._info, self._tool_registry)
+        self._driver_config = config or LLMDriverConfig(model=None)  # now called self._driver_config throughout
+        if not self._driver_config.model:
+            self._driver_config.model = self.DEFAULT_MODEL
+        if not self._driver_config.api_key:
+            self._driver_config.api_key = self._api_key
+        self.fill_missing_device_info(self._driver_config)
+        self._driver = OpenAIModelDriver(self._driver_config, self._tool_registry)
 
     @property
     def driver(self) -> OpenAIModelDriver:
