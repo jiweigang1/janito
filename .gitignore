@@ -20,6 +20,9 @@ var/
 .installed.cfg
 *.egg
 
+# Wheel files
+*.whl
+
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
