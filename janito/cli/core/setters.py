@@ -5,9 +5,9 @@ from janito.config import config as global_config
 from janito.provider_registry import ProviderRegistry
 from janito.cli.cli_commands.set_api_key import handle_set_api_key
 
-def handle_api_key_set(args, config_mgr=None):
+def handle_api_key_set(args):
     if getattr(args, "set_api_key", None):
-        handle_set_api_key(args, config_mgr) if config_mgr else None
+        handle_set_api_key(args)
         return True
     return False
 
