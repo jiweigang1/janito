@@ -100,6 +100,5 @@ class ValidateFileSyntaxTool(ToolBase):
         )
         if result.startswith("✅"):
             self.report_success(result, ReportAction.READ)
-        elif result.startswith("⚠️"):
-            self.report_warning(tr("⚠️ ") + result.lstrip("⚠️ "))
+
         return result

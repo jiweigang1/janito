@@ -4,11 +4,11 @@ ProviderConfigManager: Handles reading and writing provider configuration for ja
 from janito.config import config
 from janito.llm.auth import LLMAuthManager
 
-def get_default_provider():
-    return config.get('default_provider')
+def get_config_provider():
+    return config.get('provider')
 
-def set_default_provider(provider_name):
-    config.file_set('default_provider', provider_name)
+def set_config_provider(provider_name):
+    config.file_set('provider', provider_name)
 
 def get_config_path():
     return str(config.config_path)
@@ -46,6 +46,25 @@ def set_provider_model_config(provider, model, key, value):
 
 def get_provider_model_config(provider, model):
     return config.get_provider_model_config(provider, model)
+
+def get_effective_model(provider=None, requested_model=None):
+    """
+    Returns the best model selection according to the following precedence:
+      1. If requested_model is provided, use it.
+      2. If a provider is set and provider.model is set, use it.
+      3. If a global model is set, use it.
+      Returns None if not found.
+    """
+    if requested_model:
+        return requested_model
+    if provider:
+        provider_model = config.get_provider_config(provider).get("model")
+        if provider_model:
+            return provider_model
+    global_model = config.get("model")
+    if global_model:
+        return global_model
+    return None
 
 def get_effective_setting(provider, model, setting):
     """

@@ -13,7 +13,7 @@ def handle_getter(args, config_mgr=None):
     if getattr(args, 'list_models', False):
         provider = getattr(args, 'provider', None)
         if not provider:
-            print("Error: No provider selected. Please set a provider using '-p PROVIDER', '--set default_provider=provider_name', or configure a default provider.")
+            print("Error: No provider selected. Please set a provider using '-p PROVIDER', '--set provider=name', or configure a provider.")
             return
         provider_instance = ProviderRegistry().get_instance(provider)
     GETTER_DISPATCH = {

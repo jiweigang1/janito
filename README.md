@@ -77,14 +77,17 @@ After installation, use the `janito` command in your terminal.
   ```bash
   janito -s path/to/system_prompt.txt "Your prompt here"
   ```
+
 - **Select Model and Provider Temporarily**
   ```bash
   janito -p openai -m gpt-3.5-turbo "Your prompt here"
   ```
+
 - **Set Provider-Specific Config**
   ```bash
   janito --set-config PROVIDER KEY VALUE
   ```
+
 - **Enable Event Logging**
   ```bash
   janito -e "Your prompt here"
@@ -100,8 +103,8 @@ After installation, use the `janito` command in your terminal.
 | `--list-providers`     | List all supported LLM providers                                            |
 | `-l`, `--list-models`  | List models for current/selected provider                                   |
 | `--set-api-key`        | Set API key for the current or selected provider (`API_KEY`). Use `-p PROVIDER` to set for a specific provider. |
-| `--set default_provider=provider_name` | Set the current LLM provider (e.g., janito --set default_provider=provider_name)                                                |
-| `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set default model for the current/selected provider. |
+| `--set provider=name` | Set the current LLM provider (e.g., janito --set provider=name)                                                |
+| `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set the default model for the current/selected provider, or globally. |
 | `-s`, `--system`       | Set a system prompt                                                         |
 | `-r`, `--role`         | Set the role for the agent (overrides config)                                |
 | `-p`, `--provider`     | Select LLM provider (overrides config)                                      |

@@ -1,19 +1,22 @@
 """Handles LLM driver config preparation and execution modes."""
 from janito.llm.driver_config import LLMDriverConfig
-from janito.provider_config import get_default_provider
+from janito.provider_config import get_config_provider
 from janito.cli.verbose_output import print_verbose_info
 
 
 def prepare_llm_driver_config(args, modifiers):
     provider = getattr(args, 'provider', None)
     if provider is None:
-        provider = get_default_provider()
+        provider = get_config_provider()
         if provider and getattr(args, 'verbose', False):
             print_verbose_info("Default provider", provider, style="magenta", align_content=True)
         elif provider is None:
-            print("Error: No provider selected and no default_provider found in config. Please set a provider using '-p PROVIDER', '--set default_provider=provider_name', or configure a default provider.")
+            print("Error: No provider selected and no provider found in config. Please set a provider using '-p PROVIDER', '--set provider=name', or configure a provider.")
             return None, None, None
+    from janito.provider_config import get_effective_model
     model = getattr(args, 'model', None)
+    if not model:
+        model = get_effective_model(provider)
     driver_config_data = {"model": model}
     # Always check these settings via config precedence, unless in modifiers/CLI
     from janito.provider_config import get_effective_setting

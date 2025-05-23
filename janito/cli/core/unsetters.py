@@ -32,5 +32,9 @@ def handle_unset(args):
             global_config.save()
             print(f"{key}={current_val} was removed.")
             return True
-    print(f"Error: no value set for {key} (cannot remove)")
+    if '=' in unset_arg:
+        provided_key = unset_arg.split('=')[0].strip()
+        print(f"Error: --unset expected a key, not key=value. Did you mean: --unset {provided_key}?")
+    else:
+        print(f"Error: no value set for {key} (cannot remove)")
     return True

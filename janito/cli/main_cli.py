@@ -81,7 +81,7 @@ class JanitoCLI:
             return
         provider = self._get_provider_or_default()
         if provider is None:
-            print("Error: No provider selected and no default_provider found in config. Please set a provider using '-p PROVIDER', '--set default_provider=provider_name', or configure a default provider.")
+            print("Error: No provider selected and no provider found in config. Please set a provider using '-p PROVIDER', '--set provider=name', or configure a provider.")
             return
         modifiers = self.collect_modifiers()
         self._maybe_print_verbose_modifiers(modifiers)
@@ -110,8 +110,8 @@ class JanitoCLI:
     def _get_provider_or_default(self):
         provider = getattr(self.args, 'provider', None)
         if provider is None:
-            from janito.provider_config import get_default_provider
-            provider = get_default_provider()
+            from janito.provider_config import get_config_provider
+            provider = get_config_provider()
         return provider
 
     def _maybe_print_verbose_modifiers(self, modifiers):
