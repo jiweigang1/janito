@@ -78,7 +78,7 @@ class LLMProvider(ABC):
         llm_driver_config = build_llm_driver_config(config or {}, driver_class)
         return driver_class(
             llm_driver_config,
-            getattr(self, '_tool_registry', None)
+            getattr(self, '_tools_adapter', None)
         )
 
     def _validate_model_specs(self):
@@ -137,6 +137,13 @@ class LLMProvider(ABC):
             if missing:
                 raise ValueError(f"Missing required config for {driver_name}: {', '.join(missing)}")
 
-    def create_agent(self, tools_provider, agent_name: str = None, **kwargs):
+    def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
-        return LLMAgent(self.driver, tools_provider, agent_name=agent_name, **kwargs)
+        # Dynamically create driver if supported, else fallback to existing.
+        if hasattr(self, 'get_driver_for_model'):
+            driver = self.get_driver_for_model(self._driver_config)
+            if tools_adapter is not None:
+                driver.tools_adapter = tools_adapter
+        else:
+            driver = self.driver
+        return LLMAgent(driver, tools_adapter, agent_name=agent_name, **kwargs)

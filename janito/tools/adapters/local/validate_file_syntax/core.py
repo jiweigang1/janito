@@ -84,6 +84,7 @@ class ValidateFileSyntaxTool(ToolBase):
             - "⚠️ Warning: Syntax error: <error message>"
             - "⚠️ Warning: Unsupported file extension: <ext>"
     """
+    tool_name = "validate_file_syntax"
 
     def run(self, file_path: str) -> str:
         disp_path = display_path(file_path)

@@ -21,7 +21,7 @@ class RemoveFileTool(ToolBase):
             - "			 Successfully removed the file at ..."
             - "			 Cannot remove file: ..."
     """
-    name = "remove_file"
+    tool_name = "remove_file"
 
     def run(self, file_path: str, backup: bool = False) -> str:
         original_path = file_path

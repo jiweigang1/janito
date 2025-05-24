@@ -12,25 +12,25 @@ class LLMDriver(ABC):
     Abstract base class for LLM drivers. Each driver represents a specific model or capability within a provider.
     Accepts a user prompt (mandatory) and allows supplying a conversation_history and a tools_adapter.
     """
-    def __init__(self, name: str, model_name: str, api_key: str, user_prompt: str, conversation_history: Optional[LLMConversationHistory] = None, tool_registry: LocalToolsAdapter = None, config: Optional[dict] = None):
-        self.name = name
-        self.model_name = model_name
-        self.api_key = api_key
+    def __init__(self, driver_config, user_prompt: str = None, conversation_history: Optional[LLMConversationHistory] = None, tools_adapter: LocalToolsAdapter = None):
+        # Store config as a dict for compatibility
+        if driver_config is None:
+            self.config = {}
+        elif hasattr(driver_config, 'to_dict'):
+            self.config = driver_config.to_dict()
+        elif hasattr(driver_config, '__dict__') and not isinstance(driver_config, dict):
+            self.config = dict(driver_config.__dict__)
+        else:
+            self.config = dict(driver_config)
+
+        self.model_name = getattr(driver_config, "model", self.config.get("model", "unknown-model"))
+        self.api_key = getattr(driver_config, "api_key", self.config.get("api_key", None))
         self.user_prompt = user_prompt
         self.conversation_history = conversation_history if conversation_history is not None else LLMConversationHistory()
-        self.tool_registry = tool_registry or LocalToolsAdapter()
+        self.tools_adapter = tools_adapter
         self.event_bus = None
         self.cancel_event = None
-        self._history: List[Dict[str, Any]] = []  # Retained for compatibility (mirrors conversation_history.get_history())
-        # Normalize config to always be a dict (for DriverInfo or similar object input)
-        if config is None:
-            self.config = {}
-        elif hasattr(config, 'to_dict'):
-            self.config = config.to_dict()
-        elif hasattr(config, '__dict__') and not isinstance(config, dict):
-            self.config = dict(config.__dict__)
-        else:
-            self.config = config
+        self._history: List[Dict[str, Any]] = []
 
     @property
     def model_name(self):
@@ -133,11 +133,11 @@ class LLMDriver(ABC):
 
     def get_name(self) -> str:
         """
-        Return the full name of the driver in the format name/model_name.
+        Return the canonical model name for the driver.
         Returns:
-            str: The driver name.
+            str: The driver model name.
         """
-        return f"{self.name}/{self.model_name}"
+        return f"{self.model_name}"
 
     def get_history(self) -> List[Dict[str, Any]]:
         """

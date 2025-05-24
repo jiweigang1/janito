@@ -18,7 +18,6 @@ from janito.providers.openai.schema_generator import generate_tool_schemas
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
 )
-from janito.tools.tool_executor import ToolExecutor
 from janito.tools.adapters.local.adapter import LocalToolsAdapter
 
 from janito.llm.driver_config import LLMDriverConfig
@@ -33,8 +32,8 @@ class OpenAIModelDriver(LLMDriver):
     name = "openai"
     # Which fields to extract from config and LLMDriverConfig
     driver_fields = {"max_tokens", "temperature", "top_p", "presence_penalty", "frequency_penalty", "stop", "base_url", "api_key"}
-    def __init__(self, driver_config: LLMDriverConfig, user_prompt: str, conversation_history=None, tool_registry: LocalToolsAdapter = None):
-        super().__init__("openai", driver_config.model, driver_config.api_key, user_prompt, conversation_history=conversation_history, tool_registry=tool_registry, config=driver_config)
+    def __init__(self, driver_config: LLMDriverConfig, user_prompt: str, conversation_history=None, tools_adapter: LocalToolsAdapter = None):
+        super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
         self.config = driver_config
         self.base_url = driver_config.base_url
 
@@ -52,10 +51,17 @@ class OpenAIModelDriver(LLMDriver):
         self._history.append(message)
 
     def _handle_function_call(self, tool_call, tool_executor):
-        func = getattr(tool_call, 'function', None)
-        tool_name = getattr(func, 'name', None) if func else None
-        arguments = getattr(func, 'arguments', None) if func else None
-        tool_call_id = getattr(tool_call, 'id', None)
+        func = tool_call.function
+        try:
+            tool_name = func.name
+            arguments = func.arguments
+        except AttributeError as e:
+            raise ValueError(f"OpenAI tool_call.function missing required attribute ({e.args[0]}): {tool_call}")
+        tool_call_id = tool_call.id if hasattr(tool_call, 'id') else None
+        if tool_name is None:
+            raise ValueError(f"OpenAI tool_call.function .name is None: {tool_call}")
+        if arguments is None:
+            raise ValueError(f"OpenAI tool_call.function .arguments is None: {tool_call}")
 
         # Explicit checks for required fields
         if not tool_call_id:
@@ -112,7 +118,11 @@ class OpenAIModelDriver(LLMDriver):
         api_kwargs['model'] = self.model_name
         api_kwargs['messages'] = messages
         api_kwargs['stream'] = False
-        return client.chat.completions.create(**api_kwargs)
+        try:
+            result = client.chat.completions.create(**api_kwargs)
+            return result
+        except Exception as ex:
+            raise
 
     def _extract_usage(self, usage):
         usage_dict = {}
@@ -133,12 +143,11 @@ class OpenAIModelDriver(LLMDriver):
         for tool_call in tool_calls:
             if self.cancel_event is not None and self.cancel_event.is_set():
                 break
-            self._handle_function_call(tool_call, tool_executor)
+            self._handle_function_call(tool_call, self.tools_adapter)
             had_function_call = True
         return had_function_call
 
     def _process_generation_turn(self, client, schemas, tools, request_id, start_time, kwargs, tool_executor):
-        print(f"[DEBUG] OpenAIModelDriver received tools: {tools}")
         api_kwargs = dict(kwargs)
         # Remove non-OpenAI arguments
         api_kwargs.pop('raw', None)
@@ -164,10 +173,17 @@ class OpenAIModelDriver(LLMDriver):
             # Execute tool(s) and collect result messages
             tool_result_msgs = []
             for tool_call in tool_calls:
-                func = getattr(tool_call, 'function', None)
-                tool_name = getattr(func, 'name', None) if func else None
-                arguments = getattr(func, 'arguments', None) if func else None
-                tool_call_id = getattr(tool_call, 'id', None)
+                func = tool_call.function
+                try:
+                    tool_name = func.name
+                    arguments = func.arguments
+                except AttributeError as e:
+                    raise ValueError(f"OpenAI tool_call.function missing required attribute ({e.args[0]}): {tool_call}")
+                tool_call_id = tool_call.id if hasattr(tool_call, 'id') else None
+                if tool_name is None:
+                    raise ValueError(f"OpenAI tool_call.function .name is None: {tool_call}")
+                if arguments is None:
+                    raise ValueError(f"OpenAI tool_call.function .arguments is None: {tool_call}")
                 if isinstance(arguments, str):
                     try:
                         arguments = json.loads(arguments)
@@ -200,12 +216,8 @@ class OpenAIModelDriver(LLMDriver):
         return generate_tool_schemas(tools) if tools else None
 
     def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, schemas=None, **kwargs):
-        """
-        Run a conversation using the provided messages or prompt.
-        The driver manages its own internal conversation history.
-        """
         request_id = str(uuid.uuid4())
-        tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
+        self.tools_adapter.event_bus = self.event_bus
         try:
             # Do not clear internal history here; accumulate across turns
             if isinstance(messages_or_prompt, str):
@@ -228,7 +240,7 @@ class OpenAIModelDriver(LLMDriver):
                     self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
                     break
                 had_function_call, _ = self._process_generation_turn(
-                    client, schemas, tools, request_id, None, kwargs, tool_executor
+                    client, schemas, tools, request_id, None, kwargs, self.tools_adapter
                 )
                 turn_count += 1
                 if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):
@@ -236,5 +248,4 @@ class OpenAIModelDriver(LLMDriver):
                 self.publish(GenerationFinished, request_id, total_turns=turn_count)
                 break
         except Exception as e:
-
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())

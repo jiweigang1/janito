@@ -12,10 +12,9 @@ class AnthropicModelDriver(LLMDriver):
     """
     required_config = ["api_key", "model"]
 
-    def __init__(self, config: LLMDriverConfig, tool_registry=None):
-        # LLMDriver expects: name, model_name, api_key, tool_registry, config
-        super().__init__("anthropic", config.model, config.api_key, tool_registry=tool_registry, config=config)
-        self.config = config # LLMDriverConfig object
+    def __init__(self, driver_config: LLMDriverConfig, user_prompt: str = None, conversation_history=None, tools_adapter=None):
+        super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
+        self.config = driver_config
 
     def _create_client(self):
         try:

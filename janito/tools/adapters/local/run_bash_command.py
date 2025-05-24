@@ -21,7 +21,7 @@ class RunBashCommandTool(ToolBase):
     Returns:
         str: File paths and line counts for stdout and stderr.
     """
-    name = "run_bash_command"
+    tool_name = "run_bash_command"
 
     def _stream_output(self, stream, file_obj, report_func, count_func, counter):
         for line in stream:

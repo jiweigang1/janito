@@ -25,12 +25,14 @@ class PromptHandler:
         self.generic_handler.agent = self.agent
 
     def handle(self) -> None:
-        # Debug print to help trace root cause when prompt is missing or not parsed correctly
-
+        import traceback
         user_prompt = " ".join(getattr(self.args, 'user_prompt', [])).strip()
-        self.generic_handler.handle_prompt(
-            user_prompt,
-            args=self.args,
-            print_header=True,
-            raw=getattr(self.args, 'raw', False)
-        )
+        try:
+            self.generic_handler.handle_prompt(
+                user_prompt,
+                args=self.args,
+                print_header=True,
+                raw=getattr(self.args, 'raw', False)
+            )
+        except Exception as e:
+            traceback.print_exc()

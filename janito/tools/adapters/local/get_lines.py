@@ -24,7 +24,7 @@ class GetLinesTool(ToolBase):
             - "Error reading file: <error message>"
             - "❗ not found"
     """
-    name = "get_lines"
+    tool_name = "get_lines"
 
     def run(self, file_path: str, from_line: int = None, to_line: int = None) -> str:
         from janito.tools.tool_utils import display_path

@@ -17,7 +17,6 @@ from janito.drivers.google_genai.schema_generator import generate_tool_declarati
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound, EmptyResponseEvent
 )
-from janito.tools.tool_executor import ToolExecutor
 from janito.tools.adapters.local.adapter import LocalToolsAdapter
 from google import genai
 from google.genai import types as genai_types
@@ -50,8 +49,8 @@ def extract_usage_metadata_native(usage_obj):
 
 class GoogleGenaiModelDriver(LLMDriver):
     name = "google_genai"
-    def __init__(self, driver_config: LLMDriverConfig, tool_registry: LocalToolsAdapter = None):
-        super().__init__('google', driver_config.model, driver_config.api_key, tool_registry)
+    def __init__(self, driver_config: LLMDriverConfig, user_prompt: str = None, conversation_history=None, tools_adapter=None):
+        super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
         self.config = driver_config
         self._history: List[Dict[str, Any]] = []
 
@@ -116,7 +115,7 @@ class GoogleGenaiModelDriver(LLMDriver):
         if isinstance(arguments, str):
             arguments = json.loads(arguments)
         try:
-            result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
+            result = self.tools_adapter.execute_by_name(tool_name, **(arguments or {}))
             content = str(result)
         except Exception as e:
             content = f"Tool execution error: {e}"
@@ -183,7 +182,7 @@ class GoogleGenaiModelDriver(LLMDriver):
             if self.cancel_event is not None and self.cancel_event.is_set():
                 break
             if hasattr(part, 'function_call') and part.function_call:
-                self.handle_function_call(part, conversation_contents, tool_executor)
+                self.handle_function_call(part, conversation_contents, self.tools_adapter)
                 had_function_call = True
             elif getattr(part, 'text', None) is not None:
                 self.handle_content_part(part, request_id)
@@ -200,7 +199,7 @@ class GoogleGenaiModelDriver(LLMDriver):
         The driver manages its own internal conversation history.
         """
         request_id = str(uuid.uuid4())
-        tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
+        self.tools_adapter.event_bus = self.event_bus
         try:
             self._process_prompt_and_system(messages_or_prompt, system_prompt)
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
@@ -217,7 +216,7 @@ class GoogleGenaiModelDriver(LLMDriver):
                     self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
                     break
                 had_function_call, _ = self._process_generation_turn(
-                    client, config, conversation_contents, tool_executor, tools, request_id, start_time, kwargs
+                    client, config, conversation_contents, self.tools_adapter, tools, request_id, start_time, kwargs
                 )
                 turn_count += 1
                 if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):

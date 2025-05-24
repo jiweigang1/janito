@@ -8,7 +8,6 @@ from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
 )
 from janito.providers.openai.schema_generator import generate_tool_schemas
-from janito.tools.tool_executor import ToolExecutor
 from janito.tools.adapters.local.adapter import LocalToolsAdapter
 
 from janito.llm.driver_config import LLMDriverConfig
@@ -18,8 +17,8 @@ class MistralAIModelDriver(LLMDriver):
     def get_history(self):
         return list(getattr(self, '_history', []))
 
-    def __init__(self, driver_config: LLMDriverConfig, tool_registry: LocalToolsAdapter = None):
-        super().__init__('mistralai', driver_config.model, driver_config.api_key, tool_registry)
+    def __init__(self, driver_config: LLMDriverConfig, user_prompt: str = None, conversation_history=None, tools_adapter=None):
+        super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
         self.config = driver_config
         self._history = []
 
@@ -36,7 +35,7 @@ class MistralAIModelDriver(LLMDriver):
             except Exception:
                 arguments = {}
         try:
-            result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
+            result = self.tools_adapter.execute_by_name(tool_name, **(arguments or {}))
             content = str(result)
         except Exception as e:
             content = f"Tool execution error: {e}"
@@ -86,7 +85,7 @@ class MistralAIModelDriver(LLMDriver):
             for tool_call in tool_calls:
                 if self.cancel_event is not None and self.cancel_event.is_set():
                     break
-                self.handle_function_call(tool_call, tool_executor)
+                self.handle_function_call(tool_call, self.tools_adapter)
                 had_function_call = True
             # Now add the assistant message to history after all tool results are available
             self._add_to_history(assistant_msg)
@@ -99,13 +98,13 @@ class MistralAIModelDriver(LLMDriver):
 
     def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, schemas=None, **kwargs):
         request_id = str(uuid.uuid4())
-        tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
+        self.tools_adapter.event_bus = self.event_bus
         try:
             self._process_prompt_and_system(messages_or_prompt, system_prompt)
             self.publish(GenerationStarted, request_id, conversation_history=self._history)
             from mistralai import Mistral
             client = Mistral(api_key=self.api_key)
-            self._generation_turn_loop(client, schemas, tools, request_id, kwargs, tool_executor)
+            self._generation_turn_loop(client, schemas, tools, request_id, kwargs, self.tools_adapter)
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
 
@@ -135,7 +134,7 @@ class MistralAIModelDriver(LLMDriver):
             while attempt <= max_retries:
                 try:
                     had_function_call, _ = self._process_generation_turn(
-                        client, messages, schemas, tools, request_id, start_time, kwargs, tool_executor
+                        client, messages, schemas, tools, request_id, start_time, kwargs, self.tools_adapter
                     )
                     break
                 except Exception as e:

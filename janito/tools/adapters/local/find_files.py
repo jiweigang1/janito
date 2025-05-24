@@ -25,7 +25,7 @@ class FindFilesTool(ToolBase):
             "Warning: Empty file pattern provided. Operation skipped."
             If max_results is reached, appends a note to the output.
     """
-    name = "find_files"
+    tool_name = "find_files"
 
     def _match_directories(self, root, dirs, pat):
         dir_output = set()

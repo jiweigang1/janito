@@ -14,7 +14,7 @@ class OpenUrlTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
-    name = "open_url"
+    tool_name = "open_url"
 
     def run(self, url: str) -> str:
         if not url.strip():

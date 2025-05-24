@@ -73,6 +73,11 @@ class LLMAgent:
             **kwargs
         )
         for event in event_iterator:
+            if isinstance(event, dict):
+                print("[ERROR] Exception event received in chat():", event)
+                if 'traceback' in event:
+                    print(event['traceback'])
+                return
             system_event_bus.publish(event)
             yield event
 

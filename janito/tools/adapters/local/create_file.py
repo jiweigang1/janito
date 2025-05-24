@@ -25,7 +25,7 @@ class CreateFileTool(ToolBase):
     
     Note: Syntax validation is automatically performed after this operation.
     """
-    name = "create_file"
+    tool_name = "create_file"
 
     def run(self, file_path: str, content: str, overwrite: bool = False) -> str:
         expanded_file_path = file_path  # Using file_path as is

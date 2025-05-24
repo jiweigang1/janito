@@ -27,7 +27,7 @@ class ReplaceTextInFileTool(ToolBase):
             - "No changes made. [Warning: Search text not found in file] Please review the original file."
             - "Error replacing text: <error message>"
     """
-    name = "replace_text_in_file"
+    tool_name = "replace_text_in_file"
 
     def run(
         self,

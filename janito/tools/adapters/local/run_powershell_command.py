@@ -24,7 +24,7 @@ class RunPowershellCommandTool(ToolBase):
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
-    name = "run_powershell_command"
+    tool_name = "run_powershell_command"
 
     def _confirm_and_warn(self, command, require_confirmation, requires_user_input):
         if requires_user_input:

@@ -20,7 +20,7 @@ class CopyFileTool(ToolBase):
     Returns:
         str: Status string for each copy operation.
     """
-    name = "copy_file"
+    tool_name = "copy_file"
 
     def run(self, sources: str, target: str, overwrite: bool = False) -> str:
         source_list = [src for src in sources.split() if src]

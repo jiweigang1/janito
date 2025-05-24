@@ -18,7 +18,6 @@ from janito.drivers.openai_responses.schema_generator import generate_tool_schem
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
 )
-from janito.tools.tool_executor import ToolExecutor
 from janito.tools.adapters.local.adapter import LocalToolsAdapter
 
 class OpenAIResponsesModelDriver(LLMDriver):
@@ -26,8 +25,8 @@ class OpenAIResponsesModelDriver(LLMDriver):
     def get_history(self):
         return list(getattr(self, '_history', []))
 
-    def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: LocalToolsAdapter = None):
-        super().__init__(provider_name, model_name, api_key, tool_registry)
+    def __init__(self, driver_config, user_prompt: str = None, conversation_history=None, tools_adapter=None):
+        super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
 
     def _add_to_history(self, message: Dict[str, Any]):
         self._history.append(message)
@@ -101,7 +100,7 @@ class OpenAIResponsesModelDriver(LLMDriver):
         for tool_call in tool_calls:
             if self.cancel_event is not None and self.cancel_event.is_set():
                 break
-            self._handle_function_call(tool_call, tool_executor)
+            self._handle_function_call(tool_call, self.tools_adapter)
             had_function_call = True
         return had_function_call
 
@@ -165,7 +164,7 @@ class OpenAIResponsesModelDriver(LLMDriver):
                     cleaned_fc = {k: v for k, v in func_src.items() if k in ('id', 'call_id', 'name', 'type', 'arguments')}
                     self._add_to_history(cleaned_fc)
                     history_added_indices.add(idx)
-                    tool_result_msgs.append(self._execute_tool_call_and_prepare_result(item, tool_executor))
+                    tool_result_msgs.append(self._execute_tool_call_and_prepare_result(item, self.tools_adapter))
             for msg in tool_result_msgs:
                 self._add_to_history(msg)
             had_function_call = any(
@@ -182,7 +181,7 @@ class OpenAIResponsesModelDriver(LLMDriver):
         The driver manages its own internal conversation history.
         """
         request_id = str(uuid.uuid4())
-        tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
+        self.tools_adapter.event_bus = self.event_bus
         try:
             # Do not clear internal history here; accumulate across turns
             if isinstance(messages_or_prompt, str):
@@ -205,7 +204,7 @@ class OpenAIResponsesModelDriver(LLMDriver):
                     self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
                     break
                 had_function_call, _ = self._process_generation_turn(
-                    client, schemas, tools, request_id, None, kwargs, tool_executor
+                    client, schemas, tools, request_id, None, kwargs, self.tools_adapter
                 )
                 turn_count += 1
                 if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):

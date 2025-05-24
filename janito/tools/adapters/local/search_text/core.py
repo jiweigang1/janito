@@ -27,7 +27,7 @@ class SearchTextTool(ToolBase):
              If count_only is True, returns per-file and total match counts.
         If max_results is reached, appends a note to the output.
     """
-    name = "search_text"
+    tool_name = "search_text"
 
     def _handle_file(
         self,

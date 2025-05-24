@@ -21,7 +21,7 @@ class FetchUrlTool(ToolBase):
             - "No lines found for the provided search strings."
             - "Warning: Empty URL provided. Operation skipped."
     """
-    name = "fetch_url"
+    tool_name = "fetch_url"
 
     def run(self, url: str, search_strings: list[str] = None) -> str:
         if not url.strip():

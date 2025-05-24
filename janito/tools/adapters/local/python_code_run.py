@@ -19,7 +19,7 @@ class PythonCodeRunTool(ToolBase):
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
-    name = "python_code_run"
+    tool_name = "python_code_run"
 
     def run(self, code: str, timeout: int = 60) -> str:
         if not code.strip():

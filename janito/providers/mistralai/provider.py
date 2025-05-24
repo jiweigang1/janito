@@ -18,7 +18,7 @@ class MistralAIProvider(LLMProvider):
     def __init__(self, config: LLMDriverConfig = None):
         self.auth_manager = auth_manager or LLMAuthManager()
         self._api_key = self.auth_manager.get_credentials(type(self).name)
-        self._tool_registry = LocalToolsAdapter()
+        self._tools_adapter = LocalToolsAdapter()
         self._info = config or LLMDriverConfig(model=None)
         if not self._info.model:
             self._info.model = self.DEFAULT_MODEL
@@ -26,15 +26,20 @@ class MistralAIProvider(LLMProvider):
             self._info.api_key = self._api_key
         from janito.drivers.mistralai.driver import MistralAIModelDriver
         self.fill_missing_device_info(self._info)
-        self._driver = MistralAIModelDriver(self._info, self._tool_registry)
+        self._driver = MistralAIModelDriver(self._info, self._tools_adapter)
 
     @property
     def driver(self):
         return self._driver
 
+    def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
+        from janito.llm.agent import LLMAgent
+        # Always create a new driver with the passed-in tools_adapter
+        driver = MistralAIModelDriver(self._info, None if tools_adapter is None else tools_adapter)
+        return LLMAgent(driver, tools_adapter, agent_name=agent_name, **kwargs)
+
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
-        from janito.tools.tool_executor import ToolExecutor
-        executor = ToolExecutor(registry=self._tool_registry, event_bus=event_bus)
-        return executor.execute_by_name(tool_name, *args, **kwargs)
+        self._tools_adapter.event_bus = event_bus
+        return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
 
 LLMProviderRegistry.register(MistralAIProvider.name, MistralAIProvider)

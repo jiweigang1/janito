@@ -26,6 +26,7 @@ class OpenAISchemaGenerator(ToolSchemaBase):
         return {"type": self.PYTHON_TYPE_TO_JSON.get(annotation, "string")}
 
     def generate_schema(self, tool_class):
+        # DEBUG: Print class and .name for trace
         func, tool_name, sig, summary, param_descs, return_desc, description = self.validate_tool_class(tool_class)
         properties = OrderedDict()
         required = []

@@ -4,10 +4,10 @@ from janito.tools.tools_adapter import ToolsAdapterBase as ToolsAdapter
 class LocalToolsAdapter(ToolsAdapter):
     """
     Adapter for local, statically registered tools in the agent/tools system.
-    Handles registration, lookup, enabling/disabling, listing, and class interface.
+    Handles registration, lookup, enabling/disabling, listing, and now, tool execution (merged from executor).
     """
-    def __init__(self, tools=None):
-        super().__init__(tools=tools)
+    def __init__(self, tools=None, event_bus=None, allowed_tools=None):
+        super().__init__(tools=tools, event_bus=event_bus, allowed_tools=allowed_tools)
         self._tools: Dict[str, Dict[str, Any]] = {}
         if tools:
             for tool in tools:
@@ -17,11 +17,9 @@ class LocalToolsAdapter(ToolsAdapter):
         instance = tool_class()
         if not hasattr(instance, "run") or not callable(instance.run):
             raise TypeError(f"Tool '{tool_class.__name__}' must implement a callable 'run' method.")
-        tool_name = getattr(instance, 'name', None)
+        tool_name = getattr(instance, 'tool_name', None)
         if not tool_name or not isinstance(tool_name, str):
-            raise ValueError(f"Tool '{tool_class.__name__}' must provide a class attribute 'name' (str) for its registration name.")
-        tool_class._tool_run_method = instance.run
-        tool_class._tool_name = tool_name
+            raise ValueError(f"Tool '{tool_class.__name__}' must provide a class attribute 'tool_name' (str) for its registration name.")
         if tool_name in self._tools:
             raise ValueError(f"Tool '{tool_name}' is already registered.")
         self._tools[tool_name] = {
@@ -53,9 +51,9 @@ class LocalToolsAdapter(ToolsAdapter):
         # Register by instance (useful for hand-built objects)
         if not hasattr(tool, "run") or not callable(tool.run):
             raise TypeError(f"Tool '{tool}' must implement a callable 'run' method.")
-        tool_name = getattr(tool, 'name', None)
+        tool_name = getattr(tool, 'tool_name', None)
         if not tool_name or not isinstance(tool_name, str):
-            raise ValueError(f"Tool '{tool}' must provide a 'name' (str) attribute.")
+            raise ValueError(f"Tool '{tool}' must provide a 'tool_name' (str) attribute.")
         if tool_name in self._tools:
             raise ValueError(f"Tool '{tool_name}' is already registered.")
         self._tools[tool_name] = {

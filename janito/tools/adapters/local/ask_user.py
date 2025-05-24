@@ -27,7 +27,7 @@ class AskUserTool(ToolBase):
             - "No"
             - "Some detailed answer..."
     """
-    name = "ask_user"
+    tool_name = "ask_user"
 
     def run(self, question: str) -> str:
 

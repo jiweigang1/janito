@@ -18,7 +18,7 @@ class GetFileOutlineTool(ToolBase):
     Args:
         file_path (str): Path to the file to outline.
     """
-    name = "get_file_outline"
+    tool_name = "get_file_outline"
 
     def run(self, file_path: str) -> str:
         try:

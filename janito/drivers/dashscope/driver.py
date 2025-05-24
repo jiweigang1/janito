@@ -17,7 +17,6 @@ from janito.llm.driver import LLMDriver
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
 )
-from janito.tools.tool_executor import ToolExecutor
 from janito.tools.adapters.local.adapter import LocalToolsAdapter
 from janito.providers.openai.schema_generator import generate_tool_schemas
 
@@ -30,8 +29,8 @@ class DashScopeModelDriver(LLMDriver):
     def get_history(self):
         return list(getattr(self, '_history', []))
 
-    def __init__(self, driver_config: LLMDriverConfig, tool_registry: LocalToolsAdapter = None):
-        super().__init__('dashscope', driver_config.model, driver_config.api_key, tool_registry)
+    def __init__(self, driver_config: LLMDriverConfig, user_prompt: str = None, conversation_history=None, tools_adapter=None):
+        super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
         self.config = driver_config
 
     def _add_to_history(self, message: Dict[str, Any]):
@@ -47,7 +46,7 @@ class DashScopeModelDriver(LLMDriver):
             except Exception:
                 arguments = {}
         try:
-            result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
+            result = self.tools_adapter.execute_by_name(tool_name, **(arguments or {}))
             content = str(result)
         except Exception as e:
             content = f"Tool execution error: {e}"
@@ -86,13 +85,13 @@ class DashScopeModelDriver(LLMDriver):
 
     def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, schemas=None, **kwargs):
         request_id = str(uuid.uuid4())
-        tool_executor = ToolExecutor(registry=self.tool_registry, event_bus=self.event_bus)
+        self.tools_adapter.event_bus = self.event_bus
         try:
             self._process_prompt_and_system(messages_or_prompt, system_prompt)
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
             turn_count = 0
             while True:
-                done = self._generation_loop_step(tools, kwargs, schemas, tool_executor, request_id, turn_count)
+                done = self._generation_loop_step(tools, kwargs, schemas, self.tools_adapter, request_id, turn_count)
                 if done:
                     break
                 turn_count += 1
@@ -147,7 +146,7 @@ class DashScopeModelDriver(LLMDriver):
             }
             self._add_to_history(assistant_msg)
             for tool_call in tool_calls:
-                self.handle_function_call(tool_call, tool_executor)
+                self.handle_function_call(tool_call, self.tools_adapter)
             return False  # Not done
         else:
             self.publish(GenerationFinished, request_id, total_turns=turn_count+1)

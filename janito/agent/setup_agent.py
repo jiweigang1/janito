@@ -8,11 +8,11 @@ def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=N
     """
     Creates an agent using a rendered system prompt template, passing an explicit role.
     """
-    from janito.tools.adapters.local.adapter import LocalToolsAdapter
-    tools_provider = LocalToolsAdapter([])
+    from janito.tools import get_local_tools_adapter
+    tools_provider = get_local_tools_adapter()
     if zero_mode:
         agent = provider_instance.create_agent(
-            tools_provider,
+            tools_adapter=tools_provider,
             agent_name=role or "software developer",
             config=llm_driver_config.to_dict(),
             system_prompt=None,
@@ -54,7 +54,7 @@ def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=N
     rendered_prompt = template.render(**context)
     # Create the agent as before, now passing the explicit role
     agent = provider_instance.create_agent(
-        tools_provider,
+        tools_adapter=tools_provider,
         agent_name=role or "software developer",
         config=llm_driver_config.to_dict(),
         system_prompt=rendered_prompt,

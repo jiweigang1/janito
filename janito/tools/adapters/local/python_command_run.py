@@ -19,7 +19,7 @@ class PythonCommandRunTool(ToolBase):
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
-    name = "python_command_run"
+    tool_name = "python_command_run"
 
     def run(self, code: str, timeout: int = 60) -> str:
         if not code.strip():

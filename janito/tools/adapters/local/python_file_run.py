@@ -19,7 +19,7 @@ class PythonFileRunTool(ToolBase):
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
-    name = "python_file_run"
+    tool_name = "python_file_run"
 
     def run(self, file_path: str, timeout: int = 60) -> str:
         self.report_action(
