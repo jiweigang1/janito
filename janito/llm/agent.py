@@ -1,5 +1,5 @@
 from janito.llm.driver import LLMDriver
-from janito.tool_registry import ToolRegistry
+from janito.tools.tools_adapter import ToolsAdapterBase
 from typing import Any, Optional, List, Iterator, Union
 import threading
 import logging
@@ -12,27 +12,24 @@ class LLMAgent:
 
     """
     Represents an agent that interacts with an LLM driver to generate responses.
-    No longer manages conversation history; the driver is responsible for all history management.
-    The chat method supports cooperative cancellation and yields events from the driver's stream_generate method.
+    Now composes with external LLM and Tools Providers. Conversation history is maintained by the driver.
     """
 
-    def __init__(self, driver: LLMDriver, agent_name: Optional[str] = None, system_prompt: Optional[str] = None, tools: Optional[List[dict]] = None, temperature: Optional[float] = None, **kwargs: Any):
+    def __init__(self, llm_provider, tools_adapter: ToolsAdapterBase, agent_name: Optional[str] = None, system_prompt: Optional[str] = None, temperature: Optional[float] = None, **kwargs: Any):
         self.temperature = temperature
         self._event_lock = threading.Lock()
         self._latest_event = None
 
-        self.driver = driver
-        self.agent_name = agent_name or driver.name
+        self.llm_provider = llm_provider
+        self.tools_adapter = tools_adapter
+        self.agent_name = agent_name or getattr(llm_provider, 'name', None)
         self.state = {}
         self.config = kwargs
 
         self.system_prompt = system_prompt
         self.template_vars = {}  # For template variable support
         self._system_prompt_template_file = None  # Store template file path
-        if tools is None:
-            self.tools = ToolRegistry().get_tool_classes()
-        else:
-            self.tools = tools
+        self.tools = self.tools_adapter.get_tools() if self.tools_adapter else []
 
     def set_template_var(self, key: str, value: Any) -> None:
         """Set a variable for system prompt template rendering and refresh prompt if template is set."""
@@ -69,7 +66,7 @@ class LLMAgent:
         kwargs.pop('raw', None)
         kwargs.pop('prompt_or_messages', None)  # Defensive: prevent double passing
         # Directly call stream_generate
-        event_iterator = self.driver.stream_generate(
+        event_iterator = self.llm_provider.stream_generate(
             prompt_or_messages,
             system_prompt=self.system_prompt,
             tools=self.tools if self.tools else None,
@@ -89,14 +86,14 @@ class LLMAgent:
 
     def get_history(self):
         """Delegate to the driver's get_history method."""
-        return self.driver.get_history()
+        return self.llm_provider.get_history()
 
     def reset_conversation_history(self) -> None:
         """
         Reset/clear the conversation history using the driver's method.
         """
-        if hasattr(self.driver, "clear_history"):
-            self.driver.clear_history()
+        if hasattr(self.llm_provider, "clear_history"):
+            self.llm_provider.clear_history()
 
     def get_name(self) -> str:
         return self.agent_name

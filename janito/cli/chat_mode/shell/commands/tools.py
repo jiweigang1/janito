@@ -1,9 +1,9 @@
-from janito.tool_registry import ToolRegistry
+from janito.tools.adapters.local.adapter import LocalToolsAdapter
 from rich.table import Table
 
 from janito.cli.console import shared_console
 
-from janito.tool_registry import ToolRegistry
+from janito.tools.adapters.local.adapter import LocalToolsAdapter
 from rich.table import Table
 from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
@@ -17,7 +17,7 @@ class ToolsShellHandler(ShellCmdHandler):
         table.add_column("Description", style="green")
         table.add_column("Parameters", style="yellow")
         try:
-            registry = ToolRegistry()
+            registry = LocalToolsAdapter()
             for tool_class in registry.get_tool_classes():
                 instance = tool_class()
                 fn = getattr(instance, 'run', None)

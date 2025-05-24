@@ -18,15 +18,15 @@ from janito.drivers.openai_responses.schema_generator import generate_tool_schem
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
 )
-from janito.tool_executor import ToolExecutor
-from janito.tool_registry import ToolRegistry
+from janito.tools.tool_executor import ToolExecutor
+from janito.tools.adapters.local.adapter import LocalToolsAdapter
 
 class OpenAIResponsesModelDriver(LLMDriver):
     name = "openai_responses"
     def get_history(self):
         return list(getattr(self, '_history', []))
 
-    def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None):
+    def __init__(self, provider_name: str, model_name: str, api_key: str, tool_registry: LocalToolsAdapter = None):
         super().__init__(provider_name, model_name, api_key, tool_registry)
 
     def _add_to_history(self, message: Dict[str, Any]):

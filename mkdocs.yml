@@ -29,6 +29,7 @@ nav:
 
   - Reference:
       - Architecture: reference/architecture.md
+      - OpenAI Driver Content Flow: driver_flow.md
       - Configuration: reference/configuration.md
       - CLI Options: reference/cli-options.md
       - Azure OpenAI: reference/azure-openai.md

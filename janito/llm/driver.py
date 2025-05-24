@@ -2,23 +2,26 @@ from abc import ABC, abstractmethod
 from typing import Optional, List, Dict, Any, Union
 import threading
 import queue
-from janito.tool_registry import ToolRegistry
+from janito.tools.adapters.local.adapter import LocalToolsAdapter
+
+from janito.conversation_history import LLMConversationHistory
+from janito.tools.tools_adapter import ToolsAdapterBase as ToolsAdapter
 
 class LLMDriver(ABC):
     """
     Abstract base class for LLM drivers. Each driver represents a specific model or capability within a provider.
-    Now manages its own conversation history internally. The generate/stream_generate method accepts either a list of messages or a prompt.
-    Implements the streaming event-driven interface (stream_generate) with built-in threading, queueing, and event bus logic.
-    Subclasses must implement the provider-specific _run_generation method.
+    Accepts a user prompt (mandatory) and allows supplying a conversation_history and a tools_adapter.
     """
-    def __init__(self, name: str, model_name: str, api_key: str, tool_registry: ToolRegistry = None, config: Optional[dict] = None):
+    def __init__(self, name: str, model_name: str, api_key: str, user_prompt: str, conversation_history: Optional[LLMConversationHistory] = None, tool_registry: LocalToolsAdapter = None, config: Optional[dict] = None):
         self.name = name
         self.model_name = model_name
         self.api_key = api_key
-        self.tool_registry = tool_registry or ToolRegistry()
+        self.user_prompt = user_prompt
+        self.conversation_history = conversation_history if conversation_history is not None else LLMConversationHistory()
+        self.tool_registry = tool_registry or LocalToolsAdapter()
         self.event_bus = None
         self.cancel_event = None
-        self._history: List[Dict[str, Any]] = []  # Internal conversation history
+        self._history: List[Dict[str, Any]] = []  # Retained for compatibility (mirrors conversation_history.get_history())
         # Normalize config to always be a dict (for DriverInfo or similar object input)
         if config is None:
             self.config = {}

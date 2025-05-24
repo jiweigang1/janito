@@ -18,19 +18,24 @@ from janito.providers.openai.schema_generator import generate_tool_schemas
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
 )
-from janito.tool_executor import ToolExecutor
-from janito.tool_registry import ToolRegistry
+from janito.tools.tool_executor import ToolExecutor
+from janito.tools.adapters.local.adapter import LocalToolsAdapter
 
 from janito.llm.driver_config import LLMDriverConfig
 
 class OpenAIModelDriver(LLMDriver):
+    """
+    Model driver for OpenAI-compatible language models.
+    Handles API interaction, conversation history, tool/function calls, and
+    dynamic configuration parameters such as max_tokens, temperature, and base_url.
+    Inherits from LLMDriver for cross-provider compatibility and interface compliance.
+    """
     name = "openai"
     # Which fields to extract from config and LLMDriverConfig
     driver_fields = {"max_tokens", "temperature", "top_p", "presence_penalty", "frequency_penalty", "stop", "base_url", "api_key"}
-    def __init__(self, driver_config: LLMDriverConfig, tool_registry: ToolRegistry = None):
-        super().__init__("openai", driver_config.model, driver_config.api_key, tool_registry)
+    def __init__(self, driver_config: LLMDriverConfig, user_prompt: str, conversation_history=None, tool_registry: LocalToolsAdapter = None):
+        super().__init__("openai", driver_config.model, driver_config.api_key, user_prompt, conversation_history=conversation_history, tool_registry=tool_registry, config=driver_config)
         self.config = driver_config
-        # Retain LLMDriverConfig object for all config, supports all param access
         self.base_url = driver_config.base_url
 
     def _create_client(self):
@@ -133,6 +138,7 @@ class OpenAIModelDriver(LLMDriver):
         return had_function_call
 
     def _process_generation_turn(self, client, schemas, tools, request_id, start_time, kwargs, tool_executor):
+        print(f"[DEBUG] OpenAIModelDriver received tools: {tools}")
         api_kwargs = dict(kwargs)
         # Remove non-OpenAI arguments
         api_kwargs.pop('raw', None)

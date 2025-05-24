@@ -2,7 +2,7 @@ import inspect
 import typing
 from collections import OrderedDict
 from typing import List
-from janito.tools_schema import ToolSchemaBase
+from janito.tools.tools_schema import ToolSchemaBase
 
 class OpenAISchemaGenerator(ToolSchemaBase):
     PYTHON_TYPE_TO_JSON = {

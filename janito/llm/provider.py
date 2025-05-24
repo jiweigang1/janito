@@ -137,6 +137,6 @@ class LLMProvider(ABC):
             if missing:
                 raise ValueError(f"Missing required config for {driver_name}: {', '.join(missing)}")
 
-    def create_agent(self, agent_name: str = None, **kwargs):
+    def create_agent(self, tools_provider, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
-        return LLMAgent(self.driver, agent_name=agent_name, **kwargs)
+        return LLMAgent(self.driver, tools_provider, agent_name=agent_name, **kwargs)

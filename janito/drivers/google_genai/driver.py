@@ -17,8 +17,8 @@ from janito.drivers.google_genai.schema_generator import generate_tool_declarati
 from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound, EmptyResponseEvent
 )
-from janito.tool_executor import ToolExecutor
-from janito.tool_registry import ToolRegistry
+from janito.tools.tool_executor import ToolExecutor
+from janito.tools.adapters.local.adapter import LocalToolsAdapter
 from google import genai
 from google.genai import types as genai_types
 from janito.llm.driver_config import LLMDriverConfig
@@ -50,7 +50,7 @@ def extract_usage_metadata_native(usage_obj):
 
 class GoogleGenaiModelDriver(LLMDriver):
     name = "google_genai"
-    def __init__(self, driver_config: LLMDriverConfig, tool_registry: ToolRegistry = None):
+    def __init__(self, driver_config: LLMDriverConfig, tool_registry: LocalToolsAdapter = None):
         super().__init__('google', driver_config.model, driver_config.api_key, tool_registry)
         self.config = driver_config
         self._history: List[Dict[str, Any]] = []

@@ -1,4 +1,4 @@
-from janito.tool_use_tracker import ToolUseTracker
+from janito.tools.tool_use_tracker import ToolUseTracker
 from janito.cli.console import shared_console
 from rich.table import Table
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler

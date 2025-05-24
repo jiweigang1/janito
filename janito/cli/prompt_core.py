@@ -8,7 +8,7 @@ from rich.status import Status
 from rich.console import Console
 from typing import Any, Optional, Callable
 from janito.driver_events import RequestStarted, RequestFinished, RequestError, EmptyResponseEvent
-from janito.tool_events import ToolCallError
+from janito.tools.tool_events import ToolCallError
 import threading
 
 from janito.cli.verbose_output import print_verbose_header

@@ -1,6 +1,6 @@
 import inspect
 import typing
-from janito.tools_schema import ToolSchemaBase
+from janito.tools.tools_schema import ToolSchemaBase
 
 try:
     from google.genai import types as genai_types
