@@ -4,6 +4,7 @@ from janito.tools.tool_base import ToolBase
 from janito.report_events import ReportAction
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_utils import display_path
+from janito.tools.adapters.local.adapter import register_local_tool as register_tool
 
 from .python_validator import validate_python
 from .json_validator import validate_json
@@ -59,9 +60,7 @@ def validate_file_syntax(
         return _handle_validation_error(e, report_warning)
 
 
-from janito.tools.adapters.local.adapter import register_local_tool as register_tool
 
-@register_tool
 class ValidateFileSyntaxTool(ToolBase):
     """
     Validate a file for syntax issues.

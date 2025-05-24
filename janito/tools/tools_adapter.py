@@ -69,17 +69,9 @@ class ToolsAdapterBase:
             raise ValueError("Provided tool is not executable.")
 
     def execute_by_name(self, tool_name: str, *args, request_id=None, arguments=None, **kwargs):
-        if self._allowed_tools is not None and tool_name not in self._allowed_tools:
-            error_msg = f"Tool '{tool_name}' is not permitted by adapter allow-list."
-            if self._event_bus:
-                self._event_bus.publish(ToolCallError(tool_name=tool_name, request_id=request_id, error=error_msg, arguments=arguments))
-            raise ToolCallException(tool_name, error_msg, arguments=arguments)
+        self._check_tool_permissions(tool_name, request_id, arguments)
         tool = self.get_tool(tool_name)
-        if tool is None:
-            error_msg = f"Tool '{tool_name}' not found in registry."
-            if self._event_bus:
-                self._event_bus.publish(ToolCallError(tool_name=tool_name, request_id=request_id, error=error_msg, arguments=arguments))
-            raise ToolCallException(tool_name, error_msg, arguments=arguments)
+        self._ensure_tool_exists(tool, tool_name, request_id, arguments)
         schema = getattr(tool, 'schema', None)
         if schema and arguments is not None:
             validation_error = self._validate_arguments_against_schema(arguments, schema)
@@ -92,13 +84,30 @@ class ToolsAdapterBase:
         try:
             result = self.execute(tool, *(arguments or []), **kwargs)
         except Exception as e:
-            error_msg = f"Exception during execution of tool '{tool_name}': {e}"
-            if self._event_bus:
-                self._event_bus.publish(ToolCallError(tool_name=tool_name, request_id=request_id, error=error_msg, exception=e, arguments=arguments))
-            raise ToolCallException(tool_name, error_msg, arguments=arguments, exception=e)
+            self._handle_execution_error(tool_name, request_id, e, arguments)
         if self._event_bus:
             self._event_bus.publish(ToolCallFinished(tool_name=tool_name, request_id=request_id, result=result))
         return result
+
+    def _check_tool_permissions(self, tool_name, request_id, arguments):
+        if self._allowed_tools is not None and tool_name not in self._allowed_tools:
+            error_msg = f"Tool '{tool_name}' is not permitted by adapter allow-list."
+            if self._event_bus:
+                self._event_bus.publish(ToolCallError(tool_name=tool_name, request_id=request_id, error=error_msg, arguments=arguments))
+            raise ToolCallException(tool_name, error_msg, arguments=arguments)
+
+    def _ensure_tool_exists(self, tool, tool_name, request_id, arguments):
+        if tool is None:
+            error_msg = f"Tool '{tool_name}' not found in registry."
+            if self._event_bus:
+                self._event_bus.publish(ToolCallError(tool_name=tool_name, request_id=request_id, error=error_msg, arguments=arguments))
+            raise ToolCallException(tool_name, error_msg, arguments=arguments)
+
+    def _handle_execution_error(self, tool_name, request_id, exception, arguments):
+        error_msg = f"Exception during execution of tool '{tool_name}': {exception}"
+        if self._event_bus:
+            self._event_bus.publish(ToolCallError(tool_name=tool_name, request_id=request_id, error=error_msg, exception=exception, arguments=arguments))
+        raise ToolCallException(tool_name, error_msg, arguments=arguments, exception=exception)
 
     def get_tool(self, tool_name):
         """Abstract method: implement in subclass to return tool instance by name"""

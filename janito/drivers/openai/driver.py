@@ -149,66 +149,64 @@ class OpenAIModelDriver(LLMDriver):
 
     def _process_generation_turn(self, client, schemas, tools, request_id, start_time, kwargs, tool_executor):
         api_kwargs = dict(kwargs)
-        # Remove non-OpenAI arguments
         api_kwargs.pop('raw', None)
-        self.publish(RequestStarted, request_id, payload={
-            'tools': tools
-        })
+        self.publish(RequestStarted, request_id, payload={'tools': tools})
         messages = self.get_history()
         response = self._send_api_request(client, messages, schemas, **api_kwargs)
         usage_dict = self._extract_usage(getattr(response, 'usage', None))
         self.publish(RequestFinished, request_id, response=response, status='success', usage=usage_dict)
         message = response.choices[0].message
         content = message.content
+        self._process_content_part(content, request_id)
+        tool_calls = getattr(message, 'tool_calls', None)
+        return self._process_tool_calls_in_generation(tool_calls, content)
+
+    def _process_content_part(self, content, request_id):
         if content is not None:
             self._handle_content_part(content, request_id)
-        tool_calls = getattr(message, 'tool_calls', None)
+
+    def _process_tool_calls_in_generation(self, tool_calls, content):
         if tool_calls:
-            # Prepare the assistant message but do not add to history yet
             assistant_msg = {
                 "role": "assistant",
                 "content": content,
                 "tool_calls": [tc.to_dict() if hasattr(tc, 'to_dict') else dict(tc.__dict__) for tc in tool_calls]
             }
-            # Execute tool(s) and collect result messages
-            tool_result_msgs = []
-            for tool_call in tool_calls:
-                func = tool_call.function
-                try:
-                    tool_name = func.name
-                    arguments = func.arguments
-                except AttributeError as e:
-                    raise ValueError(f"OpenAI tool_call.function missing required attribute ({e.args[0]}): {tool_call}")
-                tool_call_id = tool_call.id if hasattr(tool_call, 'id') else None
-                if tool_name is None:
-                    raise ValueError(f"OpenAI tool_call.function .name is None: {tool_call}")
-                if arguments is None:
-                    raise ValueError(f"OpenAI tool_call.function .arguments is None: {tool_call}")
-                if isinstance(arguments, str):
-                    try:
-                        arguments = json.loads(arguments)
-                    except Exception:
-                        arguments = {}
-                try:
-                    result = tool_executor.execute_by_name(tool_name, **(arguments or {}))
-                    tool_content = str(result)
-                except Exception as e:
-                    tool_content = f"Tool execution error: {e}"
-                tool_result_msg = {
-                    "role": "tool",
-                    "tool_call_id": tool_call_id,
-                    "name": tool_name,
-                    "content": tool_content
-                }
-                tool_result_msgs.append(tool_result_msg)
-            # Now add both the assistant message and all tool result messages to history atomically
+            tool_result_msgs = [self._build_tool_result_msg(tc) for tc in tool_calls]
             self._add_to_history(assistant_msg)
             for msg in tool_result_msgs:
                 self._add_to_history(msg)
-            had_function_call = True
-        else:
-            had_function_call = False
-        return had_function_call, None
+            return True, None
+        return False, None
+
+    def _build_tool_result_msg(self, tool_call):
+        func = tool_call.function
+        try:
+            tool_name = func.name
+            arguments = func.arguments
+        except AttributeError as e:
+            raise ValueError(f"OpenAI tool_call.function missing required attribute ({e.args[0]}): {tool_call}")
+        tool_call_id = tool_call.id if hasattr(tool_call, 'id') else None
+        if tool_name is None:
+            raise ValueError(f"OpenAI tool_call.function .name is None: {tool_call}")
+        if arguments is None:
+            raise ValueError(f"OpenAI tool_call.function .arguments is None: {tool_call}")
+        if isinstance(arguments, str):
+            try:
+                arguments = json.loads(arguments)
+            except Exception:
+                arguments = {}
+        try:
+            result = self.tools_adapter.execute_by_name(tool_name, **(arguments or {}))
+            tool_content = str(result)
+        except Exception as e:
+            tool_content = f"Tool execution error: {e}"
+        return {
+            "role": "tool",
+            "tool_call_id": tool_call_id,
+            "name": tool_name,
+            "content": tool_content
+        }
 
     def _generate_schemas(self, tools):
         # OpenAI and OpenAI-compatible drivers use OpenAISchemaGenerator
