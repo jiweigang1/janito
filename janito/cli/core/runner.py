@@ -4,7 +4,7 @@ from janito.provider_config import get_config_provider
 from janito.cli.verbose_output import print_verbose_info
 
 
-def prepare_llm_driver_config(args, modifiers):
+def _choose_provider(args):
     provider = getattr(args, 'provider', None)
     if provider is None:
         provider = get_config_provider()
@@ -12,15 +12,15 @@ def prepare_llm_driver_config(args, modifiers):
             print_verbose_info("Default provider", provider, style="magenta", align_content=True)
         elif provider is None:
             print("Error: No provider selected and no provider found in config. Please set a provider using '-p PROVIDER', '--set provider=name', or configure a provider.")
-            return None, None, None
-    from janito.provider_config import get_effective_model
-    model = getattr(args, 'model', None)
-    if not model:
-        model = get_effective_model(provider)
-    driver_config_data = {"model": model}
-    # Always check these settings via config precedence, unless in modifiers/CLI
+            return None
+    return provider
+
+def _populate_driver_config_data(args, modifiers, provider, model):
     from janito.provider_config import get_effective_setting
     CONFIG_LOOKUP_KEYS = ("max_tokens", "base_url")
+    driver_config_data = {"model": model}
+    if getattr(args, 'verbose_api', None) is not None:
+        driver_config_data['verbose_api'] = args.verbose_api
     for field in LLMDriverConfig.__dataclass_fields__:
         if field in CONFIG_LOOKUP_KEYS:
             if field in modifiers and modifiers[field] is not None:
@@ -31,7 +31,20 @@ def prepare_llm_driver_config(args, modifiers):
                     driver_config_data[field] = value
         elif field in modifiers and field != "model":
             driver_config_data[field] = modifiers[field]
+    return driver_config_data
+
+def prepare_llm_driver_config(args, modifiers):
+    provider = _choose_provider(args)
+    if provider is None:
+        return None, None, None
+    from janito.provider_config import get_effective_model
+    model = getattr(args, 'model', None)
+    if not model:
+        model = get_effective_model(provider)
+    driver_config_data = _populate_driver_config_data(args, modifiers, provider, model)
     llm_driver_config = LLMDriverConfig(**driver_config_data)
+    if getattr(llm_driver_config, 'verbose_api', None):
+        pass
     agent_role = modifiers.get("role", "software developer")
     return provider, llm_driver_config, agent_role
 

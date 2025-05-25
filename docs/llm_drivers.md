@@ -8,8 +8,9 @@ The driver layer in this project provides a unified, event-driven interface for 
 
 ### Streaming, Event-Driven Interface
 
-- All drivers implement the `stream_generate()` method, which yields events as the LLM generates output.
-- Drivers emit standardized events (e.g., `GenerationStarted`, `ContentPartFound`, `GenerationFinished`, `RequestError`, etc.) as the generation progresses.
+- All drivers now use a threaded, queue-based input/output mechanism. The agent sends DriverInput objects to the input queue and reads aggregate DriverEvent objects (notably `ResponseReceived`) from the output queue.
+- Drivers emit standardized events (e.g., `ResponseReceived`, `GenerationStarted`, `RequestError`, etc.) as the generation progresses.
+- The new `ResponseReceived` event contains all content, tool calls, and metadata for that turn, so consumers and agents can react more intelligently (especially for automatic tool invocation patterns).
 
 ### Threading and Cancellation
 
@@ -26,29 +27,28 @@ The driver layer in this project provides a unified, event-driven interface for 
 
 ```python
 import threading
-from janito.driver_events import ContentPartFound, GenerationFinished, RequestError
+from janito.driver_events import ResponseReceived, RequestError
 
 cancel_event = threading.Event()
-for event in driver.stream_generate(
+for event in agent.chat(
     prompt="Tell me a joke.",
     system_prompt="You are a witty assistant.",
     cancel_event=cancel_event
 ):
-    if isinstance(event, ContentPartFound):
-        print(event.content_part, end="", flush=True)
-    elif isinstance(event, GenerationFinished):
-        print("\n[Generation complete]")
+    if isinstance(event, ResponseReceived):
+        for part in event.content_parts:
+            print(part, end="", flush=True)
     elif isinstance(event, RequestError):
         print(f"\n[Error: {event.error}]")
 ```
 
 ## Supported Events
 
+- `ResponseReceived`: Aggregate response event containing all content parts, all tool calls, and associated metadata for the turn. The agent now listens for this event by default.
 - `GenerationStarted`: Generation process has begun.
-- `ContentPartFound`: A new part (token, sentence, etc.) of the generated content is available.
-- `GenerationFinished`: Generation process is complete.
-- `RequestStarted`, `RequestFinished`: API request lifecycle events.
+- `RequestStarted`, `RequestFinished`: API request lifecycle events (may still be used for diagnostics).
 - `RequestError`: An error occurred during generation.
+- (Legacy granular events such as `ContentPartFound` are no longer emitted by compliant drivers.)
 - (Provider-specific events may also be emitted.)
 
 ## Adding a New Driver
@@ -56,14 +56,14 @@ for event in driver.stream_generate(
 To add support for a new LLM provider:
 
 1. Subclass `LLMDriver`.
-2. Implement the `stream_generate()` method, following the event-driven, threaded, and cancellable pattern.
+2. Implement the `_process_input()` method, which consumes a DriverInput object, performs LLM generation, and emits DriverEvent objects to the output queue.
 3. Emit standardized events as output is generated.
 
 ## Provider-Specific Notes
 
 ### Google Gemini (genai) Driver
 
-The Google Gemini driver preserves the exact order of content and tool/function calls as returned by the Gemini API. Events such as `ToolCallStarted`, `ToolCallFinished`, and `ContentPartFound` are published in the sequence they appear in the API response, ensuring that downstream consumers receive events in the true conversational order. This is essential for correct conversational flow and tool execution, especially when tool calls and content are interleaved.
+The Google Gemini driver (and all other modern drivers) now emits a single `ResponseReceived` event per turn, which includes both all content parts and all tool/function calls as parsed from the Gemini API response. Downstream consumers and the agent itself inspect the order and content of these lists to reproduce the true conversational order and context, enabling seamless advanced tool execution. No more per-part events if the driver is up-to-date.
 
 ## Design Philosophy
 

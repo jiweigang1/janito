@@ -57,21 +57,12 @@ class AzureOpenAIProvider(LLMProvider):
         from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
         # Always create a new driver with the passed-in tools_adapter
         driver = AzureOpenAIModelDriver(self._driver_config, None if tools_adapter is None else tools_adapter)
-        return LLMAgent(driver, tools_adapter, agent_name=agent_name, **kwargs)
+        return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
 
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
         # Use direct execution via adapter:
         self._tools_adapter.event_bus = event_bus
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
 
-    def get_driver_for_model(self, config: dict = None):
-        from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
-        self._validate_required_config(AzureOpenAIModelDriver, config, "AzureOpenAIModelDriver")
-        from janito.llm.driver_config_builder import build_llm_driver_config
-        llm_driver_config = build_llm_driver_config(config or {}, AzureOpenAIModelDriver)
-        return AzureOpenAIModelDriver(
-            llm_driver_config,
-            self._tools_adapter
-        )
 
 LLMProviderRegistry.register(AzureOpenAIProvider.name, AzureOpenAIProvider)

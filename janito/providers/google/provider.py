@@ -58,7 +58,7 @@ class GoogleProvider(LLMProvider):
         from janito.llm.agent import LLMAgent
         # Always create a new driver with the passed-in tools_adapter
         driver = GoogleGenaiModelDriver(self._info, None if tools_adapter is None else tools_adapter)
-        return LLMAgent(driver, tools_adapter, agent_name=agent_name, **kwargs)
+        return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
 
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
         self._tools_adapter.event_bus = event_bus

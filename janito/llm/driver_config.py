@@ -3,6 +3,7 @@ from typing import Any, Optional
 
 @dataclass
 class LLMDriverConfig:
+    verbose_api: Optional[bool] = None
     """
     Common configuration container for LLM drivers.
     Holds standard attributes that most LLM drivers require (used as a config or schema reference object).
@@ -17,6 +18,7 @@ class LLMDriverConfig:
     presence_penalty: Optional[float] = None
     frequency_penalty: Optional[float] = None
     stop: Optional[Any] = None  # list or string, depending on backend
+    verbose_api: Optional[bool] = None  # Print API trace info if set
     extra: dict = field(default_factory=dict)  # for provider-specific miscellaneous config fields
 
     def to_dict(self) -> dict:

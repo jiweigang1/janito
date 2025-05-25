@@ -1,152 +1,49 @@
-from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Any, Union
 import threading
-import queue
-from janito.tools.adapters.local.adapter import LocalToolsAdapter
-
-from janito.conversation_history import LLMConversationHistory
-from janito.tools.tools_adapter import ToolsAdapterBase as ToolsAdapter
+from abc import ABC, abstractmethod
+from queue import Queue
+from janito.llm.driver_input import DriverInput
 
 class LLMDriver(ABC):
     """
-    Abstract base class for LLM drivers. Each driver represents a specific model or capability within a provider.
-    Accepts a user prompt (mandatory) and allows supplying a conversation_history and a tools_adapter.
+    Abstract base class for LLM drivers (threaded, queue-based).
+    Subclasses must implement _process_input to process a DriverInput and emit events to the output queue.
+
+    Workflow:
+      - Accept DriverInput via input_queue.
+      - Put DriverEvents on output_queue.
+      - Use start() to launch worker loop in a thread.
     """
-    def __init__(self, driver_config, user_prompt: str = None, conversation_history: Optional[LLMConversationHistory] = None, tools_adapter: LocalToolsAdapter = None):
-        # Store config as a dict for compatibility
-        if driver_config is None:
-            self.config = {}
-        elif hasattr(driver_config, 'to_dict'):
-            self.config = driver_config.to_dict()
-        elif hasattr(driver_config, '__dict__') and not isinstance(driver_config, dict):
-            self.config = dict(driver_config.__dict__)
-        else:
-            self.config = dict(driver_config)
 
-        self.model_name = getattr(driver_config, "model", self.config.get("model", "unknown-model"))
-        self.api_key = getattr(driver_config, "api_key", self.config.get("api_key", None))
-        self.user_prompt = user_prompt
-        self.conversation_history = conversation_history if conversation_history is not None else LLMConversationHistory()
-        self.tools_adapter = tools_adapter
-        self.event_bus = None
-        self.cancel_event = None
-        self._history: List[Dict[str, Any]] = []
+    def __init__(self, input_queue: Queue, output_queue: Queue):
+        self.input_queue = input_queue
+        self.output_queue = output_queue
+        self._thread = None
 
-    @property
-    def model_name(self):
-        # Always return the canonical model name for the driver
-        return getattr(self, '_model_name', getattr(self, 'model', None))
+    def start(self):
+        """Launch the driver's background thread to process DriverInput objects."""
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
 
-    @model_name.setter
-    def model_name(self, value):
-        self._model_name = value
-
-    def _generate_schemas(self, tools):
-        """
-        Universal early tool schema validation for all drivers that support tools.
-        Should be overridden for provider-specific schema logic.
-        The default implementation returns None.
-        """
-        return None
-
-    def stream_generate(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str] = None, tools: Optional[list] = None, **kwargs):
-        """
-        Stream generation events from the LLM driver in a thread-safe, cancellable manner.
-        Accepts either a list of messages or a prompt string. Manages conversation history internally.
-        This method starts the generation process in a background thread, emits events to a thread-safe queue,
-        and yields these events to the caller as they are produced.
-        Subclasses should implement _run_generation(messages_or_prompt, system_prompt, tools, **kwargs).
-        Args:
-            messages_or_prompt (Union[List[Dict], str]): The conversation as a list of messages or a prompt string.
-            system_prompt (Optional[str]): An optional system prompt.
-            tools (Optional[list]): Optional list of tools/functions.
-            **kwargs: Additional driver-specific parameters.
-        """
-        # --- EARLY TOOL SCHEMA VALIDATION ---
-        schemas = None
-        try:
-            schemas = self._generate_schemas(tools)
-        except Exception as exc:
-            import traceback
-            tb_str = traceback.format_exc()
-            # Raise immediately so error is not deferred to the thread
-            raise RuntimeError(
-                f"Tool schema validation failed before thread start: {exc}\nTraceback:\n{tb_str}"
-            ) from exc
-        # ---
-        event_queue = queue.Queue()
-        cancel_event = kwargs.pop('cancel_event', None)
-        if cancel_event is None:
-            cancel_event = threading.Event()
-        self.cancel_event = cancel_event
-        def event_bus_publish(event):
-            event_queue.put(event)
-        class QueueEventBus:
-            def publish(self, event):
-                event_bus_publish(event)
-        self.event_bus = QueueEventBus()
-        def generation_thread():
-            try:
-                self._run_generation(messages_or_prompt, system_prompt, tools, schemas=schemas, **kwargs)
-            except Exception as exc:
-                import traceback
-                tb_str = traceback.format_exc()
-                event_queue.put({'type': 'exception', 'exception': exc, 'traceback': tb_str})
-            finally:
-                event_queue.put(None)  # Use None as the sentinel
-                self.event_bus = None
-                self.cancel_event = None
-        thread = threading.Thread(target=generation_thread, daemon=True)
-        thread.start()
+    def _run(self):
         while True:
+            driver_input = self.input_queue.get()
             try:
-                event = event_queue.get(timeout=0.1)
-            except queue.Empty:
-                continue
-            if event is None:
-                break
-            yield event
-
-    def publish(self, event_type, request_id, **kwargs):
-        """
-        Publish an event of the given type with common driver/request info and extra args.
-        Args:
-            event_type: The event class/type to instantiate.
-            request_id: The request ID for correlation.
-            **kwargs: Additional event-specific arguments.
-        """
-        event = event_type(driver_name=self.get_name(), request_id=request_id, **kwargs)
-        if self.event_bus is not None:
-            self.event_bus.publish(event)
+                self._process_input(driver_input)
+            except Exception as e:
+                # Should emit a RequestError via output_queue if needed
+                from janito.driver_events import RequestError
+                import traceback
+                self.output_queue.put(
+                    RequestError(
+                        driver_name=self.__class__.__name__,
+                        request_id=getattr(driver_input.config, 'request_id', None),
+                        error=str(e),
+                        exception=e,
+                        traceback=traceback.format_exc()
+                    )
+                )
 
     @abstractmethod
-    def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str], tools: Optional[list], **kwargs):
-        """
-        Provider-specific generation logic. Subclasses must implement this method.
-        Args:
-            messages_or_prompt (Union[List[Dict], str]): The conversation as a list of messages or a prompt string.
-            system_prompt (Optional[str]): An optional system prompt.
-            tools (Optional[list]): Optional list of tools/functions.
-            **kwargs: Additional driver-specific parameters.
-        """
+    def _process_input(self, driver_input: DriverInput):
+        """Implement: Use driver_input (config, conversation_history, tool_schema) to call provider, yield driver events, etc."""
         pass
-
-    def get_name(self) -> str:
-        """
-        Return the canonical model name for the driver.
-        Returns:
-            str: The driver model name.
-        """
-        return f"{self.model_name}"
-
-    def get_history(self) -> List[Dict[str, Any]]:
-        """
-        Get the internal conversation history.
-        """
-        return list(self._history)
-
-    def clear_history(self):
-        """
-        Clear the internal conversation history.
-        """
-        self._history.clear()

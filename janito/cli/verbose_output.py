@@ -14,7 +14,7 @@ def print_verbose_header(agent, args):
         role_part = f" (Role: {role})" if role else ""
         parts = [
             f"Janito {VERSION}",
-            f"Provider: {agent.llm_provider.name}",
+            f"Provider: {agent.llm_provider.__class__.__name__}",
             f"Model: {agent.llm_provider.model_name}{role_part}",
             f"Driver: {agent.llm_provider.__class__.__module__.split('.')[-2] if len(agent.llm_provider.__class__.__module__.split('.')) > 1 else agent.llm_provider.__class__.__name__}"
         ]

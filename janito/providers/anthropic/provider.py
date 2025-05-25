@@ -54,6 +54,6 @@ class AnthropicProvider(LLMProvider):
         from janito.drivers.anthropic.driver import AnthropicModelDriver
         # Always create a new driver with the passed-in tools_adapter
         driver = AnthropicModelDriver(self._info, None if tools_adapter is None else tools_adapter)
-        return LLMAgent(driver, tools_adapter, agent_name=agent_name, **kwargs)
+        return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
 
 LLMProviderRegistry.register(AnthropicProvider.name, AnthropicProvider)

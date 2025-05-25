@@ -3,8 +3,23 @@ import importlib
 from janito.llm.driver import LLMDriver
 
 class LLMProvider(ABC):
+    def create_driver(self):
+        """
+        Returns a new instance of the configured driver for this provider.
+        Subclasses must implement this method.
+        """
+        raise NotImplementedError("LLMProvider subclasses must implement create_driver().")
+
     """
     Abstract base class for Large Language Model (LLM) providers.
+
+    Provider Usage and Driver Communication Flow:
+      1. Provider class is selected (e.g., OpenAIProvider, MistralProvider).
+      2. An instance of the provider is created. This instance is bound to a specific configuration (LLMDriverConfig) containing model, credentials, etc.
+      3. All drivers created by that provider instance are associated with the bound config.
+      4. To communicate with an LLM, call create_driver() on the provider instance, which yields a driver configured for the attached config. Every driver created via this method inherits the provider's configuration.
+
+    Key: You do not create/configure a driver directly—always go through the provider to ensure correct configuration binding to the provider instance.
 
     Subclasses must implement the core interface for interacting with LLM APIs and define `provider_name` as a class attribute.
     """
@@ -66,20 +81,6 @@ class LLMProvider(ABC):
             return self.MODEL_SPECS[model_name].to_dict()
         return None
 
-    def get_driver_for_model(self, config: dict = None):
-        self._validate_model_specs()
-        model_name = self._get_model_name_from_config(config)
-        spec = self._get_model_spec_entry(model_name)
-        driver_name = self._get_driver_name_from_spec(spec)
-        driver_class = self._resolve_driver_class(driver_name)
-        self._validate_required_config(driver_class, config, driver_name)
-        # --- New: Generic driver info builder logic ---
-        from janito.llm.driver_config_builder import build_llm_driver_config
-        llm_driver_config = build_llm_driver_config(config or {}, driver_class)
-        return driver_class(
-            llm_driver_config,
-            getattr(self, '_tools_adapter', None)
-        )
 
     def _validate_model_specs(self):
         if not hasattr(self, 'MODEL_SPECS'):
@@ -140,10 +141,5 @@ class LLMProvider(ABC):
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
         # Dynamically create driver if supported, else fallback to existing.
-        if hasattr(self, 'get_driver_for_model'):
-            driver = self.get_driver_for_model(self._driver_config)
-            if tools_adapter is not None:
-                driver.tools_adapter = tools_adapter
-        else:
-            driver = self.driver
-        return LLMAgent(driver, tools_adapter, agent_name=agent_name, **kwargs)
+        driver = self.driver
+        return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)

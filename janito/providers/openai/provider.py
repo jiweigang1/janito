@@ -7,6 +7,7 @@ from janito.drivers.openai_responses.driver import OpenAIResponsesModelDriver
 from janito.tools import get_local_tools_adapter
 from janito.providers.registry import LLMProviderRegistry
 from .model_info import MODEL_SPECS
+from queue import Queue
 
 available = OpenAIModelDriver.available
 unavailable_reason = OpenAIModelDriver.unavailable_reason
@@ -30,18 +31,7 @@ class OpenAIProvider(LLMProvider):
             if not self._driver_config.api_key:
                 self._driver_config.api_key = self._api_key
             self.fill_missing_device_info(self._driver_config)
-            self._driver = OpenAIModelDriver(self._driver_config, user_prompt=None, tools_adapter=self._tools_adapter)
-
-    def stream_generate(self, prompt_or_messages, system_prompt=None, tools=None, **kwargs):
-        """Delegate streaming to the underlying OpenAIModelDriver."""
-        driver = self.driver
-        return driver._run_generation(
-            prompt_or_messages,
-            system_prompt=system_prompt,
-            tools=tools,
-            schemas=driver._generate_schemas(tools) if hasattr(driver, '_generate_schemas') else None,
-            **kwargs
-        )
+            self._driver = None  # to be provided by factory/agent
 
     @property
     def driver(self) -> OpenAIModelDriver:
@@ -57,13 +47,32 @@ class OpenAIProvider(LLMProvider):
     def unavailable_reason(self):
         return unavailable_reason
 
+    def create_driver(self):
+        """
+        Creates and returns a new OpenAIModelDriver instance with input/output queues.
+        """
+        input_queue = Queue()
+        output_queue = Queue()
+        driver = OpenAIModelDriver(input_queue, output_queue)
+        driver.config = self._driver_config
+        return driver
+
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
         # Always create a new driver with the passed-in tools_adapter
         if tools_adapter is None:
             tools_adapter = get_local_tools_adapter()
-        driver = OpenAIModelDriver(self._driver_config, user_prompt=None, tools_adapter=tools_adapter)
-        return LLMAgent(driver, tools_adapter, agent_name=agent_name, **kwargs)
+        # Should use new-style driver construction via queues/factory (handled elsewhere)
+        raise NotImplementedError("create_agent must be constructed via new factory using input/output queues and config.")
+
+    @property
+    def model_name(self):
+        return self._driver_config.model
+
+    @property
+    def driver_config(self):
+        """Public, read-only access to the provider's LLMDriverConfig object."""
+        return self._driver_config
 
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
         self._tools_adapter.event_bus = event_bus

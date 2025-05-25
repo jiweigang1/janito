@@ -57,7 +57,7 @@ class DashScopeProvider(LLMProvider):
             driver = DashScopeModelDriver(self._info, None)
         else:
             driver = DashScopeModelDriver(self._info, tools_adapter)
-        return LLMAgent(driver, tools_adapter, agent_name=agent_name, **kwargs)
+        return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
 
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
         self._tools_adapter.event_bus = event_bus

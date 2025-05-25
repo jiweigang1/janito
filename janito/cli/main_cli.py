@@ -6,6 +6,7 @@ from janito.cli.core.runner import prepare_llm_driver_config, handle_runner, get
 from janito.cli.core.event_logger import setup_event_logger_if_needed, inject_debug_event_bus_if_needed
 
 definition = [
+    (['--verbose-api'], {"action": "store_true", "help": "Print API calls and responses of LLM driver APIs for debugging/tracing."}),
     (['-z', '--zero'], {"action": "store_true", "help": "IDE zero mode: disables system prompt & all tools for raw LLM interaction"}),
     (["--unset"], {"metavar": "KEY", "help": "Unset (remove) a config key"}),
     (['--version'], {"action": "version", "version": None}),
@@ -29,7 +30,7 @@ definition = [
     (["--event-debug"], {"action": "store_true", "help": "Print debug info on event subscribe/submit methods"})
 ]
 
-MODIFIER_KEYS = ["provider", "model", "role", "system", "temperature", "verbose", "raw", "no_termweb", "termweb_port"]
+MODIFIER_KEYS = ["provider", "model", "role", "system", "temperature", "verbose", "raw", "no_termweb", "termweb_port", "verbose_api"]
 SETTER_KEYS = ["set", "set_provider", "set_api_key", "unset"]
 GETTER_KEYS = ["show_config", "list_providers", "list_models", "list_tools"]
 

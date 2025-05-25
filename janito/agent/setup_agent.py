@@ -10,15 +10,12 @@ def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=N
     """
     from janito.tools import get_local_tools_adapter
     tools_provider = get_local_tools_adapter()
+    from janito.llm.agent import LLMAgent
+    from janito.drivers.driver_registry import get_driver_class
+    from queue import Queue
     if zero_mode:
-        agent = provider_instance.create_agent(
-            tools_adapter=tools_provider,
-            agent_name=role or "software developer",
-            config=llm_driver_config.to_dict(),
-            system_prompt=None,
-            tools=[],
-            temperature=getattr(llm_driver_config, 'temperature', None),
-        )
+        # Pass provider to agent, let agent create driver
+        agent = LLMAgent(provider_instance, tools_provider, agent_name=role or "software developer", system_prompt=None)
         return agent
     # Normal flow
     if templates_dir is None:
@@ -43,7 +40,8 @@ def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=N
 
     template = Template(template_content)
     # Prepare context for Jinja2 rendering from llm_driver_config
-    context = llm_driver_config.to_dict()
+    # Compose context for Jinja2 rendering without using to_dict or temperature
+    context = {}
     context['role'] = role or "software developer"
     # Inject current platform environment information
     from janito.platform_discovery import PlatformDiscovery
@@ -53,12 +51,7 @@ def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=N
     context['shell_info'] = pd.detect_shell()
     rendered_prompt = template.render(**context)
     # Create the agent as before, now passing the explicit role
-    agent = provider_instance.create_agent(
-        tools_adapter=tools_provider,
-        agent_name=role or "software developer",
-        config=llm_driver_config.to_dict(),
-        system_prompt=rendered_prompt,
-        temperature=getattr(llm_driver_config, 'temperature', None),
-    )
+    # Do NOT pass temperature; do not depend on to_dict
+    agent = LLMAgent(provider_instance, tools_provider, agent_name=role or "software developer", system_prompt=rendered_prompt)
     agent.template_vars["role"] = context["role"]
     return agent
