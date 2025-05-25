@@ -1,12 +1,28 @@
 from janito.drivers.openai.driver import OpenAIModelDriver
-from openai import AzureOpenAI
+# Safe import of AzureOpenAI SDK
+try:
+    from openai import AzureOpenAI
+    DRIVER_AVAILABLE = True
+    DRIVER_UNAVAILABLE_REASON = None
+except ImportError:
+    DRIVER_AVAILABLE = False
+    DRIVER_UNAVAILABLE_REASON = "Missing dependency: openai (pip install openai)"
     
 from janito.llm.driver_config import LLMDriverConfig
 
 class AzureOpenAIModelDriver(OpenAIModelDriver):
+    available = DRIVER_AVAILABLE
+    unavailable_reason = DRIVER_UNAVAILABLE_REASON
+
+    @classmethod
+    def is_available(cls):
+        return cls.available
+
     name = "azure_openai"
     required_config = {"base_url"}  # Update key as used in your config logic
     def __init__(self, driver_config: LLMDriverConfig, user_prompt: str = None, conversation_history=None, tools_adapter=None):
+        if not self.available:
+            raise ImportError(f"AzureOpenAIModelDriver unavailable: {self.unavailable_reason}")
         super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
         self.azure_endpoint = driver_config.base_url
         self.api_version = getattr(driver_config, "extra", {}).get("api_version")

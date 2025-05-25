@@ -7,7 +7,14 @@ Event Handling:
 ----------------
 When a model response contains both content and tool calls, the driver always publishes the content event (ContentPartFound) first, followed by any tool call events, regardless of their order in the API response. This is different from the Google Gemini driver, which preserves the original order of parts. This approach ensures that the main content is delivered before any tool execution events for downstream consumers.
 """
-from openai import OpenAI
+# Safe import of openai SDK
+try:
+    from openai import OpenAI
+    DRIVER_AVAILABLE = True
+    DRIVER_UNAVAILABLE_REASON = None
+except ImportError:
+    DRIVER_AVAILABLE = False
+    DRIVER_UNAVAILABLE_REASON = "Missing dependency: openai (pip install openai)"
 import json
 import time
 import uuid
@@ -21,11 +28,20 @@ from janito.driver_events import (
 from janito.tools.adapters.local.adapter import LocalToolsAdapter
 
 class OpenAIResponsesModelDriver(LLMDriver):
+    available = DRIVER_AVAILABLE
+    unavailable_reason = DRIVER_UNAVAILABLE_REASON
+
+    @classmethod
+    def is_available(cls):
+        return cls.available
+
     name = "openai_responses"
     def get_history(self):
         return list(getattr(self, '_history', []))
 
     def __init__(self, driver_config, user_prompt: str = None, conversation_history=None, tools_adapter=None):
+        if not self.available:
+            raise ImportError(f"OpenAIResponsesModelDriver unavailable: {self.unavailable_reason}")
         super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
 
     def _add_to_history(self, message: Dict[str, Any]):

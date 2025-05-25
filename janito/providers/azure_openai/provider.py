@@ -7,6 +7,12 @@ from janito.providers.registry import LLMProviderRegistry
 
 from .model_info import MODEL_SPECS
 
+from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
+
+available = AzureOpenAIModelDriver.available
+unavailable_reason = AzureOpenAIModelDriver.unavailable_reason
+maintainer = "João Pinto <lamego.pinto@gmail.com>"
+
 class AzureOpenAIProvider(LLMProvider):
     name = "azure_openai"
     maintainer = "João Pinto <lamego.pinto@gmail.com>"
@@ -14,10 +20,13 @@ class AzureOpenAIProvider(LLMProvider):
     DEFAULT_MODEL = "azure_openai_deployment"
 
     def __init__(self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None):
+        if not self.available:
+            self._driver = None
+            return
         self._auth_manager = auth_manager or LLMAuthManager()
         self._api_key = self._auth_manager.get_credentials(type(self).name)
         self._tools_adapter = LocalToolsAdapter()
-        self._driver_config = config or LLMDriverConfig(model=None)  # now called self._driver_config throughout
+        self._driver_config = config or LLMDriverConfig(model=None)
         if not self._driver_config.model:
             self._driver_config.model = self.DEFAULT_MODEL
         if not self._driver_config.api_key:
@@ -25,13 +34,23 @@ class AzureOpenAIProvider(LLMProvider):
         if not self._driver_config.extra.get("api_version"):
             self._driver_config.extra["api_version"] = "2023-05-15"
         self.fill_missing_device_info(self._driver_config)
-        from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
         self._driver = AzureOpenAIModelDriver(self._driver_config, self._tools_adapter)
 
 
     @property
     def driver(self):
+        if not self.available:
+            raise ImportError(f"AzureOpenAIProvider unavailable: {self.unavailable_reason}")
         return self._driver
+
+    @property
+    def available(self):
+        return available
+
+    @property
+    def unavailable_reason(self):
+        return unavailable_reason
+
 
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent

@@ -18,8 +18,15 @@ from janito.driver_events import (
     GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound, EmptyResponseEvent
 )
 from janito.tools.adapters.local.adapter import LocalToolsAdapter
-from google import genai
-from google.genai import types as genai_types
+# Safe import of google/genai
+try:
+    from google import genai
+    from google.genai import types as genai_types
+    DRIVER_AVAILABLE = True
+    DRIVER_UNAVAILABLE_REASON = None
+except ImportError:
+    DRIVER_AVAILABLE = False
+    DRIVER_UNAVAILABLE_REASON = "Missing dependency: google-cloud/genai (pip install google-generativeai)"
 from janito.llm.driver_config import LLMDriverConfig
 # Exception for empty or incomplete responses or blocks
 class EmptyResponseError(Exception):
@@ -48,8 +55,17 @@ def extract_usage_metadata_native(usage_obj):
 
 
 class GoogleGenaiModelDriver(LLMDriver):
+    available = DRIVER_AVAILABLE
+    unavailable_reason = DRIVER_UNAVAILABLE_REASON
+
+    @classmethod
+    def is_available(cls):
+        return cls.available
+
     name = "google_genai"
     def __init__(self, driver_config: LLMDriverConfig, user_prompt: str = None, conversation_history=None, tools_adapter=None):
+        if not self.available:
+            raise ImportError(f"GoogleGenaiModelDriver unavailable: {self.unavailable_reason}")
         super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
         self.config = driver_config
         self._history: List[Dict[str, Any]] = []

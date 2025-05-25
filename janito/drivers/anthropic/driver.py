@@ -6,13 +6,31 @@ from janito.driver_events import (
 import uuid
 import traceback
 
+# Safe import of anthropic SDK
+try:
+    import anthropic
+    DRIVER_AVAILABLE = True
+    DRIVER_UNAVAILABLE_REASON = None
+except ImportError:
+    DRIVER_AVAILABLE = False
+    DRIVER_UNAVAILABLE_REASON = "Missing dependency: anthropic (pip install anthropic)"
+
 class AnthropicModelDriver(LLMDriver):
+    available = DRIVER_AVAILABLE
+    unavailable_reason = DRIVER_UNAVAILABLE_REASON
+
+    @classmethod
+    def is_available(cls):
+        return cls.available
+
     """
     LLMDriver for Anthropic's Claude API (v3), using the anthropic SDK.
     """
     required_config = ["api_key", "model"]
 
     def __init__(self, driver_config: LLMDriverConfig, user_prompt: str = None, conversation_history=None, tools_adapter=None):
+        if not self.available:
+            raise ImportError(f"AnthropicModelDriver unavailable: {self.unavailable_reason}")
         super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
         self.config = driver_config
 

@@ -36,7 +36,7 @@ def handle_restart(shell_state=None):
 
     # Reset tool use tracker
     try:
-        from janito.tool_use_tracker import ToolUseTracker
+        from janito.tools.tool_use_tracker import ToolUseTracker
         ToolUseTracker.instance().clear_history()
     except Exception as e:
         shared_console.print(

@@ -5,8 +5,17 @@ Implements multi-turn tool execution (loops until no more tool calls).
 
 Main API documentation: https://www.alibabacloud.com/help/en/model-studio/use-qwen-by-calling-api
 """
-import dashscope
-from dashscope import Generation
+# Safe import of dashscope SDK
+try:
+    import dashscope
+    from dashscope import Generation
+    DRIVER_AVAILABLE = True
+    DRIVER_UNAVAILABLE_REASON = None
+    dashscope.base_http_api_url = 'https://dashscope-intl.aliyuncs.com/api/v1'
+except ImportError:
+    DRIVER_AVAILABLE = False
+    DRIVER_UNAVAILABLE_REASON = "Missing dependency: dashscope (pip install dashscope)"
+
 import os
 import json
 import time
@@ -22,14 +31,21 @@ from janito.providers.openai.schema_generator import generate_tool_schemas
 
 from janito.llm.driver_config import LLMDriverConfig
 
-dashscope.base_http_api_url = 'https://dashscope-intl.aliyuncs.com/api/v1'
-
 class DashScopeModelDriver(LLMDriver):
+    available = DRIVER_AVAILABLE
+    unavailable_reason = DRIVER_UNAVAILABLE_REASON
+
+    @classmethod
+    def is_available(cls):
+        return cls.available
+
     name = "dashscope"
     def get_history(self):
         return list(getattr(self, '_history', []))
 
     def __init__(self, driver_config: LLMDriverConfig, user_prompt: str = None, conversation_history=None, tools_adapter=None):
+        if not self.available:
+            raise ImportError(f"DashScopeModelDriver unavailable: {self.unavailable_reason}")
         super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
         self.config = driver_config
 

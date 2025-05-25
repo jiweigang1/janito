@@ -7,11 +7,20 @@ Event Handling:
 ----------------
 When a model response contains both content and tool calls, the driver always publishes the content event (ContentPartFound) first, followed by any tool call events, regardless of their order in the API response. This is different from the Google Gemini driver, which preserves the original order of parts. This approach ensures that the main content is delivered before any tool execution events for downstream consumers.
 """
-import openai
 import json
 import time
 import uuid
 import traceback
+
+# Safe import of openai SDK
+try:
+    import openai
+    DRIVER_AVAILABLE = True
+    DRIVER_UNAVAILABLE_REASON = None
+except ImportError:
+    DRIVER_AVAILABLE = False
+    DRIVER_UNAVAILABLE_REASON = "Missing dependency: openai (pip install openai)"
+
 from typing import Optional, List, Dict, Any, Union
 from janito.llm.driver import LLMDriver
 from janito.providers.openai.schema_generator import generate_tool_schemas
@@ -23,6 +32,13 @@ from janito.tools.adapters.local.adapter import LocalToolsAdapter
 from janito.llm.driver_config import LLMDriverConfig
 
 class OpenAIModelDriver(LLMDriver):
+    available = DRIVER_AVAILABLE
+    unavailable_reason = DRIVER_UNAVAILABLE_REASON
+
+    @classmethod
+    def is_available(cls):
+        return cls.available
+
     """
     Model driver for OpenAI-compatible language models.
     Handles API interaction, conversation history, tool/function calls, and
@@ -33,6 +49,8 @@ class OpenAIModelDriver(LLMDriver):
     # Which fields to extract from config and LLMDriverConfig
     driver_fields = {"max_tokens", "temperature", "top_p", "presence_penalty", "frequency_penalty", "stop", "base_url", "api_key"}
     def __init__(self, driver_config: LLMDriverConfig, user_prompt: str, conversation_history=None, tools_adapter: LocalToolsAdapter = None):
+        if not self.available:
+            raise ImportError(f"OpenAIModelDriver unavailable: {self.unavailable_reason}")
         super().__init__(driver_config, user_prompt=user_prompt, conversation_history=conversation_history, tools_adapter=tools_adapter)
         self.config = driver_config
         self.base_url = driver_config.base_url

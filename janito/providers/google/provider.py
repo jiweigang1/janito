@@ -8,6 +8,12 @@ from janito.providers.registry import LLMProviderRegistry
 
 from .model_info import MODEL_SPECS
 
+from janito.drivers.google_genai.driver import GoogleGenaiModelDriver
+
+available = GoogleGenaiModelDriver.available
+unavailable_reason = GoogleGenaiModelDriver.unavailable_reason
+maintainer = "Needs maintainer"
+
 class GoogleProvider(LLMProvider):
     MODEL_SPECS = MODEL_SPECS
     maintainer = "Needs maintainer"
@@ -19,6 +25,9 @@ class GoogleProvider(LLMProvider):
     DEFAULT_MODEL = "gemini-2.5-flash-preview-04-17"
 
     def __init__(self, config: LLMDriverConfig = None):
+        if not self.available:
+            self._driver = None
+            return
         self._auth_manager = LLMAuthManager()
         self._api_key = self._auth_manager.get_credentials(type(self).name)
         self._tools_adapter = LocalToolsAdapter()
@@ -27,13 +36,23 @@ class GoogleProvider(LLMProvider):
             self._info.model = self.DEFAULT_MODEL
         if not self._info.api_key:
             self._info.api_key = self._api_key
-        from janito.drivers.google_genai.driver import GoogleGenaiModelDriver
         self.fill_missing_device_info(self._info)
         self._driver = GoogleGenaiModelDriver(self._info, self._tools_adapter)
 
     @property
     def driver(self) -> GoogleGenaiModelDriver:
+        if not self.available:
+            raise ImportError(f"GoogleProvider unavailable: {self.unavailable_reason}")
         return self._driver
+
+    @property
+    def available(self):
+        return available
+
+    @property
+    def unavailable_reason(self):
+        return unavailable_reason
+
 
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
