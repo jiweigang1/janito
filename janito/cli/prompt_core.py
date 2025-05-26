@@ -10,8 +10,8 @@ from typing import Any, Optional, Callable
 from janito.driver_events import RequestStarted, RequestFinished, RequestError, EmptyResponseEvent
 from janito.tools.tool_events import ToolCallError
 import threading
-
 from janito.cli.verbose_output import print_verbose_header
+from janito.event_bus import event_bus as global_event_bus
 
 class StatusRef:
     def __init__(self):
@@ -129,22 +129,26 @@ class PromptHandler:
 
     def run_prompt(self, user_prompt: str, raw: bool = False, on_event: Optional[Callable] = None) -> None:
         """
-        Handles a single prompt, iterating through agent events using the streaming/event-driven chat interface.
+        Handles a single prompt, using the blocking event-driven chat interface.
         Optionally takes an on_event callback for custom event handling.
         """
-        import threading
-        cancel_event = threading.Event()
+        from queue import Queue
+        local_event_bus = Queue()
         try:
-            event_iter = self.agent.chat(user_prompt, raw=raw, cancel_event=cancel_event)
-            event_iter = iter(event_iter)
-            import itertools
-            event_iter = itertools.tee(event_iter, 2)[0]  # make a tee copy for debug
-            for _debug_event in event_iter:
-
-                break  # print only the first event, then use as normal
-            self._process_event_iter(event_iter, on_event)
+            # Call the new blocking chat() method
+            final_event = self.agent.chat(prompt=user_prompt, bus=local_event_bus)
+            # Drain and process all events from the bus
+            while not local_event_bus.empty():
+                event = local_event_bus.get()
+                # Publish to global event bus
+                global_event_bus.publish(event)
+                if on_event:
+                    on_event(event)
+            # Optionally process the final event
+            if on_event and final_event is not None:
+                on_event(final_event)
+                global_event_bus.publish(final_event)
         except KeyboardInterrupt:
-            cancel_event.set()
             self.console.print("[red]Request interrupted.[red]")
 
     def run_prompts(self, prompts: list, raw: bool = False, on_event: Optional[Callable] = None) -> None:

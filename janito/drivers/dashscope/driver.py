@@ -24,11 +24,11 @@ import traceback
 from typing import Optional, List, Dict, Any, Union
 from janito.llm.driver import LLMDriver
 from janito.driver_events import (
-    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
+    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ResponseReceived
 )
 from janito.tools.adapters.local.adapter import LocalToolsAdapter
 from janito.providers.openai.schema_generator import generate_tool_schemas
-
+from janito.llm.message_parts import TextMessagePart, FunctionCallMessagePart
 from janito.llm.driver_config import LLMDriverConfig
 
 class DashScopeModelDriver(LLMDriver):
@@ -52,35 +52,20 @@ class DashScopeModelDriver(LLMDriver):
     def _add_to_history(self, message: Dict[str, Any]):
         self._history.append(message)
 
-    def handle_function_call(self, tool_call, tool_executor):
-        func = tool_call.get("function", {})
-        tool_name = func.get("name")
-        arguments = func.get("arguments")
-        if isinstance(arguments, str):
-            try:
-                arguments = json.loads(arguments)
-            except Exception:
-                arguments = {}
-        try:
-            result = self.tools_adapter.execute_by_name(tool_name, **(arguments or {}))
-            content = str(result)
-        except Exception as e:
-            content = f"Tool execution error: {e}"
-        tool_result_msg = {
-            "role": "tool",
-            "tool_call_id": tool_call.get("id"),
-            "name": tool_name,
-            "content": content
-        }
-        self._add_to_history(tool_result_msg)
+    def _generate_schemas(self, tools):
+        from janito.providers.openai.schema_generator import generate_tool_schemas
+        return generate_tool_schemas(tools) if tools else None
 
-    def handle_content_part(self, content, request_id):
-        self.publish(ContentPartFound, request_id, content_part=content)
-        assistant_msg = {
-            "role": "assistant",
-            "content": content
-        }
-        self._add_to_history(assistant_msg)
+    def _process_prompt_and_system(self, messages_or_prompt, system_prompt):
+        if isinstance(messages_or_prompt, str):
+            user_msg = {"role": "user", "content": messages_or_prompt}
+            self._add_to_history(user_msg)
+        elif isinstance(messages_or_prompt, list):
+            for msg in messages_or_prompt:
+                self._add_to_history(dict(msg))
+        if system_prompt:
+            if not self._history or self._history[0].get('role') != 'system':
+                self._history.insert(0, {"role": "system", "content": system_prompt})
 
     def send_api_request(self, messages, schemas, api_key, enable_thinking=False, **api_kwargs):
         response = Generation.call(
@@ -94,11 +79,6 @@ class DashScopeModelDriver(LLMDriver):
         )
         return response
 
-    def _generate_schemas(self, tools):
-        # DashScope uses OpenAI-compatible tool schemas
-        from janito.providers.openai.schema_generator import generate_tool_schemas
-        return generate_tool_schemas(tools) if tools else None
-
     def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, schemas=None, **kwargs):
         request_id = str(uuid.uuid4())
         self.tools_adapter.event_bus = self.event_bus
@@ -107,23 +87,14 @@ class DashScopeModelDriver(LLMDriver):
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
             turn_count = 0
             while True:
-                done = self._generation_loop_step(tools, kwargs, schemas, self.tools_adapter, request_id, turn_count)
+                done, response, usage, parts = self._generation_loop_step(tools, kwargs, schemas, self.tools_adapter, request_id, turn_count)
                 if done:
+                    # Emit ResponseReceived event with all collected parts
+                    self.publish(ResponseReceived, request_id=request_id, parts=parts, tool_results=[], timestamp=time.time(), metadata={"raw_response": response, "usage": usage})
                     break
                 turn_count += 1
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
-
-    def _process_prompt_and_system(self, messages_or_prompt, system_prompt):
-        if isinstance(messages_or_prompt, str):
-            user_msg = {"role": "user", "content": messages_or_prompt}
-            self._add_to_history(user_msg)
-        elif isinstance(messages_or_prompt, list):
-            for msg in messages_or_prompt:
-                self._add_to_history(dict(msg))
-        if system_prompt:
-            if not self._history or self._history[0].get('role') != 'system':
-                self._history.insert(0, {"role": "system", "content": system_prompt})
 
     def _generation_loop_step(self, tools, kwargs, schemas, tool_executor, request_id, turn_count):
         self.publish(RequestStarted, request_id, payload={"tools": tools})
@@ -138,32 +109,29 @@ class DashScopeModelDriver(LLMDriver):
         output = getattr(response, 'output', None)
         usage = getattr(response, 'usage', {})
 
-        # Handle client errors
         if status_code is not None and 400 <= status_code < 500:
             self.publish(RequestError, request_id, error=f"{error_code}: {error_message}", exception=None, traceback=None)
             self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
-            return True
+            return True, response, usage, []
 
         self.publish(RequestFinished, request_id, response=response, status="success", usage=usage)
         if not output or not hasattr(output, 'choices') or not output.choices:
             self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
-            return True
+            return True, response, usage, []
         message = output.choices[0].message
         content = message.get("content") if isinstance(message, dict) else getattr(message, "content", None)
-        if content:
-            self.handle_content_part(content, request_id)
         tool_calls = message.get("tool_calls") if isinstance(message, dict) else getattr(message, "tool_calls", None)
+        parts = []
+        if content:
+            parts.append(TextMessagePart(content=content))
         if tool_calls:
-            # Prepare the assistant message and add to history
-            assistant_msg = {
-                "role": "assistant",
-                "content": content,
-                "tool_calls": [tc.to_dict() if hasattr(tc, 'to_dict') else dict(tc) for tc in tool_calls]
-            }
-            self._add_to_history(assistant_msg)
             for tool_call in tool_calls:
-                self.handle_function_call(tool_call, self.tools_adapter)
-            return False  # Not done
+                parts.append(FunctionCallMessagePart(
+                    tool_call_id=tool_call.get('id', ''),
+                    name=tool_call.get('name', ''),
+                    arguments=tool_call.get('arguments', {})
+                ))
+            return False, response, usage, parts
         else:
             self.publish(GenerationFinished, request_id, total_turns=turn_count+1)
-            return True
+            return True, response, usage, parts

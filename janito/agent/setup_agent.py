@@ -3,16 +3,17 @@ from jinja2 import Template
 import importlib.resources
 import sys
 import warnings
+from janito.tools import get_local_tools_adapter
+from janito.llm.agent import LLMAgent
+from janito.drivers.driver_registry import get_driver_class
+from queue import Queue
+from janito.platform_discovery import PlatformDiscovery
 
 def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=None, zero_mode=False):
     """
     Creates an agent using a rendered system prompt template, passing an explicit role.
     """
-    from janito.tools import get_local_tools_adapter
     tools_provider = get_local_tools_adapter()
-    from janito.llm.agent import LLMAgent
-    from janito.drivers.driver_registry import get_driver_class
-    from queue import Queue
     if zero_mode:
         # Pass provider to agent, let agent create driver
         agent = LLMAgent(provider_instance, tools_provider, agent_name=role or "software developer", system_prompt=None)
@@ -44,7 +45,6 @@ def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=N
     context = {}
     context['role'] = role or "software developer"
     # Inject current platform environment information
-    from janito.platform_discovery import PlatformDiscovery
     pd = PlatformDiscovery()
     context['platform'] = pd.get_platform_name()
     context['python_version'] = pd.get_python_version()

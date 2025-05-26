@@ -1,8 +1,8 @@
 import uuid
 import traceback
+from rich import pretty
 from janito.llm.driver import LLMDriver
 from janito.llm.driver_input import DriverInput
-from janito.driver_events import RequestStarted, RequestFinished, RequestError, ContentPartFound, ResponseReceived
 
 # Safe import of openai SDK
 try:
@@ -20,75 +20,68 @@ class OpenAIModelDriver(LLMDriver):
     available = DRIVER_AVAILABLE
     unavailable_reason = DRIVER_UNAVAILABLE_REASON
 
-    def _handle_driver_unavailable(self, request_id):
-        self.output_queue.put(RequestError(
-            driver_name="openai",
-            request_id=request_id,
-            error=self.unavailable_reason,
-            exception=ImportError(self.unavailable_reason),
-            traceback=None
-        ))
+    def __init__(self, input_queue, output_queue, tools_adapter=None):
+        super().__init__(input_queue, output_queue)
+        self.tools_adapter = tools_adapter
 
-    def _prepare_api_kwargs(self, config, tool_schema, conversation):
+    def _prepare_api_kwargs(self, config, conversation):
         api_kwargs = {}
-        if tool_schema:
-            api_kwargs['tools'] = tool_schema
-        if getattr(config, 'model', None):
+        if self.tools_adapter:
+            try:
+                from janito.providers.openai.schema_generator import generate_tool_schemas
+                tool_classes = self.tools_adapter.get_tool_classes()
+                api_kwargs['tools'] = generate_tool_schemas(tool_classes)
+            except Exception as e:
+                api_kwargs['tools'] = []
+                if config.verbose_api:
+                    print(f"[OpenAI] Tool schema generation failed: {e}")
+        if config.model:
             api_kwargs['model'] = config.model
         if hasattr(config, 'max_tokens') and config.max_tokens is not None:
             api_kwargs['max_tokens'] = int(config.max_tokens)
         for p in ('temperature', 'top_p', 'presence_penalty', 'frequency_penalty', 'stop'):
-            v = getattr(config, p, None)
+            v = config.__getattribute__(p)
             if v is not None:
                 api_kwargs[p] = v
         api_kwargs['messages'] = conversation
         api_kwargs['stream'] = False
         return api_kwargs
 
-    def _emit_response_received(self, config, request_id, result):
-        content = result.choices[0].message.content if result.choices else None
-        tool_calls = getattr(result.choices[0].message, 'tool_calls', []) if result.choices else []
-        timestamp = getattr(result, 'created', None)
-        self.output_queue.put(ResponseReceived(
-            driver_name="openai",
-            request_id=request_id,
-            content_parts=[content] if content else [],
-            tool_calls=tool_calls,
-            tool_results=[],
-            timestamp=timestamp,
-            metadata={"usage": getattr(result, 'usage', None), "raw_response": result}
-        ))
-
-    def _process_input(self, driver_input: DriverInput):
+    def _call_api(self, driver_input: DriverInput):
         config = driver_input.config
         conversation = driver_input.conversation_history.get_history()
-        tool_schema = driver_input.tool_schema
-        request_id = getattr(config, 'request_id', str(uuid.uuid4()))
-        if not self.available:
-            self._handle_driver_unavailable(request_id)
-            return
-        self.output_queue.put(RequestStarted(driver_name="openai", request_id=request_id, payload={}))
-        try:
-            if getattr(config, 'verbose_api', False):
-                print(f"[verbose-api] OpenAI API call about to be sent. Model: {getattr(config, 'model', None)}, max_tokens: {getattr(config, 'max_tokens', None)}, tool_schema: {tool_schema is not None}")
-            client = openai.OpenAI(api_key=getattr(config, 'api_key', None))
-            api_kwargs = self._prepare_api_kwargs(config, tool_schema, conversation)
-            if getattr(config, 'verbose_api', False):
-                print(f'[OpenAI] API CALL: chat.completions.create(**{api_kwargs})')
-            result = client.chat.completions.create(**api_kwargs)
-            if getattr(config, 'verbose_api', False):
-                print(f'[OpenAI] API RESPONSE: {result}')
-            if getattr(config, 'verbose_api', False):
-                content = result.choices[0].message.content if result.choices else None
-                print(f"[verbose-api] OpenAI Driver: Emitting ResponseReceived with content length: {len(content) if content else 0}")
-            self._emit_response_received(config, request_id, result)
-        except Exception as ex:
-            if getattr(config, 'verbose_api', False):
-                print(f'[OpenAI] API ERROR: {ex}')
-            self.output_queue.put(RequestError(
-                driver_name="openai",
-                request_id=request_id,
-                error=str(ex),
-                exception=ex,
-                traceback=traceback.format_exc()
+        if config.verbose_api:
+            print(f"[verbose-api] OpenAI API call about to be sent. Model: {config.model}, max_tokens: {config.max_tokens}, tools_adapter: {self.tools_adapter is not None}")
+        client = openai.OpenAI(api_key=config.api_key)
+        api_kwargs = self._prepare_api_kwargs(config, conversation)
+        if config.verbose_api:
+            print(f'[OpenAI] API CALL: chat.completions.create(**{api_kwargs})')
+        result = client.chat.completions.create(**api_kwargs)
+        if config.verbose_api:
+            pretty.install()
+            print('[OpenAI] API RESPONSE:')
+            pretty.pprint(result)
+            content = result.choices[0].message.content if result.choices else None
+            print(f"[verbose-api] OpenAI Driver: Emitting ResponseReceived with content length: {len(content) if content else 0}")
+        return result
+
+    def _convert_completion_message_to_parts(self, message):
+        """
+        Convert an OpenAI completion message object to a list of MessagePart objects.
+        Handles text, tool calls, and can be extended for other types.
+        """
+        from janito.llm.message_parts import TextMessagePart, FunctionCallMessagePart
+        parts = []
+        # Text content
+        content = getattr(message, 'content', None)
+        if content:
+            parts.append(TextMessagePart(content=content))
+        # Tool calls
+        tool_calls = getattr(message, 'tool_calls', None) or []
+        for tool_call in tool_calls:
+            parts.append(FunctionCallMessagePart(
+                tool_call_id=getattr(tool_call, 'id', ''),
+                function=getattr(tool_call, 'function', None)
             ))
+        # Extend here for other message part types if needed
+        return parts

@@ -2,10 +2,6 @@
 Google Gemini LLM driver.
 
 This driver handles interaction with the Google Gemini API, including support for tool/function calls and event publishing.
-
-Event Handling:
-----------------
-When processing model responses, the driver iterates through the returned parts in their original order. Each part may represent a function call or a content segment. Events such as ContentPartFound are published in the exact sequence they appear in the API response, preserving the interleaving of function calls and content. This ensures that downstream consumers receive events in the true order of model output, which is essential for correct conversational flow and tool execution.
 """
 import json
 import time
@@ -15,29 +11,12 @@ from typing import Optional, List, Dict, Any, Union
 from janito.llm.driver import LLMDriver
 from janito.drivers.google_genai.schema_generator import generate_tool_declarations
 from janito.driver_events import (
-    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound, EmptyResponseEvent
+    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ResponseReceived, EmptyResponseEvent
 )
 from janito.tools.adapters.local.adapter import LocalToolsAdapter
-# Safe import of google/genai
-try:
-    from google import genai
-    from google.genai import types as genai_types
-    DRIVER_AVAILABLE = True
-    DRIVER_UNAVAILABLE_REASON = None
-except ImportError:
-    DRIVER_AVAILABLE = False
-    DRIVER_UNAVAILABLE_REASON = "Missing dependency: google-cloud/genai (pip install google-generativeai)"
+from janito.llm.message_parts import TextMessagePart, FunctionCallMessagePart
 from janito.llm.driver_config import LLMDriverConfig
-# Exception for empty or incomplete responses or blocks
-class EmptyResponseError(Exception):
-    """
-    Raised when the Gemini API returns an empty or incomplete response.
-    Optionally includes a block reason and message if the response was blocked.
-    """
-    def __init__(self, message, block_reason=None, block_reason_message=None):
-        self.block_reason = block_reason
-        self.block_reason_message = block_reason_message
-        super().__init__(message)
+
 def extract_usage_metadata_native(usage_obj):
     if usage_obj is None:
         return {}
@@ -53,10 +32,9 @@ def extract_usage_metadata_native(usage_obj):
                 result[attr] = value
     return result
 
-
 class GoogleGenaiModelDriver(LLMDriver):
-    available = DRIVER_AVAILABLE
-    unavailable_reason = DRIVER_UNAVAILABLE_REASON
+    available = True
+    unavailable_reason = None
 
     @classmethod
     def is_available(cls):
@@ -77,10 +55,6 @@ class GoogleGenaiModelDriver(LLMDriver):
         return list(self._history)
 
     def _conversation_history_to_driver_messages(self, history_msgs: List[Dict[str, Any]]):
-        """
-        Convert internal history to Google GenAI Content/Part objects.
-        Returns (conversation_contents, system_prompt)
-        """
         from google.genai import types as genai_types_local
         msgs = list(history_msgs)
         system_prompt = None
@@ -90,7 +64,6 @@ class GoogleGenaiModelDriver(LLMDriver):
         for msg in msgs:
             if msg.get("role") == "tool":
                 meta = msg.get("metadata", {})
-                # Tool call (arguments present, content is None)
                 if meta.get("arguments") is not None and msg.get("content") is None:
                     conversation_contents.append(
                         genai_types_local.Content(
@@ -101,7 +74,6 @@ class GoogleGenaiModelDriver(LLMDriver):
                             })]
                         )
                     )
-                # Tool response (content present)
                 elif msg.get("content") is not None:
                     conversation_contents.append(
                         genai_types_local.Content(
@@ -115,7 +87,6 @@ class GoogleGenaiModelDriver(LLMDriver):
                         )
                     )
             else:
-                # user, assistant
                 conversation_contents.append(
                     genai_types_local.Content(
                         role=msg.get("role"),
@@ -124,38 +95,20 @@ class GoogleGenaiModelDriver(LLMDriver):
                 )
         return conversation_contents, system_prompt
 
-    def handle_function_call(self, part, conversation_contents, tool_executor):
-        function_call = part.function_call
-        tool_name = function_call.name
-        arguments = function_call.args
-        if isinstance(arguments, str):
-            arguments = json.loads(arguments)
-        try:
-            result = self.tools_adapter.execute_by_name(tool_name, **(arguments or {}))
-            content = str(result)
-        except Exception as e:
-            content = f"Tool execution error: {e}"
-        conversation_contents.append(genai_types.Content(role="model", parts=[part]))
-        function_response_part = genai_types.Part.from_function_response(
-            name=tool_name,
-            response={"result": content}
-        )
-        conversation_contents.append(genai_types.Content(role="tool", parts=[function_response_part]))
-        # Add tool response to internal history
-        self._add_to_history({
-            "role": "tool",
-            "name": tool_name,
-            "content": content,
-            "metadata": {"name": tool_name, "arguments": arguments}
-        })
+    def _generate_schemas(self, tools):
+        from janito.drivers.google_genai.schema_generator import generate_tool_declarations
+        return generate_tool_declarations(tools) if tools else None
 
-    def handle_content_part(self, part, request_id):
-        self.publish(ContentPartFound, request_id, content_part=part.text)
-        # Add assistant message to internal history
-        self._add_to_history({
-            "role": "assistant",
-            "content": part.text
-        })
+    def _process_prompt_and_system(self, messages_or_prompt, system_prompt):
+        if isinstance(messages_or_prompt, str):
+            user_msg = {"role": "user", "content": messages_or_prompt}
+            self._add_to_history(user_msg)
+        elif isinstance(messages_or_prompt, list):
+            for msg in messages_or_prompt:
+                self._add_to_history(dict(msg))
+        if system_prompt:
+            if not self._history or self._history[0].get('role') != 'system':
+                self._history.insert(0, {"role": "system", "content": system_prompt})
 
     def send_api_request(self, client, conversation_contents, **api_kwargs):
         return client.models.generate_content(
@@ -178,7 +131,6 @@ class GoogleGenaiModelDriver(LLMDriver):
         self.publish(RequestFinished, request_id, response=response, status='success', usage=usage_dict)
         candidates = getattr(response, 'candidates', None)
         if not candidates or not hasattr(candidates[0], 'content') or not hasattr(candidates[0].content, 'parts'):
-            # Check for block_reason details
             block_reason = None
             block_reason_message = None
             prompt_feedback = getattr(response, 'prompt_feedback', None)
@@ -191,37 +143,29 @@ class GoogleGenaiModelDriver(LLMDriver):
                 "block_reason_message": block_reason_message
             }
             self.publish(EmptyResponseEvent, request_id, details=details)
-            return False, duration
-        parts = candidates[0].content.parts
-        had_function_call = False
-        for part in parts:
+            return True, response, usage_dict, []
+        parts_raw = candidates[0].content.parts
+        parts = []
+        for part in parts_raw:
             if self.cancel_event is not None and self.cancel_event.is_set():
                 break
             if hasattr(part, 'function_call') and part.function_call:
-                self.handle_function_call(part, conversation_contents, self.tools_adapter)
-                had_function_call = True
+                parts.append(FunctionCallMessagePart(
+                    tool_call_id=getattr(part.function_call, 'id', ''),
+                    name=getattr(part.function_call, 'name', ''),
+                    arguments=getattr(part.function_call, 'args', {})
+                ))
             elif getattr(part, 'text', None) is not None:
-                self.handle_content_part(part, request_id)
-        return had_function_call, duration
-
-    def _generate_schemas(self, tools):
-        # Google Gemini driver uses Google's FunctionDeclaration mechanism
-        from janito.drivers.google_genai.schema_generator import generate_tool_declarations
-        return generate_tool_declarations(tools) if tools else None
+                parts.append(TextMessagePart(content=part.text))
+        return False, response, usage_dict, parts
 
     def _run_generation(self, messages_or_prompt: Union[List[Dict[str, Any]], str], system_prompt: Optional[str]=None, tools=None, schemas=None, **kwargs):
-        """
-        Run a conversation using the provided messages or prompt.
-        The driver manages its own internal conversation history.
-        """
         request_id = str(uuid.uuid4())
         self.tools_adapter.event_bus = self.event_bus
         try:
             self._process_prompt_and_system(messages_or_prompt, system_prompt)
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
-            # Instead of generating declarations, use precomputed schemas if provided
             config, conversation_contents, client = self._prepare_google_generation(tools, system_prompt)
-            # Patch config to use externally validated schemas if present
             if schemas:
                 config.tools = schemas
             turn_count = 0
@@ -231,33 +175,21 @@ class GoogleGenaiModelDriver(LLMDriver):
                     self.publish(RequestFinished, request_id, response=None, duration=0, status='cancelled', usage={})
                     self.publish(GenerationFinished, request_id, total_turns=turn_count, status='cancelled')
                     break
-                had_function_call, _ = self._process_generation_turn(
+                done, response, usage_dict, parts = self._process_generation_turn(
                     client, config, conversation_contents, self.tools_adapter, tools, request_id, start_time, kwargs
                 )
                 turn_count += 1
-                if had_function_call and (self.cancel_event is None or not self.cancel_event.is_set()):
-                    continue  # Continue the loop for the next model response
-                self.publish(GenerationFinished, request_id, total_turns=turn_count)
-                break
+                if done:
+                    self.publish(ResponseReceived, request_id=request_id, parts=parts, tool_results=[], timestamp=time.time(), metadata={"raw_response": response, "usage": usage_dict})
+                    self.publish(GenerationFinished, request_id, total_turns=turn_count)
+                    break
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())
-
-    def _process_prompt_and_system(self, messages_or_prompt, system_prompt):
-        if isinstance(messages_or_prompt, str):
-            user_msg = {"role": "user", "content": messages_or_prompt}
-            self._add_to_history(user_msg)
-        elif isinstance(messages_or_prompt, list):
-            for msg in messages_or_prompt:
-                self._add_to_history(dict(msg))
-        if system_prompt:
-            if not self._history or self._history[0].get('role') != 'system':
-                self._history.insert(0, {"role": "system", "content": system_prompt})
 
     def _prepare_google_generation(self, tools, system_prompt):
         from google.genai import types as genai_types_local
         declarations = generate_tool_declarations(tools) if tools else None
         config_dict = {}
-        # BEGIN: Inject safety_settings with all thresholds set to BLOCK_NONE
         all_categories = [
             genai_types_local.HarmCategory.HARM_CATEGORY_HARASSMENT,
             genai_types_local.HarmCategory.HARM_CATEGORY_HATE_SPEECH,
@@ -270,7 +202,6 @@ class GoogleGenaiModelDriver(LLMDriver):
                 threshold=genai_types_local.HarmBlockThreshold.BLOCK_NONE
             ) for cat in all_categories
         ]
-        # END: Safety settings injection
         if declarations:
             config_dict["tools"] = declarations
         conversation_contents, sys_prompt_from_history = self._conversation_history_to_driver_messages(self._history)

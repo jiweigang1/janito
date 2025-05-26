@@ -53,7 +53,7 @@ class OpenAIProvider(LLMProvider):
         """
         input_queue = Queue()
         output_queue = Queue()
-        driver = OpenAIModelDriver(input_queue, output_queue)
+        driver = OpenAIModelDriver(input_queue, output_queue, tools_adapter=self._tools_adapter)
         driver.config = self._driver_config
         return driver
 

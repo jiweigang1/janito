@@ -7,14 +7,16 @@ from janito.event_bus.handler import EventHandlerBase
 import janito.driver_events as driver_events
 from janito.report_events import ReportSubtype
 from janito.event_bus.bus import event_bus
+from janito.llm import message_parts
 
 class RichTerminalReporter(EventHandlerBase):
     """
     Handles UI rendering for janito events using Rich.
 
-    - Regular (non-raw (-R/--raw flag)) output is printed only for ContentPartFound events.
+    - For ResponseReceived events, iterates over the 'parts' field and displays each part appropriately:
+        - TextMessagePart: rendered as Markdown (uses 'content' field)
+        - Other MessageParts: displayed using Pretty or a suitable Rich representation
     - For RequestFinished events, output is printed only if raw mode is enabled (using Pretty formatting).
-    - If raw mode is not enabled, RequestFinished events produce no output.
     - Report events (info, success, error, etc.) are always printed with appropriate styling.
     """
     def __init__(self, raw_mode=False):
@@ -24,13 +26,17 @@ class RichTerminalReporter(EventHandlerBase):
         import janito.report_events as report_events
         super().__init__(driver_events, report_events)
 
-    def on_ContentPartFound(self, event):
-        content = event.content_part
-        if content:
-            self.console.print(Markdown(content))
+    def on_ResponseReceived(self, event):
+        parts = getattr(event, 'parts', None)
+        if not parts:
+            self.console.print("[No response parts to display]")
             self.console.file.flush()
-        else:
-            self.console.print("[No content part to display]")
+            return
+        for part in parts:
+            if isinstance(part, message_parts.TextMessagePart):
+                self.console.print(Markdown(part.content))
+            else:
+                self.console.print(Pretty(part, expand_all=True))
             self.console.file.flush()
 
     def on_RequestFinished(self, event):

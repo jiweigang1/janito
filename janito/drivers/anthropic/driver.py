@@ -1,10 +1,12 @@
 from janito.llm.driver import LLMDriver
 from janito.llm.driver_config import LLMDriverConfig
 from janito.driver_events import (
-    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ContentPartFound
+    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, RequestError, ResponseReceived
 )
+from janito.llm.message_parts import TextMessagePart
 import uuid
 import traceback
+import time
 
 # Safe import of anthropic SDK
 try:
@@ -45,12 +47,10 @@ class AnthropicModelDriver(LLMDriver):
         request_id = str(uuid.uuid4())
         client = self._create_client()
         try:
-            # Anthropic expects a single prompt string, not a message list.
             prompt = ""
             if isinstance(messages_or_prompt, str):
                 prompt = messages_or_prompt
             elif isinstance(messages_or_prompt, list):
-                # If passed a message history, join as plain chat.
                 chat = []
                 for msg in messages_or_prompt:
                     if msg.get("role") == "user":
@@ -63,18 +63,20 @@ class AnthropicModelDriver(LLMDriver):
 
             self.publish(GenerationStarted, request_id, conversation_history=self.get_history())
             self.publish(RequestStarted, request_id, payload={})
-
-            # Many Claude models stream, but here we use a one-shot for parity to start (add streaming as needed)
+            start_time = time.time()
             response = client.completions.create(
                 model=self.model_name,
                 max_tokens_to_sample=int(getattr(self.config, "max_response", 1024)),
                 prompt=prompt,
                 temperature=float(getattr(self.config, "default_temp", 0.7))
             )
+            duration = time.time() - start_time
             content = response.completion if hasattr(response, "completion") else None
             self.publish(RequestFinished, request_id, response=content, status="success", usage={})
+            parts = []
             if content:
-                self.publish(ContentPartFound, request_id, content_part=content)
+                parts.append(TextMessagePart(content=content))
+            self.publish(ResponseReceived, request_id=request_id, parts=parts, tool_results=[], timestamp=time.time(), metadata={"raw_response": response})
             self.publish(GenerationFinished, request_id, total_turns=1)
         except Exception as e:
             self.publish(RequestError, request_id, error=str(e), exception=e, traceback=traceback.format_exc())

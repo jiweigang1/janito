@@ -2,6 +2,7 @@ import attr
 from typing import Any, ClassVar
 from janito.event_bus.event import Event
 
+
 @attr.s(auto_attribs=True, kw_only=True)
 class DriverEvent(Event):
     """
@@ -103,16 +104,15 @@ class ResponseReceived(DriverEvent):
     Aggregate event emitted by a driver after an LLM request completes.
 
     Fields:
-      - content_parts: list of generated content strings for the user.
-      - tool_calls: list of tool call objects (dicts or ToolCall dataclass instances) that the LLM requests be run.
+      - parts: list of MessagePart objects (see janito.llm.message_parts), each representing a content or function part.
+        Example: TextMessagePart(content="..."), FunctionCallMessagePart(name=..., arguments=...)
       - tool_results: list of tool result objects, filled by the agent (optional, not set by the driver).
       - timestamp: float, normalized UNIX epoch seconds (from the LLM API or system clock).
       - metadata: dict for any other details, e.g. usage, raw API response data, etc.
 
-    The agent inspects tool_calls, runs tools if present, and updates conversation history as needed. Responses with no tool_calls are "final" turns to be shown to the user.
+    The agent inspects the parts sequence, runs tools if present, and updates conversation history as needed.
     """
-    content_parts: list
-    tool_calls: list  # each as dict or custom ToolCall dataclass
+    parts: list
     tool_results: list = None  # each as dict or custom ToolResult dataclass
     timestamp: float = None  # UNIX epoch seconds, normalized
     metadata: dict = None
