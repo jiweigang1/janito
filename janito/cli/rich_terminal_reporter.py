@@ -27,7 +27,7 @@ class RichTerminalReporter(EventHandlerBase):
         super().__init__(driver_events, report_events)
 
     def on_ResponseReceived(self, event):
-        parts = getattr(event, 'parts', None)
+        parts = event.parts if hasattr(event, 'parts') else None
         if not parts:
             self.console.print("[No response parts to display]")
             self.console.file.flush()
@@ -35,12 +35,10 @@ class RichTerminalReporter(EventHandlerBase):
         for part in parts:
             if isinstance(part, message_parts.TextMessagePart):
                 self.console.print(Markdown(part.content))
-            else:
-                self.console.print(Pretty(part, expand_all=True))
-            self.console.file.flush()
+                self.console.file.flush()
 
     def on_RequestFinished(self, event):
-        response = getattr(event, 'response', None)
+        response = event.response if hasattr(event, 'response') else None
         if response is not None:
             if self.raw_mode:
                 self.console.print(Pretty(response, expand_all=True))
@@ -57,8 +55,8 @@ class RichTerminalReporter(EventHandlerBase):
         # No output if not raw_mode or if response is None
 
     def on_ReportEvent(self, event):
-        msg = getattr(event, 'message', None)
-        subtype = getattr(event, 'subtype', None)
+        msg = event.message if hasattr(event, 'message') else None
+        subtype = event.subtype if hasattr(event, 'subtype') else None
         if not msg or not subtype:
             return
         if subtype == ReportSubtype.ACTION_INFO:

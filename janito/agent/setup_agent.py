@@ -9,14 +9,16 @@ from janito.drivers.driver_registry import get_driver_class
 from queue import Queue
 from janito.platform_discovery import PlatformDiscovery
 
-def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=None, zero_mode=False):
+def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=None, zero_mode=False, input_queue=None, output_queue=None, verbose_tools=False, verbose_agent=False):
     """
     Creates an agent using a rendered system prompt template, passing an explicit role.
     """
     tools_provider = get_local_tools_adapter()
+    tools_provider.set_verbose_tools(verbose_tools)
+
     if zero_mode:
         # Pass provider to agent, let agent create driver
-        agent = LLMAgent(provider_instance, tools_provider, agent_name=role or "software developer", system_prompt=None)
+        agent = LLMAgent(provider_instance, tools_provider, agent_name=role or "software developer", system_prompt=None, verbose_agent=verbose_agent)
         return agent
     # Normal flow
     if templates_dir is None:
@@ -52,6 +54,44 @@ def setup_agent(provider_instance, llm_driver_config, role=None, templates_dir=N
     rendered_prompt = template.render(**context)
     # Create the agent as before, now passing the explicit role
     # Do NOT pass temperature; do not depend on to_dict
-    agent = LLMAgent(provider_instance, tools_provider, agent_name=role or "software developer", system_prompt=rendered_prompt)
+    agent = LLMAgent(provider_instance, tools_provider, agent_name=role or "software developer", system_prompt=rendered_prompt, input_queue=input_queue, output_queue=output_queue, verbose_agent=verbose_agent)
     agent.template_vars["role"] = context["role"]
+    return agent
+
+
+def create_configured_agent(*, provider_instance=None, llm_driver_config=None, role=None, verbose_tools=False, verbose_agent=False, templates_dir=None, zero_mode=False):
+    """
+    Normalizes agent setup for all CLI modes.
+
+    Args:
+        provider_instance: Provider instance for the agent
+        llm_driver_config: LLM driver configuration
+        role: Optional role string
+        verbose_tools: Optional, default False
+        verbose_agent: Optional, default False
+        templates_dir: Optional
+        zero_mode: Optional, default False
+
+    Returns:
+        Configured agent instance
+    """
+    # If provider_instance has create_driver, wire queues (single-shot mode)
+    input_queue = None
+    output_queue = None
+    if hasattr(provider_instance, 'create_driver'):
+        driver = provider_instance.create_driver()
+        input_queue = getattr(driver, 'input_queue', None)
+        output_queue = getattr(driver, 'output_queue', None)
+
+    agent = setup_agent(
+        provider_instance=provider_instance,
+        llm_driver_config=llm_driver_config,
+        role=role,
+        templates_dir=templates_dir,
+        zero_mode=zero_mode,
+        input_queue=input_queue,
+        output_queue=output_queue,
+        verbose_tools=verbose_tools,
+        verbose_agent=verbose_agent
+    )
     return agent

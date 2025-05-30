@@ -14,6 +14,10 @@ class ToolsAdapterBase:
         self._tools = tools or []
         self._event_bus = event_bus  # event bus can be set on all adapters
         self._allowed_tools = set(allowed_tools) if allowed_tools is not None else None
+        self.verbose_tools = False
+
+    def set_verbose_tools(self, value: bool):
+        self.verbose_tools = value
 
     @property
     def event_bus(self):
@@ -57,16 +61,23 @@ class ToolsAdapterBase:
         return None
 
     def execute(self, tool, *args, **kwargs):
+        
+        if self.verbose_tools:
+            print(f"[tools-adapter] [execute] Executing tool: {getattr(tool, 'tool_name', repr(tool))} with args: {args}, kwargs: {kwargs}")
         if isinstance(tool, ToolBase):
             tool.event_bus = self._event_bus
+        result = None
         if callable(tool):
-            return tool(*args, **kwargs)
+            result = tool(*args, **kwargs)
         elif hasattr(tool, 'execute') and callable(getattr(tool, 'execute')):
-            return tool.execute(*args, **kwargs)
+            result = tool.execute(*args, **kwargs)
         elif hasattr(tool, 'run') and callable(getattr(tool, 'run')):
-            return tool.run(*args, **kwargs)
+            result = tool.run(*args, **kwargs)
         else:
             raise ValueError("Provided tool is not executable.")
+        if self.verbose_tools:
+            print(f"[tools-adapter] [execute] Tool execution finished: {getattr(tool, 'tool_name', repr(tool))} -> {result}")
+        return result
 
     def execute_by_name(self, tool_name: str, *args, request_id=None, arguments=None, **kwargs):
         self._check_tool_permissions(tool_name, request_id, arguments)
@@ -79,15 +90,40 @@ class ToolsAdapterBase:
                 if self._event_bus:
                     self._event_bus.publish(ToolCallError(tool_name=tool_name, request_id=request_id, error=validation_error, arguments=arguments))
                 return validation_error
+        if self.verbose_tools:
+            print(f"[tools-adapter] Executing tool: {tool_name} with arguments: {arguments}")
         if self._event_bus:
             self._event_bus.publish(ToolCallStarted(tool_name=tool_name, request_id=request_id, arguments=arguments))
         try:
-            result = self.execute(tool, *(arguments or []), **kwargs)
+            result = self.execute(tool, **(arguments or {}), **kwargs)
         except Exception as e:
             self._handle_execution_error(tool_name, request_id, e, arguments)
+        if self.verbose_tools:
+            print(f"[tools-adapter] Tool execution finished: {tool_name} -> {result}")
         if self._event_bus:
             self._event_bus.publish(ToolCallFinished(tool_name=tool_name, request_id=request_id, result=result))
         return result
+
+    def execute_function_call_message_part(self, function_call_message_part):
+        """
+        Execute a FunctionCallMessagePart by extracting the tool name and arguments and dispatching to execute_by_name.
+        """
+        import json
+        function = getattr(function_call_message_part, 'function', None)
+        tool_call_id = getattr(function_call_message_part, 'tool_call_id', None)
+        if function is None or not hasattr(function, 'name'):
+            raise ValueError("FunctionCallMessagePart does not contain a valid function object.")
+        tool_name = function.name
+        arguments = function.arguments
+        # Parse arguments if they are a JSON string
+        if isinstance(arguments, str):
+            try:
+                arguments = json.loads(arguments)
+            except Exception:
+                pass  # Leave as string if not JSON
+        if self.verbose_tools:
+            print(f"[tools-adapter] Executing FunctionCallMessagePart: tool={tool_name}, arguments={arguments}, tool_call_id={tool_call_id}")
+        return self.execute_by_name(tool_name, request_id=tool_call_id, arguments=arguments)
 
     def _check_tool_permissions(self, tool_name, request_id, arguments):
         if self._allowed_tools is not None and tool_name not in self._allowed_tools:

@@ -9,8 +9,8 @@ from janito.version import __version__ as VERSION
 from janito.cli.utils import format_tokens
 
 def print_verbose_header(agent, args):
-    if getattr(args, 'verbose', False):
-        role = getattr(agent, 'template_vars', {}).get('role') if hasattr(agent, 'template_vars') else None
+    if hasattr(args, 'verbose') and args.verbose:
+        role = agent.template_vars.get('role') if hasattr(agent, 'template_vars') else None
         role_part = f" (Role: {role})" if role else ""
         parts = [
             f"Janito {VERSION}",
@@ -18,13 +18,13 @@ def print_verbose_header(agent, args):
             f"Model: {agent.llm_provider.model_name}{role_part}",
             f"Driver: {agent.llm_provider.__class__.__module__.split('.')[-2] if len(agent.llm_provider.__class__.__module__.split('.')) > 1 else agent.llm_provider.__class__.__name__}"
         ]
-        if getattr(args, 'think', False):
+        if hasattr(args, 'think') and args.think:
             parts.append("Thinking ON")
         info_line = " | ".join(part.strip() for part in parts)
         rich_print(Panel(Align(f"[cyan]{info_line}[/cyan]", align="center"), style="on grey11", expand=True))
 
 def print_verbose_info(label, content, style="green", align_content=False):
-    icon = "[bold]🟢[/bold]" if style == "green" else "[bold]🔷[/bold]"
+    icon = "[bold][32m●[/bold]" if style == "green" else "[bold][34m🔷[/bold]"
     panel_title = f"{icon} [bold {style}]{label}[/bold {style}]"
     from rich.console import Console
     from rich.align import Align
@@ -37,8 +37,8 @@ def print_verbose_info(label, content, style="green", align_content=False):
         # Copy and mask the api_key
         from copy import deepcopy
         obfuscated_content = deepcopy(content)
-        if getattr(obfuscated_content, 'api_key', None):
-            val = getattr(obfuscated_content, 'api_key')
+        if hasattr(obfuscated_content, 'api_key') and obfuscated_content.api_key:
+            val = obfuscated_content.api_key
             if len(val) > 8:
                 masked = val[:2] + '***' + val[-2:]
             else:
@@ -53,13 +53,12 @@ def print_verbose_info(label, content, style="green", align_content=False):
     panel = Panel(rendered_content, title=panel_title, border_style=style, expand=False, width=min(width - 8, 100))
     console.print(Align.center(panel))
 
-
 def print_performance(start_time, end_time, performance_collector, args):
     if start_time is None or end_time is None:
         generation_time_ns = None
     else:
         generation_time_ns = (end_time - start_time) * 1e9
-    if getattr(args, 'verbose', False):
+    if hasattr(args, 'verbose') and args.verbose:
         from rich.table import Table
         from rich.style import Style
         from rich import box

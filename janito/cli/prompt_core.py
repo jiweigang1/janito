@@ -25,7 +25,7 @@ class PromptHandler:
     provider_instance: Any
 
     def __init__(self, args: Any, conversation_history, provider_instance) -> None:
-        self.temperature = getattr(args, 'temperature', None)
+        self.temperature = args.temperature if hasattr(args, 'temperature') else None
         """
         Initialize PromptHandler.
         :param args: CLI or programmatic arguments for provider/model selection, etc.
@@ -41,14 +41,22 @@ class PromptHandler:
         self.console = Console()
 
     def _handle_inner_event(self, inner_event, on_event, status):
-
         if on_event:
             on_event(inner_event)
+        from janito.tools.tool_events import ToolCallFinished
+        # Print tool result if ToolCallFinished event is received
+        if isinstance(inner_event, ToolCallFinished):
+            # Print result if verbose_tools is enabled or always for user visibility
+            if hasattr(self.args, 'verbose_tools') and self.args.verbose_tools:
+                self.console.print(f"[cyan][tools-adapter] Tool '{inner_event.tool_name}' result:[/cyan] {inner_event.result}")
+            else:
+                self.console.print(inner_event.result)
+            return None
         if isinstance(inner_event, RequestFinished):
             status.update("[bold green]Received response![bold green]")
             return 'break'
         elif isinstance(inner_event, RequestError):
-            error_msg = getattr(inner_event, 'error', 'Unknown error')
+            error_msg = inner_event.error if hasattr(inner_event, 'error') else 'Unknown error'
             if (
                 'Status 429' in error_msg and
                 'Service tier capacity exceeded for this model' in error_msg
@@ -59,17 +67,17 @@ class PromptHandler:
             self.console.print(f"[red]Error: {error_msg}[red]")
             return 'break'
         elif isinstance(inner_event, ToolCallError):
-            error_msg = getattr(inner_event, 'error', 'Unknown tool error')
-            tool_name = getattr(inner_event, 'tool_name', 'unknown')
+            error_msg = inner_event.error if hasattr(inner_event, 'error') else 'Unknown tool error'
+            tool_name = inner_event.tool_name if hasattr(inner_event, 'tool_name') else 'unknown'
             status.update(f"[bold red]Tool Error in '{tool_name}': {error_msg}[bold red]")
             self.console.print(f"[red]Tool Error in '{tool_name}': {error_msg}[red]")
             return 'break'
         elif isinstance(inner_event, EmptyResponseEvent):
-            details = getattr(inner_event, 'details', {}) or {}
+            details = inner_event.details if hasattr(inner_event, 'details') and inner_event.details is not None else {}
             block_reason = details.get('block_reason')
             block_msg = details.get('block_reason_message')
             msg = details.get('message', 'LLM returned an empty or incomplete response.')
-            driver_name = getattr(inner_event, 'driver_name', 'unknown driver')
+            driver_name = inner_event.driver_name if hasattr(inner_event, 'driver_name') else 'unknown driver'
             if block_reason or block_msg:
                 status.update(f"[bold yellow]Blocked by driver: {driver_name} | {block_reason or ''} {block_msg or ''}[bold yellow]")
                 self.console.print(f"[yellow]Blocked by driver: {driver_name} (empty response): {block_reason or ''}\n{block_msg or ''}[/yellow]")
@@ -101,11 +109,11 @@ class PromptHandler:
                 # After exiting spinner, continue with next events (if any)
             # Handle other event types outside the spinner if needed
             elif isinstance(event, EmptyResponseEvent):
-                details = getattr(event, 'details', {}) or {}
+                details = event.details if hasattr(event, 'details') and event.details is not None else {}
                 block_reason = details.get('block_reason')
                 block_msg = details.get('block_reason_message')
                 msg = details.get('message', 'LLM returned an empty or incomplete response.')
-                driver_name = getattr(event, 'driver_name', 'unknown driver')
+                driver_name = event.driver_name if hasattr(event, 'driver_name') else 'unknown driver'
                 if block_reason or block_msg:
                     self.console.print(f"[yellow]Blocked by driver: {driver_name} (empty response): {block_reason or ''}\n{block_msg or ''}[/yellow]")
                 else:
@@ -115,7 +123,7 @@ class PromptHandler:
 
     def handle_prompt(self, user_prompt, args=None, print_header=True, raw=False, on_event=None):
         # args defaults to self.args for compatibility in interactive mode
-        args = args if args is not None else getattr(self, 'args', None)
+        args = args if args is not None else self.args if hasattr(self, 'args') else None
         # Join/cleanup prompt
         if isinstance(user_prompt, list):
             user_prompt = " ".join(user_prompt).strip()
@@ -136,7 +144,11 @@ class PromptHandler:
         local_event_bus = Queue()
         try:
             # Call the new blocking chat() method
+            if hasattr(self.args, 'verbose_agent') and self.args.verbose_agent:
+                print("[prompt_core][DEBUG] Calling agent.chat()...")
             final_event = self.agent.chat(prompt=user_prompt, bus=local_event_bus)
+            if hasattr(self.args, 'verbose_agent') and self.args.verbose_agent:
+                print(f"[prompt_core][DEBUG] agent.chat() returned: {final_event}")
             # Drain and process all events from the bus
             while not local_event_bus.empty():
                 event = local_event_bus.get()
@@ -145,6 +157,10 @@ class PromptHandler:
                 if on_event:
                     on_event(event)
             # Optionally process the final event
+            if hasattr(self.args, 'verbose_agent') and self.args.verbose_agent:
+                print("[prompt_core][DEBUG] Received final_event from agent.chat:")
+                print(f"  [prompt_core][DEBUG] type={type(final_event)}")
+                print(f"  [prompt_core][DEBUG] content={final_event}")
             if on_event and final_event is not None:
                 on_event(final_event)
                 global_event_bus.publish(final_event)

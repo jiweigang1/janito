@@ -49,7 +49,8 @@ def prepare_llm_driver_config(args, modifiers):
     return provider, llm_driver_config, agent_role
 
 
-def handle_runner(args, provider, llm_driver_config, agent_role):
+def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=False):
+
     zero_mode = getattr(args, 'zero', False)
     from janito.provider_registry import ProviderRegistry
     provider_instance = ProviderRegistry().get_instance(provider, llm_driver_config)
@@ -65,7 +66,7 @@ def handle_runner(args, provider, llm_driver_config, agent_role):
         from janito.cli.chat_mode.session import ChatSession
         from rich.console import Console
         console = Console()
-        session = ChatSession(console, provider_instance, llm_driver_config, role=agent_role, args=args)
+        session = ChatSession(console, provider_instance, llm_driver_config, role=agent_role, args=args, verbose_tools=verbose_tools, verbose_agent=getattr(args, 'verbose_agent', False))
         session.run()
 
 def get_prompt_mode(args):

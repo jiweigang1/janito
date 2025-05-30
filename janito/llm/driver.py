@@ -7,7 +7,10 @@ from janito.driver_events import RequestStarted, RequestError, ResponseReceived
 class LLMDriver(ABC):
     """
     Abstract base class for LLM drivers (threaded, queue-based).
-    Subclasses must implement _call_api and _convert_completion_message_to_parts.
+    Subclasses must implement:
+      - _call_api: Call provider API with DriverInput.
+      - _convert_completion_message_to_parts: Convert provider message to MessagePart objects.
+      - convert_history_to_api_messages: Convert LLMConversationHistory to provider-specific messages format for API calls.
     Workflow:
       - Accept DriverInput via input_queue.
       - Put DriverEvents on output_queue.
@@ -96,6 +99,15 @@ class LLMDriver(ABC):
     @abstractmethod
     def _convert_completion_message_to_parts(self, message):
         """Subclasses implement: Convert provider message to list of MessagePart objects."""
+        pass
+
+    @abstractmethod
+    def convert_history_to_api_messages(self, conversation_history):
+        """
+        Subclasses implement: Convert LLMConversationHistory to the messages object required by their provider API.
+        :param conversation_history: LLMConversationHistory instance
+        :return: Provider-specific messages object (e.g., list of dicts for OpenAI)
+        """
         pass
 
     def _get_message_from_result(self, result):

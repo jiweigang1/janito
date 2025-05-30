@@ -41,16 +41,16 @@ class PerformanceCollector(EventHandlerBase):
         self._events.append(('RequestStarted', event))
         # Store the start time if possible
         # Assumes 'event' has a unique .request_id and a .timestamp (in seconds)
-        request_id = getattr(event, 'request_id', None)
-        timestamp = getattr(event, 'timestamp', None)
+        request_id = event.request_id
+        timestamp = event.timestamp
         if request_id is not None and timestamp is not None:
             self._request_start_times[request_id] = timestamp
 
     def on_RequestFinished(self, event):
         self._events.append(('RequestFinished', event))
         # Calculate and record the duration if start time is available
-        request_id = getattr(event, 'request_id', None)
-        finish_time = getattr(event, 'timestamp', None)
+        request_id = event.request_id
+        finish_time = event.timestamp
         if request_id is not None and finish_time is not None:
             start_time = self._request_start_times.pop(request_id, None)
             if start_time is not None:
@@ -62,7 +62,7 @@ class PerformanceCollector(EventHandlerBase):
                     self._durations.append(float(delta))
         self.total_requests += 1
         self.status_counter[event.status] += 1
-        usage = getattr(event, 'usage', None)
+        usage = event.usage
         if usage:
             self._last_request_usage = usage.copy()
             for k, v in usage.items():
@@ -78,7 +78,7 @@ class PerformanceCollector(EventHandlerBase):
     def on_GenerationFinished(self, event):
         self._events.append(('GenerationFinished', event))
         self.generation_finished_count += 1
-        self.total_turns += getattr(event, 'total_turns', 0)
+        self.total_turns += event.total_turns
 
     def on_ContentPartFound(self, event):
         self._events.append(('ContentPartFound', event))
@@ -87,7 +87,7 @@ class PerformanceCollector(EventHandlerBase):
     def on_ToolCallStarted(self, event):
         self._events.append(('ToolCallStarted', event))
         self.total_tool_events += 1
-        self.tool_names_counter[getattr(event, 'tool_name', None)] += 1
+        self.tool_names_counter[event.tool_name] += 1
 
     def on_ReportEvent(self, event):
         self._events.append(('ReportEvent', event))

@@ -55,6 +55,7 @@ class OpenAIProvider(LLMProvider):
         output_queue = Queue()
         driver = OpenAIModelDriver(input_queue, output_queue, tools_adapter=self._tools_adapter)
         driver.config = self._driver_config
+        driver.start()
         return driver
 
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):

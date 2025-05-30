@@ -6,6 +6,8 @@ class LLMDriverConfig:
     verbose_api: Optional[bool] = None
     """
     Common configuration container for LLM drivers.
+    - verbose_api: Print API trace info if set
+    
     Holds standard attributes that most LLM drivers require (used as a config or schema reference object).
     Inspired by the OpenAI driver, but fields are generic for most LLM backends.
     """
@@ -18,7 +20,6 @@ class LLMDriverConfig:
     presence_penalty: Optional[float] = None
     frequency_penalty: Optional[float] = None
     stop: Optional[Any] = None  # list or string, depending on backend
-    verbose_api: Optional[bool] = None  # Print API trace info if set
     extra: dict = field(default_factory=dict)  # for provider-specific miscellaneous config fields
 
     def to_dict(self) -> dict:

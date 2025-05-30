@@ -38,7 +38,7 @@ class ChatShellState:
         self.main_enabled = False
 
 class ChatSession:
-    def __init__(self, console, provider_instance=None, llm_driver_config=None, role=None, args=None):
+    def __init__(self, console, provider_instance=None, llm_driver_config=None, role=None, args=None, verbose_tools=False, verbose_agent=False):
         from janito.cli.prompt_core import PromptHandler as GenericPromptHandler
         self._prompt_handler = GenericPromptHandler(
             args=None,
@@ -55,9 +55,14 @@ class ChatSession:
                 self.mem_history.append_string(item["input"])
         self.provider_instance = provider_instance
         self.llm_driver_config = llm_driver_config
-        from janito.agent.setup_agent import setup_agent
-        zero_mode = getattr(args, 'zero', False) if args else False
-        agent = setup_agent(provider_instance, llm_driver_config, role=role, zero_mode=zero_mode)
+        from janito.agent.setup_agent import create_configured_agent
+        agent = create_configured_agent(
+    provider_instance=provider_instance,
+    llm_driver_config=llm_driver_config,
+    role=role,
+    verbose_tools=verbose_tools,
+    verbose_agent=verbose_agent
+)
         self.shell_state = ChatShellState(self.mem_history, [])
         self.shell_state.agent = agent
         self.agent = agent

@@ -30,7 +30,8 @@ class OpenAIModelDriver(LLMDriver):
             try:
                 from janito.providers.openai.schema_generator import generate_tool_schemas
                 tool_classes = self.tools_adapter.get_tool_classes()
-                api_kwargs['tools'] = generate_tool_schemas(tool_classes)
+                tool_schemas = generate_tool_schemas(tool_classes)
+                api_kwargs['tools'] = tool_schemas
             except Exception as e:
                 api_kwargs['tools'] = []
                 if config.verbose_api:
@@ -49,21 +50,87 @@ class OpenAIModelDriver(LLMDriver):
 
     def _call_api(self, driver_input: DriverInput):
         config = driver_input.config
-        conversation = driver_input.conversation_history.get_history()
+        conversation = self.convert_history_to_api_messages(driver_input.conversation_history)
         if config.verbose_api:
             print(f"[verbose-api] OpenAI API call about to be sent. Model: {config.model}, max_tokens: {config.max_tokens}, tools_adapter: {self.tools_adapter is not None}")
-        client = openai.OpenAI(api_key=config.api_key)
-        api_kwargs = self._prepare_api_kwargs(config, conversation)
-        if config.verbose_api:
-            print(f'[OpenAI] API CALL: chat.completions.create(**{api_kwargs})')
-        result = client.chat.completions.create(**api_kwargs)
-        if config.verbose_api:
-            pretty.install()
-            print('[OpenAI] API RESPONSE:')
-            pretty.pprint(result)
-            content = result.choices[0].message.content if result.choices else None
-            print(f"[verbose-api] OpenAI Driver: Emitting ResponseReceived with content length: {len(content) if content else 0}")
-        return result
+        try:
+            client = openai.OpenAI(api_key=config.api_key)
+            api_kwargs = self._prepare_api_kwargs(config, conversation)
+            if config.verbose_api:
+                print(f'[OpenAI] API CALL: chat.completions.create(**{api_kwargs})')
+            result = client.chat.completions.create(**api_kwargs)
+            if config.verbose_api:
+                pretty.install()
+                print('[OpenAI] API RESPONSE:')
+                pretty.pprint(result)
+                content = result.choices[0].message.content if hasattr(result, 'choices') and result.choices else None
+                print(f"[verbose-api] OpenAI Driver: Emitting ResponseReceived with content length: {len(content) if content else 0}")
+            return result
+        except Exception as e:
+            print(f"[ERROR] Exception during OpenAI API call: {e}")
+            import traceback
+            print(traceback.format_exc())
+            raise
+
+    def convert_history_to_api_messages(self, conversation_history):
+        """
+        Convert LLMConversationHistory to the list of dicts required by OpenAI's API.
+        Handles 'tool_results' and 'tool_calls' roles for compliance.
+        """
+        import json
+        api_messages = []
+        for msg in conversation_history.get_history():
+            role = msg.get('role')
+            content = msg.get('content')
+            if role == 'tool_results':
+                # Expect content to be a list of tool result dicts or a stringified list
+                try:
+                    results = json.loads(content) if isinstance(content, str) else content
+                except Exception:
+                    results = [content]
+                for result in results:
+                    # result should be a dict with keys: name, content, tool_call_id
+                    if isinstance(result, dict):
+                        api_messages.append({
+                            'role': 'tool',
+                            'content': result.get('content', ''),
+                            'name': result.get('name', ''),
+                            'tool_call_id': result.get('tool_call_id', '')
+                        })
+                    else:
+                        api_messages.append({
+                            'role': 'tool',
+                            'content': str(result),
+                            'name': '',
+                            'tool_call_id': ''
+                        })
+            elif role == 'tool_calls':
+                # Convert to assistant message with tool_calls field
+                import json
+                try:
+                    tool_calls = json.loads(content) if isinstance(content, str) else content
+                except Exception:
+                    tool_calls = []
+                api_messages.append({
+                    'role': 'assistant',
+                    'content': None,
+                    'tool_calls': tool_calls
+                })
+            else:
+                # Special handling for 'function' role: extract 'name' from metadata if present
+                if role == 'function':
+                    name = ''
+                    if isinstance(msg, dict):
+                        metadata = msg.get('metadata', {})
+                        name = metadata.get('name', '') if isinstance(metadata, dict) else ''
+                    api_messages.append({
+                        'role': 'function',
+                        'content': content,
+                        'name': name
+                    })
+                else:
+                    api_messages.append(msg)
+        return api_messages
 
     def _convert_completion_message_to_parts(self, message):
         """

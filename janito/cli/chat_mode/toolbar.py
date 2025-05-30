@@ -17,8 +17,6 @@ def format_tokens(n, tag=None):
 def assemble_first_line(provider_name, model_name, role, agent=None):
     return f" Janito {VERSION} | Provider: <provider>{provider_name}</provider> | Model: <model>{model_name}</model> | Role: <role>{role}</role>"
 
-
-
 def assemble_bindings_line(width):
     return (
         f' <key-label>F1</key-label>: Restart conversation | '
@@ -36,21 +34,21 @@ def get_toolbar_func(perf: PerformanceCollector, msg_count: int, shell_state):
         provider_name = "?"
         model_name = "?"
         role = "?"
-        agent = getattr(shell_state, 'agent', None)
-        termweb_port = getattr(shell_state, 'termweb_port', None)
-        termweb_status = getattr(shell_state, 'termweb_status', None)
+        agent = shell_state.agent if hasattr(shell_state, 'agent') else None
+        termweb_port = shell_state.termweb_port if hasattr(shell_state, 'termweb_port') else None
+        termweb_status = shell_state.termweb_status if hasattr(shell_state, 'termweb_status') else None
         # Use cached liveness check only (set by background thread in shell_state)
         this_termweb_status = termweb_status
         if termweb_status == "starting" or termweb_status is None:
             this_termweb_status = termweb_status
         else:
-            live_status = getattr(shell_state, 'termweb_live_status', None)
+            live_status = shell_state.termweb_live_status if hasattr(shell_state, 'termweb_live_status') else None
             if live_status is not None:
                 this_termweb_status = live_status
         if agent is not None:
             if hasattr(agent, "driver"):
-                provider_name = getattr(agent.driver, "name", "?")
-                model_name = getattr(agent.driver, "model_name", "?")
+                provider_name = agent.driver.name if hasattr(agent.driver, "name") else "?"
+                model_name = agent.driver.model_name if hasattr(agent.driver, "model_name") else "?"
             if hasattr(agent, "template_vars"):
                 role = agent.template_vars.get("role", "?")
         usage = perf.get_last_request_usage()
