@@ -131,19 +131,19 @@ class PythonFileRunTool(ToolBase):
             )
 
         if stdout_lines <= max_lines and stderr_lines <= max_lines:
-            result = f"Return code: {return_code}\n--- STDOUT ---\n{stdout_content}"
+            result = f"Return code: {return_code}\n--- python_file_run: STDOUT ---\n{stdout_content}"
             if stderr_content.strip():
-                result += f"\n--- STDERR ---\n{stderr_content}"
+                result += f"\n--- python_file_run: STDERR ---\n{stderr_content}"
             return result
         else:
             result = f"stdout_file: {stdout_file_name} (lines: {stdout_lines})\n"
             if stderr_lines > 0 and stderr_content.strip():
                 result += f"stderr_file: {stderr_file_name} (lines: {stderr_lines})\n"
             result += f"returncode: {return_code}\n"
-            result += "--- STDOUT (head/tail) ---\n" + head_tail(stdout_content) + "\n"
+            result += "--- python_file_run: STDOUT (head/tail) ---\n" + head_tail(stdout_content) + "\n"
             if stderr_content.strip():
                 result += (
-                    "--- STDERR (head/tail) ---\n" + head_tail(stderr_content) + "\n"
+                    "--- python_file_run: STDERR (head/tail) ---\n" + head_tail(stderr_content) + "\n"
                 )
-            result += "Use the get_lines tool to inspect the contents of these files when needed."
+            result += "Use the view_file tool to inspect the contents of these files when needed."
             return result

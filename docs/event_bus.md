@@ -27,6 +27,7 @@ The event bus is a central mechanism for publish/subscribe (pub/sub) communicati
      ```python
      @dataclass
      class RequestStarted(DriverEvent):
+class RequestFinished(DriverEvent):
          payload: Any
          # ...
      ```
@@ -35,24 +36,26 @@ The event bus is a central mechanism for publish/subscribe (pub/sub) communicati
 To listen for events, subscribe a callback to an event type:
 ```python
 from janito.event_bus.bus import event_bus
-from janito.driver_events import RequestStarted
+from janito.driver_events import RequestStarted, RequestFinished
 
 def on_request_started(event):
     print(f"Request started: {event}")
 
 event_bus.subscribe(RequestStarted, on_request_started)
+event_bus.subscribe(RequestFinished, on_request_finished)
 ```
 
 ## Unsubscribing from Events
 To stop listening:
 ```python
 event_bus.unsubscribe(RequestStarted, on_request_started)
+event_bus.unsubscribe(RequestFinished, on_request_finished)
 ```
 
 ## Publishing Events
 To notify subscribers of an event:
 ```python
-from janito.driver_events import RequestStarted
+from janito.driver_events import RequestStarted, RequestFinished
 from janito.event_bus.bus import event_bus
 
 my_event = RequestStarted(driver_name="driver1", request_id="abc123", payload={...})
@@ -69,7 +72,7 @@ event_bus.publish(my_event)
 
 ## Example
 ```python
-from janito.driver_events import RequestStarted
+from janito.driver_events import RequestStarted, RequestFinished
 from janito.event_bus.bus import event_bus
 
 def log_event(event):

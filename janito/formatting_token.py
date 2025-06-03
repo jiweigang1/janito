@@ -24,29 +24,20 @@ def format_tokens(n, tag=None, use_rich=False):
 
 def format_token_message_summary(msg_count, usage, width=96, use_rich=False):
     """
-    Returns a string (rich or pt markup) summarizing message & token counts.
+    Returns a string (rich or pt markup) summarizing message count and last token usage.
     """
-    prompt_tokens = usage.get("prompt_tokens") if usage else None
-    completion_tokens = usage.get("completion_tokens") if usage else None
-    total_tokens = usage.get("total_tokens") if usage else None
     left = f" Messages: {'[' if use_rich else '<'}msg_count{']' if use_rich else '>'}{msg_count}{'[/msg_count]' if use_rich else '</msg_count>'}"
     tokens_part = ""
-    if (
-        prompt_tokens is not None
-        or completion_tokens is not None
-        or total_tokens is not None
-    ):
+    if usage:
+        prompt_tokens = usage.get("prompt_tokens")
+        completion_tokens = usage.get("completion_tokens")
+        total_tokens = usage.get("total_tokens")
         tokens_part = (
             f" | Tokens - Prompt: {format_tokens(prompt_tokens, 'tokens_in', use_rich)}, "
             f"Completion: {format_tokens(completion_tokens, 'tokens_out', use_rich)}, "
             f"Total: {format_tokens(total_tokens, 'tokens_total', use_rich)}"
         )
-    second_line = f"{left}{tokens_part}"
-    total_len = len(second_line)
-    if total_len < width:
-        padding = " " * (width - total_len)
-        second_line = f"{second_line}{padding}"
-    return second_line
+    return f"{left}{tokens_part}"
 
 
 def print_token_message_summary(console, msg_count=None, usage=None, width=96):

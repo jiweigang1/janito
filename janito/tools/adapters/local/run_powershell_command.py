@@ -116,7 +116,7 @@ class RunPowershellCommandTool(ToolBase):
                     stderr_lines=stderr_lines,
                 )
             result += tr(
-                "returncode: {return_code}\nUse the get_lines tool to inspect the contents of these files when needed.",
+                "returncode: {return_code}\nUse the view_file tool to inspect the contents of these files when needed.",
                 return_code=return_code,
             )
             return result

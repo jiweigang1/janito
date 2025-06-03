@@ -3,7 +3,6 @@ from janito.llm.model import LLMModelInfo
 from janito.llm.auth import LLMAuthManager
 from janito.llm.driver_config import LLMDriverConfig
 from janito.drivers.openai.driver import OpenAIModelDriver
-from janito.drivers.openai_responses.driver import OpenAIResponsesModelDriver
 from janito.tools import get_local_tools_adapter
 from janito.providers.registry import LLMProviderRegistry
 from .model_info import MODEL_SPECS
@@ -51,11 +50,9 @@ class OpenAIProvider(LLMProvider):
         """
         Creates and returns a new OpenAIModelDriver instance with input/output queues.
         """
-        input_queue = Queue()
-        output_queue = Queue()
-        driver = OpenAIModelDriver(input_queue, output_queue, tools_adapter=self._tools_adapter)
+        driver = OpenAIModelDriver(tools_adapter=self._tools_adapter)
         driver.config = self._driver_config
-        driver.start()
+        # NOTE: The caller is responsible for calling driver.start() if background processing is needed.
         return driver
 
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):

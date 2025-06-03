@@ -3,12 +3,14 @@ from janito.llm.driver_config import LLMDriverConfig
 from janito.conversation_history import LLMConversationHistory
 from janito.tools.tools_adapter import ToolsAdapterBase
 from queue import Queue, Empty
+from janito.driver_events import RequestStatus
 from typing import Any, Optional, List, Iterator, Union
 import threading
 import logging
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 import time
+from janito.event_bus.bus import event_bus
 
 class LLMAgent:
     _event_lock: threading.Lock
@@ -37,6 +39,23 @@ class LLMAgent:
         self._event_lock = threading.Lock()
         self._latest_event = None
         self.verbose_agent = verbose_agent
+        self.driver = None  # Will be set by setup_agent if available
+
+    def get_provider_name(self):
+        # Try to get provider name from driver, fallback to llm_provider, else '?'
+        if self.driver and hasattr(self.driver, 'name'):
+            return self.driver.name
+        elif hasattr(self.llm_provider, 'name'):
+            return self.llm_provider.name
+        return "?"
+
+    def get_model_name(self):
+        # Try to get model name from driver, fallback to llm_provider, else '?'
+        if self.driver and hasattr(self.driver, 'model_name'):
+            return self.driver.model_name
+        elif hasattr(self.llm_provider, 'model_name'):
+            return self.llm_provider.model_name
+        return "?"
 
     def set_template_var(self, key: str, value: str) -> None:
         """Set a variable for system prompt templating."""
@@ -94,54 +113,64 @@ class LLMAgent:
             else:
                 pass  # Add detailed logging here if needed
 
-    def _handle_event_type(self, event, bus):
+    def _handle_event_type(self, event):
         event_class = getattr(event, '__class__', None)
         if event_class is not None and event_class.__name__ == 'ResponseReceived':
-            should_continue = self._handle_response_received(event)
-            return event, should_continue
-        elif getattr(event, '__class__', None) is not None and event.__class__.__name__ in ('RequestError', 'EmptyResponseEvent'):
-            return event, False
-        return None
+            added_tool_results = self._handle_response_received(event)
+            return event, added_tool_results
+        # For all other events (including RequestFinished with status='error', RequestStarted), do not exit loop
+        return None, False
 
-    def _prepare_driver_input(self, config):
+    def _prepare_driver_input(self, config, cancel_event=None):
         return DriverInput(
             config=config,
-            conversation_history=self.conversation_history
+            conversation_history=self.conversation_history,
+            cancel_event=cancel_event
         )
 
-    def _process_events(self, bus: Queue = None, poll_timeout: float = 1.0, max_wait_time: float = 30.0):
+    def _process_next_response(self, poll_timeout: float = 1.0, max_wait_time: float = 300.0):
         """
-        Wait for events from the output queue with a small polling timeout to allow KeyboardInterrupt interception.
-        Tracks elapsed time and returns an error if no events are received within max_wait_time seconds.
+        Wait for a single event from the output queue (with timeout), process it, and return the result.
+        This function is intended to be called from the main agent loop, which controls the overall flow.
         """
+        if getattr(self, 'verbose_agent', False):
+            print("[agent] [DEBUG] Entered _process_next_response")
         elapsed = 0.0
         try:
+            if getattr(self, 'verbose_agent', False):
+                print("[agent] [DEBUG] Waiting for event from output_queue...")
             while True:
+                event = None
                 try:
                     event = self.output_queue.get(timeout=poll_timeout)
                 except Empty:
                     elapsed += poll_timeout
                     if elapsed >= max_wait_time:
-                        error_msg = f"[ERROR] No output from driver in agent.chat() after {max_wait_time} seconds"
-                        if bus:
-                            bus.put(error_msg)
+                        error_msg = f"[ERROR] No output from driver in agent.chat() after {max_wait_time} seconds (timeout exit)"
                         print(error_msg)
-                        return None
+                        print('[DEBUG] Exiting _process_next_response due to timeout')
+                        return None, False
                     continue
-                # Reset elapsed time on successful event
-                elapsed = 0.0
-                # Publish every event to the bus if provided
-                if bus:
-                    bus.put(event)
+                if getattr(self, 'verbose_agent', False):
+                    print(f"[agent] [DEBUG] Received event from output_queue: {event}")
+                # Publish every event immediately to the system event bus
+                event_bus.publish(event)
                 self._log_event_verbose(event)
-                result = self._handle_event_type(event, bus)
-                if result is not None:
+                event_class = getattr(event, '__class__', None)
+                event_name = event_class.__name__ if event_class else None
+                if event_name == 'ResponseReceived':
+                    result = self._handle_event_type(event)
                     return result
+                elif (event_name == 'RequestFinished' and getattr(event, 'status', None) in [RequestStatus.ERROR, RequestStatus.EMPTY_RESPONSE, RequestStatus.TIMEOUT]):
+                    return (event, False)
+                # Otherwise, keep looping for a terminal event
         except KeyboardInterrupt:
-            print("[INFO] KeyboardInterrupt received. Exiting event loop.")
-            if bus:
-                bus.put("[INFO] KeyboardInterrupt received. Exiting event loop.")
-            return None
+            # Notify driver of cancellation
+            if hasattr(self, 'input_queue') and self.input_queue is not None:
+                from janito.driver_events import RequestFinished
+                cancel_event = RequestFinished(status=RequestStatus.CANCELLED, reason="User interrupted (KeyboardInterrupt)")
+                self.input_queue.put(cancel_event)
+            return None, False
 
     def _handle_response_received(self, event) -> bool:
         """
@@ -155,20 +184,35 @@ class LLMAgent:
         tool_results = []
         for part in event.parts:
             if isinstance(part, FunctionCallMessagePart):
+                if getattr(self, 'verbose_agent', False):
+                    print(f"[agent] [DEBUG] Tool call detected: {getattr(part, 'name', repr(part))} with arguments: {getattr(part, 'arguments', None)}")
                 tool_calls.append(part)
                 result = self.tools_adapter.execute_function_call_message_part(part)
                 tool_results.append(result)
         if tool_calls:
             # For each tool call, add a function message with the tool result
             for call, result in zip(tool_calls, tool_results):
-                function_name = getattr(call, 'name', 'function')
-                # Add as role 'function' with name in metadata if available
-                self.conversation_history.add_message('function', str(result), metadata={'name': function_name})
+                function_name = getattr(call, 'name', None) or (getattr(call, 'function', None) and getattr(call.function, 'name', None)) or 'function'
+                arguments = getattr(call, 'function', None) and getattr(call.function, 'arguments', None)
+                tool_call_id = getattr(call, 'tool_call_id', None)
+                # Add both tool call and result atomically after result is available
+                if getattr(self, 'verbose_agent', False):
+                    print(f"[agent] [DEBUG] Adding tool call and result to conversation history: function={function_name}, arguments={arguments}, result={result}, tool_call_id={tool_call_id}")
+                self.conversation_history.add_message(
+                    'function',
+                    str(arguments) if arguments else '',
+                    metadata={'name': function_name, 'tool_call_id': tool_call_id, 'is_tool_call': True}
+                )
+                self.conversation_history.add_message(
+                    'function',
+                    str(result),
+                    metadata={'name': function_name, 'tool_call_id': tool_call_id, 'is_tool_result': True}
+                )
             return True  # Continue the loop
         else:
             return False  # No tool calls, return event
 
-    def chat(self, prompt: str = None, messages: Optional[List[dict]] = None, role: str = "user", bus: Queue = None, config=None):
+    def chat(self, prompt: str = None, messages: Optional[List[dict]] = None, role: str = "user", config=None):
         """
         Main agent conversation loop supporting function/tool calls and conversation history extension, now as a blocking event-driven loop with event publishing.
 
@@ -176,7 +220,6 @@ class LLMAgent:
             prompt: The user prompt as a string (optional if messages is provided).
             messages: A list of message dicts (optional if prompt is provided).
             role: The role for the prompt (default: 'user').
-            bus: Optional Queue to which all events will be published.
             config: Optional driver config (defaults to provider config).
 
         Returns:
@@ -187,19 +230,30 @@ class LLMAgent:
         if config is None:
             config = self.llm_provider.driver_config
         loop_count = 1
+        import threading
+        cancel_event = threading.Event()
         while True:
-            # DEBUG: Print conversation history before sending to driver
             if getattr(self, 'verbose_agent', False):
+                print(f"[agent] [DEBUG] Preparing new driver_input (loop_count={loop_count}) with updated conversation history:")
                 for msg in self.conversation_history.get_history():
                     print("   ", msg)
-            driver_input = self._prepare_driver_input(config)
+            driver_input = self._prepare_driver_input(config, cancel_event=cancel_event)
             self.input_queue.put(driver_input)
-            result, should_continue = self._process_events(bus)
+            try:
+                result, added_tool_results = self._process_next_response()
+            except KeyboardInterrupt:
+                cancel_event.set()
+                raise
+            if getattr(self, 'verbose_agent', False):
+                print(f"[agent] [DEBUG] Returned from _process_next_response: result={result}, added_tool_results={added_tool_results}")
             if result is None:
-                return None
-            if not should_continue:
+                if getattr(self, 'verbose_agent', False):
+                    print(f"[agent] [INFO] Exiting chat loop: _process_next_response returned None result (likely timeout or error). Returning (None, False).")
+                return None, False
+            if not added_tool_results:
+                if getattr(self, 'verbose_agent', False):
+                    print(f"[agent] [INFO] Exiting chat loop: _process_next_response returned added_tool_results=False (final response or no more tool calls). Returning result: {result}")
                 return result
-            # Otherwise, continue loop (for tool calls)
             loop_count += 1
 
     def set_latest_event(self, event: str) -> None:
@@ -218,5 +272,49 @@ class LLMAgent:
         """Reset/clear the interaction history."""
         self.conversation_history = LLMConversationHistory()
 
+    def get_provider_name(self) -> str:
+        """Return the provider name, if available."""
+        if hasattr(self.llm_provider, 'name'):
+            return getattr(self.llm_provider, 'name', '?')
+        if self.driver and hasattr(self.driver, 'name'):
+            return getattr(self.driver, 'name', '?')
+        return "?"
+
+    def get_model_name(self) -> str:
+        """Return the model name, if available."""
+        if self.driver and hasattr(self.driver, 'model_name'):
+            return getattr(self.driver, 'model_name', '?')
+        return "?"
+
     def get_name(self) -> Optional[str]:
         return self.agent_name
+
+    def get_provider_name(self) -> str:
+        """
+        Return the provider name for this agent, if available.
+        """
+        if hasattr(self, 'llm_provider') and hasattr(self.llm_provider, 'name'):
+            return self.llm_provider.name
+        if hasattr(self, 'driver') and self.driver and hasattr(self.driver, 'provider_name'):
+            return self.driver.provider_name
+        if hasattr(self, 'driver') and self.driver and hasattr(self.driver, 'name'):
+            return self.driver.name
+        return "?"
+
+    def get_model_name(self) -> str:
+        """
+        Return the model name for this agent, if available.
+        """
+        if hasattr(self, 'driver') and self.driver and hasattr(self.driver, 'model_name'):
+            return self.driver.model_name
+        if hasattr(self, 'llm_provider') and hasattr(self.llm_provider, 'model_name'):
+            return self.llm_provider.model_name
+        return "?"
+
+    def join_driver(self, timeout=None):
+        """
+        Wait for the driver's background thread to finish. Call this before exiting to avoid daemon thread shutdown errors.
+        :param timeout: Optional timeout in seconds.
+        """
+        if hasattr(self, 'driver') and self.driver and hasattr(self.driver, '_thread') and self.driver._thread:
+            self.driver._thread.join(timeout)

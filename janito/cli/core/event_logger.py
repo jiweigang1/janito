@@ -28,7 +28,9 @@ def setup_event_logger_if_needed(args):
         def event_logger_handler(event):
             from janito.cli.console import shared_console
             from rich.pretty import Pretty
-            shared_console.print(f"[EventLog] [bold green]{event.__class__.__name__}[/] | [cyan]{getattr(event, 'category', '')}[/]")
+            from datetime import datetime
+            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            shared_console.print(f"[EventLog] [dim]{timestamp}[/] [bold green]{event.__class__.__name__}[/] | [cyan]{getattr(event, 'category', '')}[/]")
             shared_console.print(Pretty(event, expand_all=True))
             shared_console.file.flush()
         from janito.event_bus.event import Event

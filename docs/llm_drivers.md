@@ -2,14 +2,14 @@
 
 ## Overview
 
-The driver layer in this project provides a unified, event-driven interface for interacting with various Large Language Model (LLM) providers (such as OpenAI, Google Gemini, MistralAI, etc.). Each driver encapsulates the provider-specific logic and exposes a standardized streaming API for generating model outputs.
+The driver layer described below is intended to provide a unified, event-driven interface for interacting with various Large Language Model (LLM) providers (such as OpenAI, Google Gemini, MistralAI, etc.). However, as of this writing, the actual driver code (including the LLMDriver base class and its subclasses) is not present in this directory. The following describes the intended architecture and requirements, but no implementation is currently available here.
 
 ## Key Concepts
 
 ### Streaming, Event-Driven Interface
 
 - All drivers now use a threaded, queue-based input/output mechanism. The agent sends DriverInput objects to the input queue and reads aggregate DriverEvent objects (notably `ResponseReceived`) from the output queue.
-- Drivers emit standardized events (e.g., `ResponseReceived`, `GenerationStarted`, `RequestError`, etc.) as the generation progresses.
+- Drivers emit standardized events (e.g., `ResponseReceived`, `GenerationStarted`, `RequestFinished`, etc.) as the generation progresses. `RequestFinished` covers both success, error, and cancellation cases.
 - The new `ResponseReceived` event contains all content, tool calls, and metadata for that turn, so consumers and agents can react more intelligently (especially for automatic tool invocation patterns).
 
 ### Threading and Cancellation
@@ -27,7 +27,7 @@ The driver layer in this project provides a unified, event-driven interface for 
 
 ```python
 import threading
-from janito.driver_events import ResponseReceived, RequestError
+from janito.driver_events import ResponseReceived, RequestFinished
 
 cancel_event = threading.Event()
 for event in agent.chat(
@@ -38,7 +38,7 @@ for event in agent.chat(
     if isinstance(event, ResponseReceived):
         for part in event.content_parts:
             print(part, end="", flush=True)
-    elif isinstance(event, RequestError):
+    elif isinstance(event, RequestFinished) and getattr(event, 'status', None) == 'error':
         print(f"\n[Error: {event.error}]")
 ```
 
@@ -46,8 +46,7 @@ for event in agent.chat(
 
 - `ResponseReceived`: Aggregate response event containing all content parts, all tool calls, and associated metadata for the turn. The agent now listens for this event by default.
 - `GenerationStarted`: Generation process has begun.
-- `RequestStarted`, `RequestFinished`: API request lifecycle events (may still be used for diagnostics).
-- `RequestError`: An error occurred during generation.
+- `RequestStarted`, `RequestFinished`: API request lifecycle events. `RequestFinished` includes a `status` field which may be 'success', 'error', or 'cancelled'.
 - (Legacy granular events such as `ContentPartFound` are no longer emitted by compliant drivers.)
 - (Provider-specific events may also be emitted.)
 
@@ -56,7 +55,7 @@ for event in agent.chat(
 To add support for a new LLM provider:
 
 1. Subclass `LLMDriver`.
-2. Implement the `_process_input()` method, which consumes a DriverInput object, performs LLM generation, and emits DriverEvent objects to the output queue.
+2. Implement the `_process_driver_input()` method, which consumes a DriverInput object, performs LLM generation, and emits DriverEvent objects to the output queue.
 3. Emit standardized events as output is generated.
 
 ## Provider-Specific Notes

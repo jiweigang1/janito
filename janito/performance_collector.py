@@ -48,6 +48,8 @@ class PerformanceCollector(EventHandlerBase):
 
     def on_RequestFinished(self, event):
         self._events.append(('RequestFinished', event))
+        if getattr(event, 'status', None) in ('error', 'cancelled'):
+            self._events.append(('RequestFinished', event))
         # Calculate and record the duration if start time is available
         request_id = event.request_id
         finish_time = event.timestamp
@@ -69,8 +71,9 @@ class PerformanceCollector(EventHandlerBase):
                 if isinstance(v, (int, float)):
                     self.token_usage[k] += v
 
-    def on_RequestError(self, event):
-        self._events.append(('RequestError', event))
+    def on_RequestFinished(self, event):
+        if getattr(event, 'status', None) in ('error', 'cancelled'):
+            self._events.append(('RequestFinished', event))
         self.error_count += 1
         self.error_messages.append(event.error)
         self.error_exceptions.append(event.exception)

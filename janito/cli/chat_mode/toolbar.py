@@ -46,9 +46,9 @@ def get_toolbar_func(perf: PerformanceCollector, msg_count: int, shell_state):
             if live_status is not None:
                 this_termweb_status = live_status
         if agent is not None:
-            if hasattr(agent, "driver"):
-                provider_name = agent.driver.name if hasattr(agent.driver, "name") else "?"
-                model_name = agent.driver.model_name if hasattr(agent.driver, "model_name") else "?"
+            # Use agent API to get provider and model name
+            provider_name = agent.get_provider_name() if hasattr(agent, 'get_provider_name') else "?"
+            model_name = agent.get_model_name() if hasattr(agent, 'get_model_name') else "?"
             if hasattr(agent, "template_vars"):
                 role = agent.template_vars.get("role", "?")
         usage = perf.get_last_request_usage()

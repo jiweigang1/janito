@@ -1,6 +1,14 @@
 import attr
 from typing import Any, ClassVar
+from enum import Enum
 from janito.event_bus.event import Event
+
+class RequestStatus(Enum):
+    SUCCESS = "success"
+    ERROR = "error"
+    CANCELLED = "cancelled"
+    EMPTY_RESPONSE = "empty_response"
+    TIMEOUT = "timeout"
 
 @attr.s(auto_attribs=True, kw_only=True)
 class DriverEvent(Event):
@@ -26,22 +34,23 @@ class RequestStarted(DriverEvent):
 
 @attr.s(auto_attribs=True, kw_only=True)
 class RequestFinished(DriverEvent):
+    """
+    Used for all request completions: success, error, cancellation, empty response, or timeout.
+    status should be a RequestStatus value.
+    - For errors, fill error/exception/traceback fields.
+    - For cancellations, fill reason field.
+    - For empty response, fill error/details fields as appropriate.
+    - For timeout, fill error/details fields as appropriate.
+    """
     response: Any = None
-    status: str = None
+    status: RequestStatus = None  # RequestStatus.SUCCESS, ERROR, CANCELLED, EMPTY_RESPONSE, TIMEOUT
     usage: dict = None
-
-@attr.s(auto_attribs=True, kw_only=True)
-class RequestError(DriverEvent):
+    finish_type: str = None  # 'success', 'error', 'cancelled', etc. (legacy)
     error: str = None
     exception: Exception = None
     traceback: str = None
-
-@attr.s(auto_attribs=True, kw_only=True)
-class EmptyResponseEvent(DriverEvent):
-    error: str = None
-    exception: Exception = None
-    traceback: str = None
-    details: dict = None
+    reason: str = None  # for cancellations or empty/timeout reasons
+    details: dict = None  # for additional info (empty response, timeout, etc.)
 
 @attr.s(auto_attribs=True, kw_only=True)
 class ContentPartFound(DriverEvent):

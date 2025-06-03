@@ -78,8 +78,10 @@ def create_configured_agent(*, provider_instance=None, llm_driver_config=None, r
     # If provider_instance has create_driver, wire queues (single-shot mode)
     input_queue = None
     output_queue = None
+    driver = None
     if hasattr(provider_instance, 'create_driver'):
         driver = provider_instance.create_driver()
+        driver.start()  # Ensure the driver background thread is started
         input_queue = getattr(driver, 'input_queue', None)
         output_queue = getattr(driver, 'output_queue', None)
 
@@ -94,4 +96,6 @@ def create_configured_agent(*, provider_instance=None, llm_driver_config=None, r
         verbose_tools=verbose_tools,
         verbose_agent=verbose_agent
     )
+    if driver is not None:
+        agent.driver = driver  # Attach driver to agent for thread management
     return agent

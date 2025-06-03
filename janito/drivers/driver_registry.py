@@ -12,7 +12,6 @@ from janito.drivers.dashscope.driver import DashScopeModelDriver
 from janito.drivers.google_genai.driver import GoogleGenaiModelDriver
 from janito.drivers.mistralai.driver import MistralAIModelDriver
 from janito.drivers.openai.driver import OpenAIModelDriver
-from janito.drivers.openai_responses.driver import OpenAIResponsesModelDriver
 
 _DRIVER_REGISTRY: Dict[str, Type] = {
     "AnthropicModelDriver": AnthropicModelDriver,
@@ -21,7 +20,6 @@ _DRIVER_REGISTRY: Dict[str, Type] = {
     "GoogleGenaiModelDriver": GoogleGenaiModelDriver,
     "MistralAIModelDriver": MistralAIModelDriver,
     "OpenAIModelDriver": OpenAIModelDriver,
-    "OpenAIResponsesModelDriver": OpenAIResponsesModelDriver,
 }
 
 def get_driver_class(name: str):

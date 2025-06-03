@@ -32,7 +32,7 @@ class AnthropicProvider(LLMProvider):
         if not self._info.api_key:
             self._info.api_key = self._api_key
         self.fill_missing_device_info(self._info)
-        self._driver = AnthropicModelDriver(self._info, self._tools_adapter)
+        self._driver = AnthropicModelDriver(tools_adapter=self._tools_adapter)
 
     @property
     def driver(self):
@@ -53,7 +53,7 @@ class AnthropicProvider(LLMProvider):
         from janito.llm.agent import LLMAgent
         from janito.drivers.anthropic.driver import AnthropicModelDriver
         # Always create a new driver with the passed-in tools_adapter
-        driver = AnthropicModelDriver(self._info, None if tools_adapter is None else tools_adapter)
+        driver = AnthropicModelDriver(tools_adapter=tools_adapter)
         return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
 
 LLMProviderRegistry.register(AnthropicProvider.name, AnthropicProvider)

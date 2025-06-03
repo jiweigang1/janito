@@ -75,8 +75,7 @@ class ToolsAdapterBase:
             result = tool.run(*args, **kwargs)
         else:
             raise ValueError("Provided tool is not executable.")
-        if self.verbose_tools:
-            print(f"[tools-adapter] [execute] Tool execution finished: {getattr(tool, 'tool_name', repr(tool))} -> {result}")
+
         return result
 
     def execute_by_name(self, tool_name: str, *args, request_id=None, arguments=None, **kwargs):

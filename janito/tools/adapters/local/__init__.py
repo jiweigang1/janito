@@ -6,7 +6,7 @@ from .create_directory import CreateDirectoryTool
 from .create_file import CreateFileTool
 from .fetch_url import FetchUrlTool
 from .find_files import FindFilesTool
-from .get_lines import GetLinesTool
+from .view_file import ViewFileTool
 from .move_file import MoveFileTool
 from .open_url import OpenUrlTool
 from .python_code_run import PythonCodeRunTool
@@ -28,7 +28,7 @@ local_tools_adapter = LocalToolsAdapter()
 # Register tools
 for tool_class in [
     AskUserTool, CopyFileTool, CreateDirectoryTool, CreateFileTool, FetchUrlTool,
-    FindFilesTool, GetLinesTool, MoveFileTool, OpenUrlTool,
+    FindFilesTool, ViewFileTool, MoveFileTool, OpenUrlTool,
     PythonCodeRunTool, PythonCommandRunTool, PythonFileRunTool,
     RemoveDirectoryTool, RemoveFileTool, ReplaceTextInFileTool,
     RunBashCommandTool, RunPowershellCommandTool,

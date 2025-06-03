@@ -48,7 +48,7 @@ class ToolUseTracker:
     def file_fully_read(self, file_path: str) -> bool:
         norm_file_path = normalize_path(file_path)
         for entry in self._history:
-            if entry["tool"] == "get_lines":
+            if entry["tool"] == "view_file":
                 params = entry["params"]
                 if (
                     "file_path" in params
@@ -67,7 +67,7 @@ class ToolUseTracker:
         if not ops:
             return False
         last = ops[-1]
-        if last["tool"] == "get_lines":
+        if last["tool"] == "view_file":
             params = last["params"]
             if params.get("from_line") is None and params.get("to_line") is None:
                 return True

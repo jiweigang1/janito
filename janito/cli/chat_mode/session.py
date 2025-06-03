@@ -63,7 +63,8 @@ class ChatSession:
     verbose_tools=verbose_tools,
     verbose_agent=verbose_agent
 )
-        self.shell_state = ChatShellState(self.mem_history, [])
+        from janito.conversation_history import LLMConversationHistory
+        self.shell_state = ChatShellState(self.mem_history, LLMConversationHistory())
         self.shell_state.agent = agent
         self.agent = agent
         from janito.perf_singleton import performance_collector
@@ -143,12 +144,19 @@ class ChatSession:
                 continue
             self.user_input_history.append(cmd_input)
             try:
+                final_event = self._prompt_handler.agent.last_event if hasattr(self._prompt_handler.agent, 'last_event') else None
                 self._prompt_handler.run_prompt(cmd_input)
                 self.msg_count += 1
                 # After prompt, print the stat line using the shared core function
                 from janito.formatting_token import print_token_message_summary
                 usage = self.performance_collector.get_last_request_usage()
                 print_token_message_summary(self.console, self.msg_count, usage)
+                # Print exit reason if present in the final event
+                if final_event and hasattr(final_event, 'metadata'):
+                    exit_reason = final_event.metadata.get('exit_reason') if hasattr(final_event, 'metadata') else None
+                    if exit_reason:
+                        self.console.print(f"[bold yellow]Exit reason: {exit_reason}[/bold yellow]")
+
             except Exception as exc:
                 self.console.print(f"[red]Exception in agent: {exc}[/red]")
                 import traceback
@@ -181,6 +189,11 @@ class ChatSession:
 
     def _handle_exit(self):
         self.console.print("[bold yellow]Exiting chat. Goodbye![/bold yellow]")
+        # Ensure driver thread is joined before exit
+        if hasattr(self, 'agent') and hasattr(self.agent, 'join_driver'):
+            if hasattr(self.agent, 'input_queue') and self.agent.input_queue is not None:
+                self.agent.input_queue.put(None)
+            self.agent.join_driver()
 
     def _handle_exit_conditions(self, cmd_input):
         if cmd_input.lower() in ("/exit", ":q", ":quit"):

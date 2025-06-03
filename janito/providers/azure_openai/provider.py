@@ -34,7 +34,7 @@ class AzureOpenAIProvider(LLMProvider):
         if not self._driver_config.extra.get("api_version"):
             self._driver_config.extra["api_version"] = "2023-05-15"
         self.fill_missing_device_info(self._driver_config)
-        self._driver = AzureOpenAIModelDriver(self._driver_config, self._tools_adapter)
+        self._driver = AzureOpenAIModelDriver(tools_adapter=self._tools_adapter)
 
 
     @property
@@ -56,7 +56,7 @@ class AzureOpenAIProvider(LLMProvider):
         from janito.llm.agent import LLMAgent
         from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
         # Always create a new driver with the passed-in tools_adapter
-        driver = AzureOpenAIModelDriver(self._driver_config, None if tools_adapter is None else tools_adapter)
+        driver = AzureOpenAIModelDriver(tools_adapter=tools_adapter)
         return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
 
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):

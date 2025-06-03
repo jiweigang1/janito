@@ -25,6 +25,11 @@ class RichTerminalReporter(EventHandlerBase):
         self.raw_mode = raw_mode
         import janito.report_events as report_events
         super().__init__(driver_events, report_events)
+        self._waiting_printed = False
+
+    def on_RequestStarted(self, event):
+        # Print waiting message
+        self.console.print("[bold cyan]Waiting for LLM answer...[/bold cyan]", end="")
 
     def on_ResponseReceived(self, event):
         parts = event.parts if hasattr(event, 'parts') else None
@@ -38,6 +43,8 @@ class RichTerminalReporter(EventHandlerBase):
                 self.console.file.flush()
 
     def on_RequestFinished(self, event):
+        self.console.print("")  # Print end of line after waiting message
+        self._waiting_printed = False
         response = event.response if hasattr(event, 'response') else None
         if response is not None:
             if self.raw_mode:

@@ -6,7 +6,7 @@ from janito.i18n import tr
 
 
 @register_local_tool
-class GetLinesTool(ToolBase):
+class ViewFileTool(ToolBase):
     """
     Read lines from a file. You can specify a line range, or read the entire file by simply omitting the from_line and to_line parameters.
 
@@ -24,17 +24,20 @@ class GetLinesTool(ToolBase):
             - "Error reading file: <error message>"
             - "❗ not found"
     """
-    tool_name = "get_lines"
+    tool_name = "view_file"
 
     def run(self, file_path: str, from_line: int = None, to_line: int = None) -> str:
+        import os
         from janito.tools.tool_utils import display_path
 
         disp_path = display_path(file_path)
         self.report_action(
-            tr("📖 Read file '{disp_path}'", disp_path=disp_path),
+            tr("📖 View '{disp_path}'", disp_path=disp_path),
             ReportAction.READ,
         )
         try:
+            if os.path.isdir(file_path):
+                return self._list_directory(file_path, disp_path)
             lines = self._read_file_lines(file_path)
             selected, selected_len, total_lines = self._select_lines(
                 lines, from_line, to_line
@@ -50,6 +53,27 @@ class GetLinesTool(ToolBase):
         except Exception as e:
             self.report_error(tr(" ❌ Error: {error}", error=e))
             return tr("Error reading file: {error}", error=e)
+
+    def _list_directory(self, file_path, disp_path):
+        import os
+        try:
+            entries = os.listdir(file_path)
+            entries.sort()
+            # Suffix subdirectories with '/'
+            formatted_entries = []
+            for entry in entries:
+                full_path = os.path.join(file_path, entry)
+                if os.path.isdir(full_path):
+                    formatted_entries.append(entry + "/")
+                else:
+                    formatted_entries.append(entry)
+            header = f"--- view_file: {disp_path} [directory, {len(entries)} entries] ---\n"
+            listing = "\n".join(formatted_entries)
+            self.report_success(tr("📁 Listed directory '{disp_path}'", disp_path=disp_path))
+            return header + listing + "\n"
+        except Exception as e:
+            self.report_error(tr(" ❌ Error listing directory: {error}", error=e))
+            return tr("Error listing directory: {error}", error=e)
 
     def _read_file_lines(self, file_path):
         """Read all lines from the file."""

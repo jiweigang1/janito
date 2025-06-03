@@ -2,7 +2,7 @@ import threading
 from abc import ABC, abstractmethod
 from queue import Queue
 from janito.llm.driver_input import DriverInput
-from janito.driver_events import RequestStarted, RequestError, ResponseReceived
+from janito.driver_events import RequestStarted, RequestFinished, ResponseReceived, RequestStatus
 
 class LLMDriver(ABC):
     """
@@ -15,14 +15,15 @@ class LLMDriver(ABC):
       - Accept DriverInput via input_queue.
       - Put DriverEvents on output_queue.
       - Use start() to launch worker loop in a thread.
+    The driver automatically creates its own input/output queues, accessible via .input_queue and .output_queue.
     """
 
     available = True
     unavailable_reason = None
 
-    def __init__(self, input_queue: Queue, output_queue: Queue):
-        self.input_queue = input_queue
-        self.output_queue = output_queue
+    def __init__(self):
+        self.input_queue = Queue()
+        self.output_queue = Queue()
         self._thread = None
 
     def start(self):
@@ -33,15 +34,22 @@ class LLMDriver(ABC):
     def _run(self):
         while True:
             driver_input = self.input_queue.get()
+            if driver_input is None:
+                break  # Sentinel received, exit thread
             try:
-                self.process_input(driver_input)
+                # Only process if driver_input is a DriverInput instance
+                if isinstance(driver_input, DriverInput):
+                    self.process_driver_input(driver_input)
+                else:
+                    # Optionally log or handle unexpected input types
+                    pass
             except Exception as e:
-                from janito.driver_events import RequestError
                 import traceback
                 self.output_queue.put(
-                    RequestError(
+                    RequestFinished(
                         driver_name=self.__class__.__name__,
                         request_id=getattr(driver_input.config, 'request_id', None),
+                        status=RequestStatus.ERROR,
                         error=str(e),
                         exception=e,
                         traceback=traceback.format_exc()
@@ -49,9 +57,10 @@ class LLMDriver(ABC):
                 )
 
     def handle_driver_unavailable(self, request_id):
-        self.output_queue.put(RequestError(
+        self.output_queue.put(RequestFinished(
             driver_name=self.__class__.__name__,
             request_id=request_id,
+            status=RequestStatus.ERROR,
             error=self.unavailable_reason,
             exception=ImportError(self.unavailable_reason),
             traceback=None
@@ -66,16 +75,30 @@ class LLMDriver(ABC):
             timestamp=timestamp,
             metadata=metadata or {}
         ))
+        # Debug: print summary of parts by type
+        if hasattr(self, 'config') and getattr(self.config, 'verbose_api', False):
+            from collections import Counter
+            type_counts = Counter(type(p).__name__ for p in parts)
+            print(f"[verbose-api] Emitting ResponseReceived with parts: {dict(type_counts)}", flush=True)
 
-    def process_input(self, driver_input: DriverInput):
+    def process_driver_input(self, driver_input: DriverInput):
+        
         config = driver_input.config
         request_id = getattr(config, 'request_id', None)
         if not self.available:
             self.handle_driver_unavailable(request_id)
             return
         self.output_queue.put(RequestStarted(driver_name=self.__class__.__name__, request_id=request_id, payload={}))
+        # Check for cancel_event before starting
+        if hasattr(driver_input, 'cancel_event') and driver_input.cancel_event is not None and driver_input.cancel_event.is_set():
+            self.output_queue.put(RequestFinished(driver_name=self.__class__.__name__, request_id=request_id, status=RequestStatus.CANCELLED, reason="Canceled before start"))
+            return
         try:
             result = self._call_api(driver_input)
+            # Check for cancel_event after API call (subclasses should also check during long calls)
+            if hasattr(driver_input, 'cancel_event') and driver_input.cancel_event is not None and driver_input.cancel_event.is_set():
+                self.output_queue.put(RequestFinished(driver_name=self.__class__.__name__, request_id=request_id, status=RequestStatus.CANCELLED, reason="Canceled during processing"))
+                return
             message = self._get_message_from_result(result)
             parts = self._convert_completion_message_to_parts(message) if message else []
             timestamp = getattr(result, 'created', None)
@@ -83,9 +106,10 @@ class LLMDriver(ABC):
             self.emit_response_received(self.__class__.__name__, request_id, result, parts, timestamp, metadata)
         except Exception as ex:
             import traceback
-            self.output_queue.put(RequestError(
+            self.output_queue.put(RequestFinished(
                 driver_name=self.__class__.__name__,
                 request_id=request_id,
+                status=RequestStatus.ERROR,
                 error=str(ex),
                 exception=ex,
                 traceback=traceback.format_exc()

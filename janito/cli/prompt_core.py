@@ -7,7 +7,7 @@ from janito.performance_collector import PerformanceCollector
 from rich.status import Status
 from rich.console import Console
 from typing import Any, Optional, Callable
-from janito.driver_events import RequestStarted, RequestFinished, RequestError, EmptyResponseEvent
+from janito.driver_events import RequestStarted, RequestFinished, RequestStatus
 from janito.tools.tool_events import ToolCallError
 import threading
 from janito.cli.verbose_output import print_verbose_header
@@ -55,7 +55,7 @@ class PromptHandler:
         if isinstance(inner_event, RequestFinished):
             status.update("[bold green]Received response![bold green]")
             return 'break'
-        elif isinstance(inner_event, RequestError):
+        elif isinstance(inner_event, RequestFinished) and getattr(inner_event, 'status', None) == 'error':
             error_msg = inner_event.error if hasattr(inner_event, 'error') else 'Unknown error'
             if (
                 'Status 429' in error_msg and
@@ -72,12 +72,12 @@ class PromptHandler:
             status.update(f"[bold red]Tool Error in '{tool_name}': {error_msg}[bold red]")
             self.console.print(f"[red]Tool Error in '{tool_name}': {error_msg}[red]")
             return 'break'
-        elif isinstance(inner_event, EmptyResponseEvent):
-            details = inner_event.details if hasattr(inner_event, 'details') and inner_event.details is not None else {}
+        elif isinstance(inner_event, RequestFinished) and getattr(inner_event, 'status', None) in (RequestStatus.EMPTY_RESPONSE, RequestStatus.TIMEOUT):
+            details = getattr(inner_event, 'details', None) or {}
             block_reason = details.get('block_reason')
             block_msg = details.get('block_reason_message')
             msg = details.get('message', 'LLM returned an empty or incomplete response.')
-            driver_name = inner_event.driver_name if hasattr(inner_event, 'driver_name') else 'unknown driver'
+            driver_name = getattr(inner_event, 'driver_name', 'unknown driver')
             if block_reason or block_msg:
                 status.update(f"[bold yellow]Blocked by driver: {driver_name} | {block_reason or ''} {block_msg or ''}[bold yellow]")
                 self.console.print(f"[yellow]Blocked by driver: {driver_name} (empty response): {block_reason or ''}\n{block_msg or ''}[/yellow]")
@@ -100,20 +100,21 @@ class PromptHandler:
             if on_event:
                 on_event(event)
             if isinstance(event, RequestStarted):
-                with Status("[bold cyan]Waiting for LLM response...[bold cyan]", console=self.console, spinner="dots") as status:
-                    status.update("[bold cyan]Waiting for LLM response...[bold cyan]")
-                    for inner_event in event_iter:
-                        result = self._handle_inner_event(inner_event, on_event, status)
-                        if result == 'break':
-                            break
-                # After exiting spinner, continue with next events (if any)
+                pass  # No change needed for started event
+            elif isinstance(event, RequestFinished) and getattr(event, 'status', None) in ('error', 'cancelled'):
+                # Handle error/cancelled as needed
+                for inner_event in event_iter:
+                    result = self._handle_inner_event(inner_event, on_event, None)
+                    if result == 'break':
+                        break
+                # After exiting, continue with next events (if any)
             # Handle other event types outside the spinner if needed
-            elif isinstance(event, EmptyResponseEvent):
-                details = event.details if hasattr(event, 'details') and event.details is not None else {}
+            elif isinstance(event, RequestFinished) and getattr(event, 'status', None) in (RequestStatus.EMPTY_RESPONSE, RequestStatus.TIMEOUT):
+                details = getattr(event, 'details', None) or {}
                 block_reason = details.get('block_reason')
                 block_msg = details.get('block_reason_message')
                 msg = details.get('message', 'LLM returned an empty or incomplete response.')
-                driver_name = event.driver_name if hasattr(event, 'driver_name') else 'unknown driver'
+                driver_name = getattr(event, 'driver_name', 'unknown driver')
                 if block_reason or block_msg:
                     self.console.print(f"[yellow]Blocked by driver: {driver_name} (empty response): {block_reason or ''}\n{block_msg or ''}[/yellow]")
                 else:
@@ -140,32 +141,29 @@ class PromptHandler:
         Handles a single prompt, using the blocking event-driven chat interface.
         Optionally takes an on_event callback for custom event handling.
         """
-        from queue import Queue
-        local_event_bus = Queue()
         try:
-            # Call the new blocking chat() method
-            if hasattr(self.args, 'verbose_agent') and self.args.verbose_agent:
-                print("[prompt_core][DEBUG] Calling agent.chat()...")
-            final_event = self.agent.chat(prompt=user_prompt, bus=local_event_bus)
-            if hasattr(self.args, 'verbose_agent') and self.args.verbose_agent:
-                print(f"[prompt_core][DEBUG] agent.chat() returned: {final_event}")
-            # Drain and process all events from the bus
-            while not local_event_bus.empty():
-                event = local_event_bus.get()
-                # Publish to global event bus
-                global_event_bus.publish(event)
-                if on_event:
-                    on_event(event)
-            # Optionally process the final event
-            if hasattr(self.args, 'verbose_agent') and self.args.verbose_agent:
-                print("[prompt_core][DEBUG] Received final_event from agent.chat:")
-                print(f"  [prompt_core][DEBUG] type={type(final_event)}")
-                print(f"  [prompt_core][DEBUG] content={final_event}")
+            self._print_verbose_debug("Calling agent.chat()...")
+            final_event = self.agent.chat(prompt=user_prompt)
+            if hasattr(self.agent, 'set_latest_event'):
+                self.agent.set_latest_event(final_event)
+            self.agent.last_event = final_event
+            self._print_verbose_debug(f"agent.chat() returned: {final_event}")
+            self._print_verbose_final_event(final_event)
             if on_event and final_event is not None:
                 on_event(final_event)
                 global_event_bus.publish(final_event)
         except KeyboardInterrupt:
             self.console.print("[red]Request interrupted.[red]")
+
+    def _print_verbose_debug(self, message):
+        if hasattr(self.args, 'verbose_agent') and self.args.verbose_agent:
+            print(f"[prompt_core][DEBUG] {message}")
+
+    def _print_verbose_final_event(self, final_event):
+        if hasattr(self.args, 'verbose_agent') and self.args.verbose_agent:
+            print("[prompt_core][DEBUG] Received final_event from agent.chat:")
+            print(f"  [prompt_core][DEBUG] type={type(final_event)}")
+            print(f"  [prompt_core][DEBUG] content={final_event}")
 
     def run_prompts(self, prompts: list, raw: bool = False, on_event: Optional[Callable] = None) -> None:
         """

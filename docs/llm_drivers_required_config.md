@@ -1,6 +1,6 @@
 # LLM Driver Required Config Pattern
 
-Some LLM drivers require additional configuration fields (beyond API key or model name) to operate correctly. The `required_config` class attribute enables each driver to declare these requirements explicitly, and for providers to validate config early.
+Some LLM drivers (when implemented) may require additional configuration fields (beyond API key or model name) to operate correctly. The `required_config` class attribute is intended to enable each driver to declare these requirements explicitly, and for providers to validate config early. As of this writing, no LLM driver implementation is present in this directory; this document describes the intended pattern.
 
 ## How to Use
 

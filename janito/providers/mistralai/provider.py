@@ -33,7 +33,7 @@ class MistralAIProvider(LLMProvider):
         if not self._info.api_key:
             self._info.api_key = self._api_key
         self.fill_missing_device_info(self._info)
-        self._driver = MistralAIModelDriver(self._info, self._tools_adapter)
+        self._driver = MistralAIModelDriver(tools_adapter=self._tools_adapter)
 
     @property
     def driver(self):
@@ -52,7 +52,7 @@ class MistralAIProvider(LLMProvider):
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
         # Always create a new driver with the passed-in tools_adapter
-        driver = MistralAIModelDriver(self._info, None if tools_adapter is None else tools_adapter)
+        driver = MistralAIModelDriver(tools_adapter=tools_adapter)
         return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
 
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):

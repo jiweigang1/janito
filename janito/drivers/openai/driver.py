@@ -3,6 +3,7 @@ import traceback
 from rich import pretty
 from janito.llm.driver import LLMDriver
 from janito.llm.driver_input import DriverInput
+from janito.driver_events import RequestFinished, RequestStatus
 
 # Safe import of openai SDK
 try:
@@ -15,13 +16,13 @@ except ImportError:
 
 class OpenAIModelDriver(LLMDriver):
     """
-    OpenAI LLM driver (threaded, queue-based, stateless). Use the input/output queue protocol.
+    OpenAI LLM driver (threaded, queue-based, stateless). Uses input/output queues accessible via instance attributes.
     """
     available = DRIVER_AVAILABLE
     unavailable_reason = DRIVER_UNAVAILABLE_REASON
 
-    def __init__(self, input_queue, output_queue, tools_adapter=None):
-        super().__init__(input_queue, output_queue)
+    def __init__(self, tools_adapter=None):
+        super().__init__()
         self.tools_adapter = tools_adapter
 
     def _prepare_api_kwargs(self, config, conversation):
@@ -51,25 +52,46 @@ class OpenAIModelDriver(LLMDriver):
     def _call_api(self, driver_input: DriverInput):
         config = driver_input.config
         conversation = self.convert_history_to_api_messages(driver_input.conversation_history)
+        request_id = getattr(config, 'request_id', None)
         if config.verbose_api:
-            print(f"[verbose-api] OpenAI API call about to be sent. Model: {config.model}, max_tokens: {config.max_tokens}, tools_adapter: {self.tools_adapter is not None}")
+            print(f"[verbose-api] OpenAI API call about to be sent. Model: {config.model}, max_tokens: {config.max_tokens}, tools_adapter: {type(self.tools_adapter).__name__ if self.tools_adapter else None}", flush=True)
         try:
-            client = openai.OpenAI(api_key=config.api_key)
+            try:
+                api_key_display = str(config.api_key)
+                if api_key_display and len(api_key_display) > 8:
+                    api_key_display = api_key_display[:4] + '...' + api_key_display[-4:]
+                client = openai.OpenAI(api_key=config.api_key)
+            except Exception as e:
+                print(f"[ERROR] Exception during OpenAI client instantiation: {e}", flush=True)
+                import traceback
+                print(traceback.format_exc(), flush=True)
+                raise
             api_kwargs = self._prepare_api_kwargs(config, conversation)
             if config.verbose_api:
-                print(f'[OpenAI] API CALL: chat.completions.create(**{api_kwargs})')
+                print(f'[OpenAI] API CALL: chat.completions.create(**{api_kwargs})', flush=True)
             result = client.chat.completions.create(**api_kwargs)
+            # Emit RequestFinished event after receiving the API response, before parsing into parts
+            from janito.driver_events import RequestStatus
+            self.output_queue.put(RequestFinished(
+                driver_name=self.__class__.__name__,
+                request_id=request_id,
+                response=result,
+                status=RequestStatus.SUCCESS,
+                usage=getattr(result, 'usage', None)
+            ))
             if config.verbose_api:
                 pretty.install()
-                print('[OpenAI] API RESPONSE:')
+                print('[OpenAI] API RESPONSE:', flush=True)
                 pretty.pprint(result)
                 content = result.choices[0].message.content if hasattr(result, 'choices') and result.choices else None
-                print(f"[verbose-api] OpenAI Driver: Emitting ResponseReceived with content length: {len(content) if content else 0}")
             return result
         except Exception as e:
-            print(f"[ERROR] Exception during OpenAI API call: {e}")
+            print(f"[ERROR] Exception during OpenAI API call: {e}", flush=True)
+            print(f"[ERROR] config: {config}", flush=True)
+            print(f"[ERROR] api_kwargs: {api_kwargs if 'api_kwargs' in locals() else 'N/A'}", flush=True)
             import traceback
-            print(traceback.format_exc())
+            print('[ERROR] Full stack trace:', flush=True)
+            print(traceback.format_exc(), flush=True)
             raise
 
     def convert_history_to_api_messages(self, conversation_history):
