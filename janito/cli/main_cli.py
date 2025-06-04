@@ -19,6 +19,7 @@ definition = [
     (["--set-api-key"], {"metavar": "API_KEY", "help": "Set API key for the provider"}),
     (["--set"], {"metavar": "[PROVIDER_NAME.]KEY=VALUE", "help": "Set a config key"}),
     (["-s", "--system"], {"metavar": "SYSTEM_PROMPT", "help": "Set a system prompt"}),
+    (["-S", "--show-system"], {"action": "store_true", "help": "Show the resolved system prompt for the main agent"}),
     (["-r", "--role"], {"metavar": "ROLE", "help": "Set the role for the agent"}),
     (["-p", "--provider"], {"metavar": "PROVIDER", "help": "Select the provider"}),
     (["-m", "--model"], {"metavar": "MODEL", "help": "Select the model"}),
@@ -87,6 +88,11 @@ class JanitoCLI:
         return RunMode.RUN
 
     def run(self):
+        # Handle --show-system/-S before anything else
+        if getattr(self.args, "show_system", False):
+            from janito.cli.cli_commands.show_system_prompt import handle_show_system_prompt
+            handle_show_system_prompt(self.args)
+            return
         run_mode = self.classify()
         if run_mode == RunMode.SET:
             if self._run_set_mode():

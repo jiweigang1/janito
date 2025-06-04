@@ -12,8 +12,11 @@ import os
 class FindFilesTool(ToolBase):
     """
     Find files or directories in one or more directories matching a pattern. Respects .gitignore.
+
+    If a path is an existing file, it is checked against the provided pattern(s) and included in the results if it matches. This allows find_files to be used to look for a specific set of filenames in a single call, as well as searching directories.
+
     Args:
-        paths (str): String of one or more paths (space-separated) to search in. Each path can be a directory.
+        paths (str): String of one or more paths (space-separated) to search in. Each path can be a directory or a file.
         pattern (str): File pattern(s) to match. Multiple patterns can be separated by spaces. Uses Unix shell-style wildcards (fnmatch), e.g. '*.py', 'data_??.csv', '[a-z]*.txt'.
             - If the pattern ends with '/' or '\', only matching directory names (with trailing slash) are returned, not the files within those directories. For example, pattern '*/' will return only directories at the specified depth.
         max_depth (int, optional): Maximum directory depth to search. If None, unlimited recursion. If 0, only the top-level directory. If 1, only the root directory (matches 'find . -maxdepth 1').
@@ -70,17 +73,26 @@ class FindFilesTool(ToolBase):
                 ReportAction.READ,
             )
             dir_output = set()
-            for root, dirs, files in walk_dir_with_gitignore(
-                directory, max_depth=max_depth, include_gitignored=include_gitignored
-            ):
+            if os.path.isfile(directory):
+                filename = os.path.basename(directory)
                 for pat in patterns:
-                    if pat.endswith("/") or pat.endswith("\\"):
-                        dir_output.update(self._match_directories(root, dirs, pat))
-                    else:
-                        dir_output.update(self._match_files(root, files, pat))
-                        dir_output.update(
-                            self._match_dirs_without_slash(root, dirs, pat)
-                        )
+                    # Only match files, not directories, for file paths
+                    if not (pat.endswith("/") or pat.endswith("\\")):
+                        if fnmatch.fnmatch(filename, pat):
+                            dir_output.add(directory)
+                            break
+            elif os.path.isdir(directory):
+                for root, dirs, files in walk_dir_with_gitignore(
+                    directory, max_depth=max_depth, include_gitignored=include_gitignored
+                ):
+                    for pat in patterns:
+                        if pat.endswith("/") or pat.endswith("\\"):
+                            dir_output.update(self._match_directories(root, dirs, pat))
+                        else:
+                            dir_output.update(self._match_files(root, files, pat))
+                            dir_output.update(
+                                self._match_dirs_without_slash(root, dirs, pat)
+                            )
             self.report_success(
                 tr(
                     " ✅ {count} {file_word}",

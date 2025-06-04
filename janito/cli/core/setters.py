@@ -125,7 +125,20 @@ def _handle_set_provider_model(key, value):
     return True
 
 def _handle_set_global_model(value):
-    # Try to validate model choice (against current provider if possible), but set regardless
+    # Try to validate model choice (against current provider if possible)
+    provider_name = global_config.get('provider') or global_config.get('default_provider')
+    if provider_name:
+        try:
+            provider_cls = ProviderRegistry().get_provider(provider_name)
+            provider_instance = provider_cls()
+            model_info = provider_instance.get_model_info(value)
+            if not model_info:
+                print(f"Error: Model '{value}' is not defined for provider '{provider_name}'. Run '-p {provider_name} -l' to see models.")
+                return True
+        except Exception:
+            print(f"Warning: Could not validate model for provider '{provider_name}'. Setting anyway.")
+    else:
+        print("Warning: No provider set. Model will be set globally, but may not be valid for any provider.")
     global_config.file_set('model', value)
     print(f"Global default model set to '{value}'.")
     return True
