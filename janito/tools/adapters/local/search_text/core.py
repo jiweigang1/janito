@@ -19,6 +19,7 @@ class SearchTextTool(ToolBase):
         paths (str): String of one or more paths (space-separated) to search in. Each path can be a directory or a file.
         pattern (str): Regex pattern or plain text substring to search for in files. Must not be empty. Tries regex first, falls back to substring if regex is invalid.
         is_regex (bool): If True, treat pattern as a regular expression. If False, treat as plain text (default).
+        case_sensitive (bool): If False, perform a case-insensitive search. Default is True (case sensitive).
         max_depth (int, optional): Maximum directory depth to search. If 0 (default), search is recursive with no depth limit. If >0, limits recursion to that depth. Setting max_depth=1 disables recursion (only top-level directory). Ignored for file paths.
         max_results (int, optional): Maximum number of results to return. Defaults to 100. 0 means no limit.
         count_only (bool): If True, return only the count of matches per file and total, not the matching lines. Default is False.
@@ -35,6 +36,7 @@ class SearchTextTool(ToolBase):
         pattern,
         regex,
         use_regex,
+        case_sensitive,
         max_results,
         total_results,
         count_only,
@@ -45,6 +47,7 @@ class SearchTextTool(ToolBase):
                 pattern,
                 regex,
                 use_regex,
+                case_sensitive,
                 True,
                 max_results,
                 total_results,
@@ -57,6 +60,7 @@ class SearchTextTool(ToolBase):
                 pattern,
                 regex,
                 use_regex,
+                case_sensitive,
                 False,
                 max_results,
                 total_results,
@@ -74,6 +78,7 @@ class SearchTextTool(ToolBase):
         pattern,
         regex,
         use_regex,
+        case_sensitive,
         max_depth,
         max_results,
         total_results,
@@ -99,6 +104,7 @@ class SearchTextTool(ToolBase):
                 pattern,
                 regex,
                 use_regex,
+                case_sensitive,
                 max_results,
                 total_results,
                 count_only,
@@ -110,6 +116,7 @@ class SearchTextTool(ToolBase):
                     pattern,
                     regex,
                     use_regex,
+                    case_sensitive,
                     max_depth,
                     max_results,
                     total_results,
@@ -122,6 +129,7 @@ class SearchTextTool(ToolBase):
                     pattern,
                     regex,
                     use_regex,
+                    case_sensitive,
                     max_depth,
                     max_results,
                     total_results,
@@ -129,9 +137,11 @@ class SearchTextTool(ToolBase):
                 )
         count = sum(count for _, count in per_file_counts)
         file_word = pluralize("match", count)
+        num_files = len(per_file_counts)
+        file_label = pluralize("file", num_files)
         file_word_max = file_word + (" (max)" if dir_limit_reached else "")
         self.report_success(
-            tr(" ✅ {count} {file_word}", count=count, file_word=file_word_max),
+            tr(" ✅ {count} {file_word} from {num_files} {file_label}", count=count, file_word=file_word_max, num_files=num_files, file_label=file_label),
             ReportAction.READ
         )
         return info_str, dir_output, dir_limit_reached, per_file_counts
@@ -141,12 +151,13 @@ class SearchTextTool(ToolBase):
         paths: str,
         pattern: str,
         is_regex: bool = False,
+        case_sensitive: bool = False,
         max_depth: int = 0,
         max_results: int = 100,
         count_only: bool = False,
     ) -> str:
         regex, use_regex, error_msg = prepare_pattern(
-            pattern, is_regex, self.report_error, self.report_warning
+            pattern, is_regex, case_sensitive, self.report_error, self.report_warning
         )
         if error_msg:
             return error_msg
@@ -160,6 +171,7 @@ class SearchTextTool(ToolBase):
                     pattern,
                     regex,
                     use_regex,
+                    case_sensitive,
                     max_depth,
                     max_results,
                     0,

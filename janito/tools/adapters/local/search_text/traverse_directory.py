@@ -24,13 +24,14 @@ def filter_dirs(dirs, root, gitignore_filter):
 
 
 def process_file_count_only(
-    file_path, per_file_counts, pattern, regex, use_regex, max_results, total_results
+    file_path, per_file_counts, pattern, regex, use_regex, case_sensitive, max_results, total_results
 ):
     match_count, file_limit_reached, _ = read_file_lines(
         file_path,
         pattern,
         regex,
         use_regex,
+        case_sensitive,
         True,
         max_results,
         total_results + sum(count for _, count in per_file_counts),
@@ -47,6 +48,7 @@ def process_file_collect(
     pattern,
     regex,
     use_regex,
+    case_sensitive,
     max_results,
     total_results,
 ):
@@ -55,6 +57,7 @@ def process_file_collect(
         pattern,
         regex,
         use_regex,
+        case_sensitive,
         False,
         max_results,
         total_results + len(dir_output),
@@ -79,6 +82,7 @@ def traverse_directory(
     pattern,
     regex,
     use_regex,
+    case_sensitive,
     max_depth,
     max_results,
     total_results,
@@ -103,6 +107,7 @@ def traverse_directory(
                     pattern,
                     regex,
                     use_regex,
+                    case_sensitive,
                     max_results,
                     total_results,
                 )
@@ -117,6 +122,7 @@ def traverse_directory(
                     pattern,
                     regex,
                     use_regex,
+                    case_sensitive,
                     max_results,
                     total_results,
                 )

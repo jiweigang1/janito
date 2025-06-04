@@ -3,7 +3,7 @@ from janito.i18n import tr
 from janito.tools.tool_utils import pluralize
 
 
-def prepare_pattern(pattern, is_regex, report_error, report_warning):
+def prepare_pattern(pattern, is_regex, case_sensitive, report_error, report_warning):
     if not pattern:
         report_error(tr("Error: Empty search pattern provided. Operation aborted."), ReportAction.SEARCH)
         return (
@@ -15,7 +15,10 @@ def prepare_pattern(pattern, is_regex, report_error, report_warning):
     use_regex = False
     if is_regex:
         try:
-            regex = re.compile(pattern)
+            flags = 0
+            if not case_sensitive:
+                flags |= re.IGNORECASE
+            regex = re.compile(pattern, flags=flags)
             use_regex = True
         except re.error as e:
             report_warning(tr("⚠️ Invalid regex pattern."))
@@ -30,6 +33,8 @@ def prepare_pattern(pattern, is_regex, report_error, report_warning):
         # Do not compile as regex if is_regex is False; treat as plain text
         regex = None
         use_regex = False
+        if not case_sensitive:
+            pattern = pattern.lower()
     return regex, use_regex, None
 
 

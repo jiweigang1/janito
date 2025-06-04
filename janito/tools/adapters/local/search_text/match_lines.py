@@ -20,9 +20,11 @@ def is_binary_file(path, blocksize=1024):
     return False
 
 
-def match_line(line, pattern, regex, use_regex):
+def match_line(line, pattern, regex, use_regex, case_sensitive):
     if use_regex:
         return regex and regex.search(line)
+    if not case_sensitive:
+        return pattern in line.lower()
     return pattern in line
 
 
@@ -34,7 +36,7 @@ def should_limit(max_results, total_results, match_count, count_only, dir_output
 
 
 def read_file_lines(
-    path, pattern, regex, use_regex, count_only, max_results, total_results
+    path, pattern, regex, use_regex, case_sensitive, count_only, max_results, total_results
 ):
     dir_output = []
     dir_limit_reached = False
@@ -44,7 +46,7 @@ def read_file_lines(
             open_kwargs = {"mode": "r", "encoding": "utf-8"}
             with open(path, **open_kwargs) as f:
                 for lineno, line in enumerate(f, 1):
-                    if match_line(line, pattern, regex, use_regex):
+                    if match_line(line, pattern, regex, use_regex, case_sensitive):
                         match_count += 1
                         if not count_only:
                             dir_output.append(f"{path}:{lineno}: {line.rstrip()}")

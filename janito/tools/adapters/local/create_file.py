@@ -48,7 +48,7 @@ class CreateFileTool(ToolBase):
             # Overwrite branch: log only overwrite warning (no create message)
             self.report_action(
                 tr("⚠️ Overwriting file '{disp_path}'", disp_path=disp_path),
-                ReportAction.WRITE,
+                ReportAction.CREATE,
             )
         dir_name = os.path.dirname(file_path)
         if dir_name:
@@ -57,12 +57,12 @@ class CreateFileTool(ToolBase):
             # Create branch: log file creation message
             self.report_action(
                 tr("📝 Create file '{disp_path}' ...", disp_path=disp_path),
-                ReportAction.WRITE,
+                ReportAction.CREATE,
             )
         with open(file_path, "w", encoding="utf-8", errors="replace") as f:
             f.write(content)
         new_lines = content.count("\n") + 1 if content else 0
-        self.report_success(tr("✅ {new_lines} lines", new_lines=new_lines), ReportAction.WRITE)
+        self.report_success(tr("✅ {new_lines} lines", new_lines=new_lines), ReportAction.CREATE)
         # Perform syntax validation and append result
         validation_result = validate_file_syntax(file_path)
         if is_overwrite:

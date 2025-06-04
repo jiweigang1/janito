@@ -69,7 +69,7 @@ class ViewFileTool(ToolBase):
                     formatted_entries.append(entry)
             header = f"--- view_file: {disp_path} [directory, {len(entries)} entries] ---\n"
             listing = "\n".join(formatted_entries)
-            self.report_success(tr("📁 Listed directory '{disp_path}'", disp_path=disp_path))
+            self.report_success(tr("📁 Directory ({count} items)", count=len(entries)))
             return header + listing + "\n"
         except Exception as e:
             self.report_error(tr(" ❌ Error listing directory: {error}", error=e))

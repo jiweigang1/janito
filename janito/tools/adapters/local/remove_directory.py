@@ -27,7 +27,7 @@ class RemoveDirectoryTool(ToolBase):
         disp_path = display_path(file_path)
         self.report_action(
             tr("🗃️ Remove directory '{disp_path}' ...", disp_path=disp_path),
-            ReportAction.WRITE,
+            ReportAction.CREATE,
         )
         backup_zip = None
         try:
@@ -48,7 +48,7 @@ class RemoveDirectoryTool(ToolBase):
                 os.rmdir(file_path)
             self.report_success(
                 tr("✅ 1 {dir_word}", dir_word=pluralize("directory", 1)),
-                ReportAction.WRITE
+                ReportAction.CREATE
             )
             msg = tr("Directory removed: {disp_path}", disp_path=disp_path)
             if backup_zip:

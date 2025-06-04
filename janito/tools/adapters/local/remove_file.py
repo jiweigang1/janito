@@ -31,7 +31,7 @@ class RemoveFileTool(ToolBase):
         # Report initial info about what is going to be removed
         self.report_action(
             tr("🗑️ Remove file '{disp_path}' ...", disp_path=disp_path),
-            ReportAction.WRITE,
+            ReportAction.CREATE,
         )
         if not os.path.exists(path):
             self.report_error(tr("❌ File does not exist."), ReportAction.REMOVE)
@@ -44,7 +44,7 @@ class RemoveFileTool(ToolBase):
                 backup_path = path + ".bak"
                 shutil.copy2(path, backup_path)
             os.remove(path)
-            self.report_success(tr("✅ File removed"), ReportAction.WRITE)
+            self.report_success(tr("✅ File removed"), ReportAction.CREATE)
             msg = tr(
                 "✅ Successfully removed the file at '{disp_path}'.",
                 disp_path=disp_path,

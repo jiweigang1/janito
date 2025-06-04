@@ -54,7 +54,7 @@ class MoveFileTool(ToolBase):
                     disp_src=disp_src,
                     disp_dest=disp_dest,
                 ),
-                ReportAction.WRITE,
+                ReportAction.CREATE,
             )
             shutil.move(src, dest)
             self.report_success(tr("✅ Move complete."))

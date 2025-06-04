@@ -36,12 +36,12 @@ class DeleteTextInFileTool(ToolBase):
             start_marker=start_marker,
             end_marker=end_marker,
         )
-        self.report_action(info_msg, ReportAction.WRITE)
+        self.report_action(info_msg, ReportAction.CREATE)
         try:
             content = self._read_file_content(file_path)
             occurrences, match_lines = self._find_marker_blocks(content, start_marker, end_marker)
             if occurrences == 0:
-                self.report_warning(tr(" ℹ️ No blocks found between markers."), ReportAction.WRITE)
+                self.report_warning(tr(" ℹ️ No blocks found between markers."), ReportAction.CREATE)
                 return tr(
                     "No blocks found between markers in {file_path}.", file_path=file_path
                 )
@@ -116,7 +116,7 @@ class DeleteTextInFileTool(ToolBase):
         if match_lines:
             lines_str = ", ".join(str(line_no) for line_no in match_lines)
             self.report_success(
-                tr(" ✅ deleted block(s) starting at line(s): {lines_str}", lines_str=lines_str), ReportAction.WRITE
+                tr(" ✅ deleted block(s) starting at line(s): {lines_str}", lines_str=lines_str), ReportAction.CREATE
             )
         else:
-            self.report_success(tr(" ✅ deleted block(s) (lines unknown)"), ReportAction.WRITE)
+            self.report_success(tr(" ✅ deleted block(s) (lines unknown)"), ReportAction.CREATE)

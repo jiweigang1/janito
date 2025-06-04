@@ -20,8 +20,6 @@ def assemble_first_line(provider_name, model_name, role, agent=None):
 def assemble_bindings_line(width):
     return (
         f' <key-label>F1</key-label>: Restart conversation | '
-        f'<key-label>Ctrl-Y</key-label>: Yes | '
-        f'<key-label>Ctrl-N</key-label>: No | '
         f'<b>/help</b>: Help | '
         f'<key-label>F12</key-label>: Do It '
     )

@@ -13,7 +13,7 @@ class ReportSubtype(Enum):
 
 class ReportAction(Enum):
     READ = "READ"
-    WRITE = "WRITE"
+    CREATE = "CREATE"
     DELETE = "DELETE"
     UPDATE = "UPDATE"
     EXECUTE = "EXECUTE"

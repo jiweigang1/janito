@@ -26,7 +26,7 @@ class CreateDirectoryTool(ToolBase):
         disp_path = display_path(file_path)
         self.report_action(
             tr("📁 Create directory '{disp_path}' ...", disp_path=disp_path),
-            ReportAction.WRITE,
+            ReportAction.CREATE,
         )
         try:
             if os.path.exists(file_path):

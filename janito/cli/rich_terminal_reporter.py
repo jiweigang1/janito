@@ -5,7 +5,7 @@ from rich.panel import Panel
 from rich.text import Text
 from janito.event_bus.handler import EventHandlerBase
 import janito.driver_events as driver_events
-from janito.report_events import ReportSubtype
+from janito.report_events import ReportSubtype, ReportAction
 from janito.event_bus.bus import event_bus
 from janito.llm import message_parts
 
@@ -67,7 +67,14 @@ class RichTerminalReporter(EventHandlerBase):
         if not msg or not subtype:
             return
         if subtype == ReportSubtype.ACTION_INFO:
-            self.console.print(msg, end="")
+            if getattr(event, 'action', None) in (
+                getattr(ReportAction, 'UPDATE', None),
+                getattr(ReportAction, 'WRITE', None),
+                getattr(ReportAction, 'DELETE', None),
+            ):
+                self.console.print(f"[magenta]{msg}[/magenta]", end="")
+            else:
+                self.console.print(msg, end="")
             self.console.file.flush()
         elif subtype in (ReportSubtype.SUCCESS, ReportSubtype.ERROR, ReportSubtype.WARNING):
             self.console.print(msg)
