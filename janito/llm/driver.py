@@ -5,6 +5,14 @@ from janito.llm.driver_input import DriverInput
 from janito.driver_events import RequestStarted, RequestFinished, ResponseReceived, RequestStatus
 
 class LLMDriver(ABC):
+    def clear_output_queue(self):
+        """Remove all items from the output queue."""
+        try:
+            while True:
+                self.output_queue.get_nowait()
+        except Exception:
+            pass
+
     """
     Abstract base class for LLM drivers (threaded, queue-based).
     Subclasses must implement:
@@ -21,10 +29,11 @@ class LLMDriver(ABC):
     available = True
     unavailable_reason = None
 
-    def __init__(self):
+    def __init__(self, tools_adapter=None):
         self.input_queue = Queue()
         self.output_queue = Queue()
         self._thread = None
+        self.tools_adapter = tools_adapter
 
     def start(self):
         """Launch the driver's background thread to process DriverInput objects."""
@@ -95,6 +104,13 @@ class LLMDriver(ABC):
             return
         try:
             result = self._call_api(driver_input)
+            # If result is None and cancel_event is set, treat as cancelled
+            if hasattr(driver_input, 'cancel_event') and driver_input.cancel_event is not None and driver_input.cancel_event.is_set():
+                self.output_queue.put(RequestFinished(driver_name=self.__class__.__name__, request_id=request_id, status=RequestStatus.CANCELLED, reason="Cancelled during processing (post-API)"))
+                return
+            if result is None and hasattr(driver_input, 'cancel_event') and driver_input.cancel_event is not None and driver_input.cancel_event.is_set():
+                # Already handled by driver
+                return
             # Check for cancel_event after API call (subclasses should also check during long calls)
             if hasattr(driver_input, 'cancel_event') and driver_input.cancel_event is not None and driver_input.cancel_event.is_set():
                 self.output_queue.put(RequestFinished(driver_name=self.__class__.__name__, request_id=request_id, status=RequestStatus.CANCELLED, reason="Canceled during processing"))
@@ -116,6 +132,13 @@ class LLMDriver(ABC):
             ))
 
     @abstractmethod
+    def _prepare_api_kwargs(self, config, conversation):
+        """
+        Subclasses must implement: Prepare API kwargs for the provider, including any tool schemas if needed.
+        """
+        pass
+
+    @abstractmethod
     def _call_api(self, driver_input: DriverInput):
         """Subclasses implement: Use driver_input to call provider and return result object."""
         pass
@@ -134,8 +157,7 @@ class LLMDriver(ABC):
         """
         pass
 
+    @abstractmethod
     def _get_message_from_result(self, result):
-        """Extract the message object from the provider result. Subclasses may override if needed."""
-        if hasattr(result, 'choices') and result.choices:
-            return result.choices[0].message
-        return None
+        """Extract the message object from the provider result. Subclasses must implement this."""
+        raise NotImplementedError("Subclasses must implement _get_message_from_result.")

@@ -139,38 +139,46 @@ class LLMAgent:
         try:
             if getattr(self, 'verbose_agent', False):
                 print("[agent] [DEBUG] Waiting for event from output_queue...")
-            while True:
-                event = None
-                try:
-                    event = self.output_queue.get(timeout=poll_timeout)
-                except Empty:
-                    elapsed += poll_timeout
-                    if elapsed >= max_wait_time:
-                        error_msg = f"[ERROR] No output from driver in agent.chat() after {max_wait_time} seconds (timeout exit)"
-                        print(error_msg)
-                        print('[DEBUG] Exiting _process_next_response due to timeout')
-                        return None, False
-                    continue
-                if getattr(self, 'verbose_agent', False):
-                    print(f"[agent] [DEBUG] Received event from output_queue: {event}")
-                # Publish every event immediately to the system event bus
-                event_bus.publish(event)
-                self._log_event_verbose(event)
-                event_class = getattr(event, '__class__', None)
-                event_name = event_class.__name__ if event_class else None
-                if event_name == 'ResponseReceived':
-                    result = self._handle_event_type(event)
-                    return result
-                elif (event_name == 'RequestFinished' and getattr(event, 'status', None) in [RequestStatus.ERROR, RequestStatus.EMPTY_RESPONSE, RequestStatus.TIMEOUT]):
-                    return (event, False)
-                # Otherwise, keep looping for a terminal event
+            return self._poll_for_event(poll_timeout, max_wait_time)
         except KeyboardInterrupt:
-            # Notify driver of cancellation
-            if hasattr(self, 'input_queue') and self.input_queue is not None:
-                from janito.driver_events import RequestFinished
-                cancel_event = RequestFinished(status=RequestStatus.CANCELLED, reason="User interrupted (KeyboardInterrupt)")
-                self.input_queue.put(cancel_event)
+            self._handle_keyboard_interrupt()
             return None, False
+
+    def _poll_for_event(self, poll_timeout, max_wait_time):
+        elapsed = 0.0
+        while True:
+            event = self._get_event_from_output_queue(poll_timeout)
+            if event is None:
+                elapsed += poll_timeout
+                if elapsed >= max_wait_time:
+                    error_msg = f"[ERROR] No output from driver in agent.chat() after {max_wait_time} seconds (timeout exit)"
+                    print(error_msg)
+                    print('[DEBUG] Exiting _process_next_response due to timeout')
+                    return None, False
+                continue
+            if getattr(self, 'verbose_agent', False):
+                print(f"[agent] [DEBUG] Received event from output_queue: {event}")
+            event_bus.publish(event)
+            self._log_event_verbose(event)
+            event_class = getattr(event, '__class__', None)
+            event_name = event_class.__name__ if event_class else None
+            if event_name == 'ResponseReceived':
+                result = self._handle_event_type(event)
+                return result
+            elif (event_name == 'RequestFinished' and getattr(event, 'status', None) in [RequestStatus.ERROR, RequestStatus.EMPTY_RESPONSE, RequestStatus.TIMEOUT]):
+                return (event, False)
+
+    def _handle_keyboard_interrupt(self):
+        if hasattr(self, 'input_queue') and self.input_queue is not None:
+            from janito.driver_events import RequestFinished
+            cancel_event = RequestFinished(status=RequestStatus.CANCELLED, reason="User interrupted (KeyboardInterrupt)")
+            self.input_queue.put(cancel_event)
+
+    def _get_event_from_output_queue(self, poll_timeout):
+        try:
+            return self.output_queue.get(timeout=poll_timeout)
+        except Empty:
+            return None
 
     def _handle_response_received(self, event) -> bool:
         """
@@ -213,6 +221,8 @@ class LLMAgent:
             return False  # No tool calls, return event
 
     def chat(self, prompt: str = None, messages: Optional[List[dict]] = None, role: str = "user", config=None):
+        if hasattr(self, 'driver') and self.driver and hasattr(self.driver, 'clear_output_queue'):
+            self.driver.clear_output_queue()
         """
         Main agent conversation loop supporting function/tool calls and conversation history extension, now as a blocking event-driven loop with event publishing.
 
@@ -233,10 +243,7 @@ class LLMAgent:
         import threading
         cancel_event = threading.Event()
         while True:
-            if getattr(self, 'verbose_agent', False):
-                print(f"[agent] [DEBUG] Preparing new driver_input (loop_count={loop_count}) with updated conversation history:")
-                for msg in self.conversation_history.get_history():
-                    print("   ", msg)
+            self._print_verbose_chat_loop(loop_count)
             driver_input = self._prepare_driver_input(config, cancel_event=cancel_event)
             self.input_queue.put(driver_input)
             try:
@@ -255,6 +262,12 @@ class LLMAgent:
                     print(f"[agent] [INFO] Exiting chat loop: _process_next_response returned added_tool_results=False (final response or no more tool calls). Returning result: {result}")
                 return result
             loop_count += 1
+
+    def _print_verbose_chat_loop(self, loop_count):
+        if getattr(self, 'verbose_agent', False):
+            print(f"[agent] [DEBUG] Preparing new driver_input (loop_count={loop_count}) with updated conversation history:")
+            for msg in self.conversation_history.get_history():
+                print("   ", msg)
 
     def set_latest_event(self, event: str) -> None:
         with self._event_lock:

@@ -48,35 +48,30 @@ class PerformanceCollector(EventHandlerBase):
 
     def on_RequestFinished(self, event):
         self._events.append(('RequestFinished', event))
-        if getattr(event, 'status', None) in ('error', 'cancelled'):
-            self._events.append(('RequestFinished', event))
         # Calculate and record the duration if start time is available
-        request_id = event.request_id
-        finish_time = event.timestamp
+        request_id = getattr(event, 'request_id', None)
+        finish_time = getattr(event, 'timestamp', None)
         if request_id is not None and finish_time is not None:
             start_time = self._request_start_times.pop(request_id, None)
             if start_time is not None:
-                # Ensure the duration is stored as a float (seconds)
                 delta = finish_time - start_time
                 if hasattr(delta, 'total_seconds'):
                     self._durations.append(delta.total_seconds())
                 else:
                     self._durations.append(float(delta))
         self.total_requests += 1
-        self.status_counter[event.status] += 1
-        usage = event.usage
+        self.status_counter[getattr(event, 'status', None)] += 1
+        usage = getattr(event, 'usage', None)
         if usage:
             self._last_request_usage = usage.copy()
             for k, v in usage.items():
                 if isinstance(v, (int, float)):
                     self.token_usage[k] += v
-
-    def on_RequestFinished(self, event):
+        # Error handling
         if getattr(event, 'status', None) in ('error', 'cancelled'):
-            self._events.append(('RequestFinished', event))
-        self.error_count += 1
-        self.error_messages.append(event.error)
-        self.error_exceptions.append(event.exception)
+            self.error_count += 1
+            self.error_messages.append(getattr(event, 'error', None))
+            self.error_exceptions.append(getattr(event, 'exception', None))
 
     def on_GenerationFinished(self, event):
         self._events.append(('GenerationFinished', event))

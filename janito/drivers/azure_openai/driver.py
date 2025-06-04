@@ -18,7 +18,6 @@ class AzureOpenAIModelDriver(OpenAIModelDriver):
     def is_available(cls):
         return cls.available
 
-    name = "azure_openai"
     required_config = {"base_url"}  # Update key as used in your config logic
     def __init__(self, tools_adapter=None):
         if not self.available:

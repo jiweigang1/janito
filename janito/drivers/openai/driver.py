@@ -15,6 +15,12 @@ except ImportError:
     DRIVER_UNAVAILABLE_REASON = "Missing dependency: openai (pip install openai)"
 
 class OpenAIModelDriver(LLMDriver):
+    def _get_message_from_result(self, result):
+        """Extract the message object from the provider result (OpenAI-specific)."""
+        if hasattr(result, 'choices') and result.choices:
+            return result.choices[0].message
+        return None
+
     """
     OpenAI LLM driver (threaded, queue-based, stateless). Uses input/output queues accessible via instance attributes.
     """
@@ -22,11 +28,15 @@ class OpenAIModelDriver(LLMDriver):
     unavailable_reason = DRIVER_UNAVAILABLE_REASON
 
     def __init__(self, tools_adapter=None):
-        super().__init__()
-        self.tools_adapter = tools_adapter
+        super().__init__(tools_adapter=tools_adapter)
 
     def _prepare_api_kwargs(self, config, conversation):
+        """
+        Prepares API kwargs for OpenAI, including tool schemas if tools_adapter is present,
+        and OpenAI-specific arguments (model, max_tokens, temperature, etc.).
+        """
         api_kwargs = {}
+        # Tool schemas (moved from base)
         if self.tools_adapter:
             try:
                 from janito.providers.openai.schema_generator import generate_tool_schemas
@@ -35,14 +45,15 @@ class OpenAIModelDriver(LLMDriver):
                 api_kwargs['tools'] = tool_schemas
             except Exception as e:
                 api_kwargs['tools'] = []
-                if config.verbose_api:
-                    print(f"[OpenAI] Tool schema generation failed: {e}")
+                if hasattr(config, 'verbose_api') and config.verbose_api:
+                    print(f"[OpenAIModelDriver] Tool schema generation failed: {e}")
+        # OpenAI-specific parameters
         if config.model:
             api_kwargs['model'] = config.model
         if hasattr(config, 'max_tokens') and config.max_tokens is not None:
             api_kwargs['max_tokens'] = int(config.max_tokens)
         for p in ('temperature', 'top_p', 'presence_penalty', 'frequency_penalty', 'stop'):
-            v = config.__getattribute__(p)
+            v = getattr(config, p, None)
             if v is not None:
                 api_kwargs[p] = v
         api_kwargs['messages'] = conversation
@@ -50,40 +61,37 @@ class OpenAIModelDriver(LLMDriver):
         return api_kwargs
 
     def _call_api(self, driver_input: DriverInput):
+        cancel_event = getattr(driver_input, 'cancel_event', None)
         config = driver_input.config
         conversation = self.convert_history_to_api_messages(driver_input.conversation_history)
         request_id = getattr(config, 'request_id', None)
         if config.verbose_api:
             print(f"[verbose-api] OpenAI API call about to be sent. Model: {config.model}, max_tokens: {config.max_tokens}, tools_adapter: {type(self.tools_adapter).__name__ if self.tools_adapter else None}", flush=True)
         try:
-            try:
-                api_key_display = str(config.api_key)
-                if api_key_display and len(api_key_display) > 8:
-                    api_key_display = api_key_display[:4] + '...' + api_key_display[-4:]
-                client = openai.OpenAI(api_key=config.api_key)
-            except Exception as e:
-                print(f"[ERROR] Exception during OpenAI client instantiation: {e}", flush=True)
-                import traceback
-                print(traceback.format_exc(), flush=True)
-                raise
+            client = self._instantiate_openai_client(config)
             api_kwargs = self._prepare_api_kwargs(config, conversation)
             if config.verbose_api:
                 print(f'[OpenAI] API CALL: chat.completions.create(**{api_kwargs})', flush=True)
+            if self._check_cancel(cancel_event, request_id, before_call=True):
+                return None
             result = client.chat.completions.create(**api_kwargs)
-            # Emit RequestFinished event after receiving the API response, before parsing into parts
-            from janito.driver_events import RequestStatus
+            if self._check_cancel(cancel_event, request_id, before_call=False):
+                return None
+            self._print_verbose_result(config, result)
+            usage_dict = self._extract_usage(result)
+            if config.verbose_api:
+                print(f"[OpenAI][DEBUG] Attaching usage info to RequestFinished: {usage_dict}", flush=True)
             self.output_queue.put(RequestFinished(
                 driver_name=self.__class__.__name__,
                 request_id=request_id,
                 response=result,
                 status=RequestStatus.SUCCESS,
-                usage=getattr(result, 'usage', None)
+                usage=usage_dict
             ))
             if config.verbose_api:
                 pretty.install()
                 print('[OpenAI] API RESPONSE:', flush=True)
                 pretty.pprint(result)
-                content = result.choices[0].message.content if hasattr(result, 'choices') and result.choices else None
             return result
         except Exception as e:
             print(f"[ERROR] Exception during OpenAI API call: {e}", flush=True)
@@ -93,6 +101,88 @@ class OpenAIModelDriver(LLMDriver):
             print('[ERROR] Full stack trace:', flush=True)
             print(traceback.format_exc(), flush=True)
             raise
+
+    def _instantiate_openai_client(self, config):
+        try:
+            api_key_display = str(config.api_key)
+            if api_key_display and len(api_key_display) > 8:
+                api_key_display = api_key_display[:4] + '...' + api_key_display[-4:]
+            client = openai.OpenAI(api_key=config.api_key)
+            return client
+        except Exception as e:
+            print(f"[ERROR] Exception during OpenAI client instantiation: {e}", flush=True)
+            import traceback
+            print(traceback.format_exc(), flush=True)
+            raise
+
+    def _check_cancel(self, cancel_event, request_id, before_call=True):
+        if cancel_event is not None and cancel_event.is_set():
+            status = RequestStatus.CANCELLED
+            reason = "Cancelled before API call" if before_call else "Cancelled during API call"
+            self.output_queue.put(RequestFinished(
+                driver_name=self.__class__.__name__,
+                request_id=request_id,
+                status=status,
+                reason=reason
+            ))
+            return True
+        return False
+
+    def _print_verbose_result(self, config, result):
+        if config.verbose_api:
+            print('[OpenAI] API RAW RESULT:', flush=True)
+            pretty.pprint(result)
+            if hasattr(result, '__dict__'):
+                print('[OpenAI] API RESULT __dict__:', flush=True)
+                pretty.pprint(result.__dict__)
+            try:
+                print('[OpenAI] API RESULT as dict:', dict(result), flush=True)
+            except Exception:
+                pass
+            print(f"[OpenAI] API RESULT .usage: {getattr(result, 'usage', None)}", flush=True)
+            try:
+                print(f"[OpenAI] API RESULT ['usage']: {result['usage']}", flush=True)
+            except Exception:
+                pass
+            if not hasattr(result, 'usage') or getattr(result, 'usage', None) is None:
+                print('[OpenAI][WARNING] No usage info found in API response.', flush=True)
+
+    def _extract_usage(self, result):
+        usage = getattr(result, 'usage', None)
+        if usage is not None:
+            usage_dict = self._usage_to_dict(usage)
+            if usage_dict is None:
+                print('[OpenAI][WARNING] Could not convert usage to dict, using string fallback.', flush=True)
+                usage_dict = str(usage)
+        else:
+            usage_dict = self._extract_usage_from_result_dict(result)
+        return usage_dict
+
+    def _usage_to_dict(self, usage):
+        if hasattr(usage, 'model_dump') and callable(getattr(usage, 'model_dump')):
+            try:
+                return usage.model_dump()
+            except Exception:
+                pass
+        if hasattr(usage, 'dict') and callable(getattr(usage, 'dict')):
+            try:
+                return usage.dict()
+            except Exception:
+                pass
+        try:
+            return dict(usage)
+        except Exception:
+            try:
+                return vars(usage)
+            except Exception:
+                pass
+        return None
+
+    def _extract_usage_from_result_dict(self, result):
+        try:
+            return result['usage']
+        except Exception:
+            return None
 
     def convert_history_to_api_messages(self, conversation_history):
         """
