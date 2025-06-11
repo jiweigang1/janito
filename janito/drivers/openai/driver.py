@@ -236,7 +236,7 @@ class OpenAIModelDriver(LLMDriver):
                         metadata = msg.get('metadata', {})
                         name = metadata.get('name', '') if isinstance(metadata, dict) else ''
                     api_messages.append({
-                        'role': 'function',
+                        'role': 'tool',
                         'content': content,
                         'name': name
                     })

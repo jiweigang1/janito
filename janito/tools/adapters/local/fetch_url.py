@@ -25,7 +25,7 @@ class FetchUrlTool(ToolBase):
 
     def run(self, url: str, search_strings: list[str] = None) -> str:
         if not url.strip():
-            self.report_warning(tr("ℹ️ Empty URL provided."), ReportAction.FETCH)
+            self.report_warning(tr("ℹ️ Empty URL provided."), ReportAction.READ)
             return tr("Warning: Empty URL provided. Operation skipped.")
         self.report_action(tr("🌐 Fetch URL '{url}' ...", url=url), ReportAction.READ)
         try:
@@ -40,7 +40,7 @@ class FetchUrlTool(ToolBase):
                         status_code=status_code,
                         url=url,
                     ),
-                    ReportAction.FETCH,
+                    ReportAction.READ,
                 )
                 return tr(
                     "Warning: HTTP {status_code} error for URL: {url}",
@@ -54,7 +54,7 @@ class FetchUrlTool(ToolBase):
                         url=url,
                         err=str(http_err),
                     ),
-                    ReportAction.FETCH,
+                    ReportAction.READ,
                 )
                 return tr(
                     "Warning: HTTP error for URL: {url}: {err}",
@@ -64,7 +64,7 @@ class FetchUrlTool(ToolBase):
         except Exception as err:
             self.report_error(
                 tr("❗ Error fetching URL: {url}: {err}", url=url, err=str(err)),
-                ReportAction.FETCH,
+                ReportAction.READ,
             )
             return tr(
                 "Warning: Error fetching URL: {url}: {err}", url=url, err=str(err)

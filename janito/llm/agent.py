@@ -198,24 +198,37 @@ class LLMAgent:
                 result = self.tools_adapter.execute_function_call_message_part(part)
                 tool_results.append(result)
         if tool_calls:
-            # For each tool call, add a function message with the tool result
+            # Prepare tool_calls message for assistant
+            tool_calls_list = []
+            tool_results_list = []
             for call, result in zip(tool_calls, tool_results):
                 function_name = getattr(call, 'name', None) or (getattr(call, 'function', None) and getattr(call.function, 'name', None)) or 'function'
                 arguments = getattr(call, 'function', None) and getattr(call.function, 'arguments', None)
                 tool_call_id = getattr(call, 'tool_call_id', None)
-                # Add both tool call and result atomically after result is available
-                if getattr(self, 'verbose_agent', False):
-                    print(f"[agent] [DEBUG] Adding tool call and result to conversation history: function={function_name}, arguments={arguments}, result={result}, tool_call_id={tool_call_id}")
-                self.conversation_history.add_message(
-                    'function',
-                    str(arguments) if arguments else '',
-                    metadata={'name': function_name, 'tool_call_id': tool_call_id, 'is_tool_call': True}
-                )
-                self.conversation_history.add_message(
-                    'function',
-                    str(result),
-                    metadata={'name': function_name, 'tool_call_id': tool_call_id, 'is_tool_result': True}
-                )
+                tool_calls_list.append({
+                    'id': tool_call_id,
+                    'type': 'function',
+                    'function': {
+                        'name': function_name,
+                        'arguments': arguments if isinstance(arguments, str) else str(arguments) if arguments else ''
+                    }
+                })
+                tool_results_list.append({
+                    'name': function_name,
+                    'content': str(result),
+                    'tool_call_id': tool_call_id
+                })
+            # Add assistant tool_calls message
+            import json
+            self.conversation_history.add_message(
+                'tool_calls',
+                json.dumps(tool_calls_list)
+            )
+            # Add tool_results message
+            self.conversation_history.add_message(
+                'tool_results',
+                json.dumps(tool_results_list)
+            )
             return True  # Continue the loop
         else:
             return False  # No tool calls, return event
@@ -328,6 +341,13 @@ class LLMAgent:
         """
         Wait for the driver's background thread to finish. Call this before exiting to avoid daemon thread shutdown errors.
         :param timeout: Optional timeout in seconds.
+        Handles KeyboardInterrupt gracefully.
         """
         if hasattr(self, 'driver') and self.driver and hasattr(self.driver, '_thread') and self.driver._thread:
-            self.driver._thread.join(timeout)
+            try:
+                self.driver._thread.join(timeout)
+            except KeyboardInterrupt:
+                print("\n[INFO] Interrupted by user during driver shutdown. Cleaning up...")
+                # Optionally, perform additional cleanup here
+                # Do not re-raise to suppress traceback and exit gracefully
+                return
