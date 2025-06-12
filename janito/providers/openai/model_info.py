@@ -3,16 +3,15 @@ from janito.llm.model import LLMModelInfo
 MODEL_SPECS = {
     "gpt-3.5-turbo": LLMModelInfo(name="gpt-3.5-turbo", context=16385, max_input=12289, max_cot="N/A", max_response=4096, thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
     "gpt-4.1": LLMModelInfo(name="gpt-4.1", context=1047576, max_input=1014808, max_cot="N/A", max_response=32768, thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
-    "codex-mini-latest": LLMModelInfo(name="codex-mini-latest", context=1047576, max_input=1014808, max_cot="N/A", max_response=32768, thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIResponsesModelDriver"),
     "gpt-4.1-mini": LLMModelInfo(name="gpt-4.1-mini", context=1047576, max_input=1014808, max_cot="N/A", max_response=32768, thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
     "gpt-4.1-nano": LLMModelInfo(name="gpt-4.1-nano", context=1047576, max_input=1014808, max_cot="N/A", max_response=32768, thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
     "gpt-4-turbo": LLMModelInfo(name="gpt-4-turbo", context=128000, max_input="N/A", max_cot="N/A", max_response="N/A", thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
     "gpt-4o": LLMModelInfo(name="gpt-4o", context=128000, max_input=123904, max_cot="N/A", max_response=4096, thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
     "gpt-4o-mini": LLMModelInfo(name="gpt-4o-mini", context=128000, max_input=111616, max_cot="N/A", max_response=16384, thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
-    "o3-mini": LLMModelInfo(name="o3-mini", context=200000, max_input=100000, max_cot="N/A", max_response=100000, thinking_supported=True, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
+    "o3-mini": LLMModelInfo(name="o3-mini", context=200000, max_input=100000, max_cot="N/A", max_response=100000, thinking_supported=True, default_temp=1.0, open="openai", driver="OpenAIModelDriver"),
+    "o3": LLMModelInfo(name="o3", context=200000, max_input=100000, max_cot="N/A", max_response=100000, thinking_supported=True, default_temp=1.0, open="openai", driver="OpenAIModelDriver"),
     "o4-mini": LLMModelInfo(name="o4-mini", context=200000, max_input=100000, max_cot="N/A", max_response=100000, thinking_supported=True, default_temp=1.0, open="openai", driver="OpenAIModelDriver"),
     "o4-mini-high": LLMModelInfo(name="o4-mini-high", context=200000, max_input=100000, max_cot="N/A", max_response=100000, thinking_supported=True, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
-    # duplicated codex-mini-latest and gpt-4-turbo with minimal properties for distinction
-    "codex-mini-latest-alt": LLMModelInfo(name="codex-mini-latest", context=4096, max_input="N/A", max_cot="N/A", max_response="N/A", thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIResponsesModelDriver"),
+    # duplicated gpt-4-turbo with minimal properties for distinction
     "gpt-4-turbo-alt": LLMModelInfo(name="gpt-4-turbo", context=128000, max_input="N/A", max_cot="N/A", max_response="N/A", thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
 }

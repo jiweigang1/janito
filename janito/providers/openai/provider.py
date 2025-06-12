@@ -29,6 +29,23 @@ class OpenAIProvider(LLMProvider):
                 self._driver_config.model = self.DEFAULT_MODEL
             if not self._driver_config.api_key:
                 self._driver_config.api_key = self._api_key
+            # Set only the correct token parameter for the model
+            model_name = self._driver_config.model
+            model_spec = self.MODEL_SPECS.get(model_name)
+            # Remove both to avoid stale values
+            if hasattr(self._driver_config, 'max_tokens'):
+                self._driver_config.max_tokens = None
+            if hasattr(self._driver_config, 'max_completion_tokens'):
+                self._driver_config.max_completion_tokens = None
+            if model_spec:
+                if getattr(model_spec, 'thinking_supported', False):
+                    max_cot = getattr(model_spec, 'max_cot', None)
+                    if max_cot and max_cot != "N/A":
+                        self._driver_config.max_completion_tokens = int(max_cot)
+                else:
+                    max_response = getattr(model_spec, 'max_response', None)
+                    if max_response and max_response != "N/A":
+                        self._driver_config.max_tokens = int(max_response)
             self.fill_missing_device_info(self._driver_config)
             self._driver = None  # to be provided by factory/agent
 

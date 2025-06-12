@@ -50,8 +50,12 @@ class OpenAIModelDriver(LLMDriver):
         # OpenAI-specific parameters
         if config.model:
             api_kwargs['model'] = config.model
-        if hasattr(config, 'max_tokens') and config.max_tokens is not None:
-            api_kwargs['max_tokens'] = int(config.max_tokens)
+        # Prefer max_completion_tokens if present, else fallback to max_tokens (for backward compatibility)
+        if hasattr(config, 'max_completion_tokens') and config.max_completion_tokens is not None:
+            api_kwargs['max_completion_tokens'] = int(config.max_completion_tokens)
+        elif hasattr(config, 'max_tokens') and config.max_tokens is not None:
+            # For models that do not support 'max_tokens', map to 'max_completion_tokens'
+            api_kwargs['max_completion_tokens'] = int(config.max_tokens)
         for p in ('temperature', 'top_p', 'presence_penalty', 'frequency_penalty', 'stop'):
             v = getattr(config, p, None)
             if v is not None:
