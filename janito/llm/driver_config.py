@@ -3,6 +3,8 @@ from typing import Any, Optional
 
 @dataclass
 class LLMDriverConfig:
+    # For OpenAI and similar providers that distinguish between completion and response tokens
+    max_completion_tokens: Optional[int] = None
     verbose_api: Optional[bool] = None
     """
     Common configuration container for LLM drivers.

@@ -55,7 +55,9 @@ class LLMProvider(ABC):
                 except Exception:
                     pass
         if hasattr(config, 'temperature') and getattr(config, 'temperature', None) is None:
-            val = spec_dict.get('temperature', spec_dict.get('default_temp'))
+            val = spec_dict.get('temperature')
+            if val is None:
+                val = spec_dict.get('default_temp')
             if val is not None:
                 try:
                     config.temperature = float(val)

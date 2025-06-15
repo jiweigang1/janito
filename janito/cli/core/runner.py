@@ -34,6 +34,14 @@ def _populate_driver_config_data(args, modifiers, provider, model):
     return driver_config_data
 
 def prepare_llm_driver_config(args, modifiers):
+    """Prepare the LLMDriverConfig instance based on CLI *args* and *modifiers*.
+
+    This helper additionally validates that the chosen ``--model`` (or the
+    resolved model coming from config precedence) is actually available for the
+    selected provider.  If the combination is invalid an error is printed and
+    ``None`` is returned for the config so that the caller can abort execution
+    gracefully.
+    """
     provider = _choose_provider(args)
     if provider is None:
         return None, None, None
@@ -41,6 +49,21 @@ def prepare_llm_driver_config(args, modifiers):
     model = getattr(args, 'model', None)
     if not model:
         model = get_effective_model(provider)
+
+    # Validate that the chosen model is supported by the selected provider
+    if model:
+        from janito.provider_registry import ProviderRegistry
+        provider_instance = None
+        try:
+            provider_instance = ProviderRegistry().get_instance(provider)
+            available_models = [m["name"] for m in provider_instance.get_model_info().values() if isinstance(m, dict) and "name" in m]
+            if model not in available_models:
+                print(f"Error: Model '{model}' is not available for provider '{provider}'.")
+                print(f"Available models: {', '.join(available_models)}")
+                return provider, None, None
+        except Exception as e:
+            print(f"Error validating model for provider '{provider}': {e}")
+            return provider, None, None
     driver_config_data = _populate_driver_config_data(args, modifiers, provider, model)
     llm_driver_config = LLMDriverConfig(**driver_config_data)
     if getattr(llm_driver_config, 'verbose_api', None):
