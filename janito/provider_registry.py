@@ -29,7 +29,13 @@ class ProviderRegistry:
         return table
 
     def _get_all_provider_rows(self, providers):
-        rows = [self._get_provider_info(p) for p in providers]
+        rows = []
+        for p in providers:
+            info = self._get_provider_info(p)
+            # info is (provider_name, maintainer, model_names, skip)
+            if len(info) == 4 and info[3]:
+                continue  # skip providers flagged as not implemented
+            rows.append(info[:3])
         rows.sort(key=self._maintainer_sort_key)
         return rows
 
@@ -48,6 +54,7 @@ class ProviderRegistry:
         maintainer = ("[red]🚨 Needs maintainer[/red]" if maintainer_val == "Needs maintainer" else f"👤 {maintainer_val}")
         model_names = "-"
         unavailable_reason = None
+        skip = False
         try:
             provider_class = LLMProviderRegistry.get(provider_name)
             creds = LLMAuthManager().get_credentials(provider_name)
@@ -55,19 +62,25 @@ class ProviderRegistry:
             instantiation_failed = False
             try:
                 provider_instance = provider_class()
+            except NotImplementedError:
+                skip = True
+                unavailable_reason = "Not implemented"
+                model_names = f"[red]❌ Not implemented[/red]"
             except Exception as e:
                 instantiation_failed = True
                 unavailable_reason = f"Unavailable (import error or missing dependency): {str(e)}"
                 model_names = f"[red]❌ {unavailable_reason}[/red]"
             if not instantiation_failed and provider_instance is not None:
                 available, unavailable_reason = self._get_availability(provider_instance)
+                if not available and unavailable_reason and "not implemented" in str(unavailable_reason).lower():
+                    skip = True
                 if available:
                     model_names = self._get_model_names(provider_name)
                 else:
                     model_names = f"[red]❌ {unavailable_reason}[/red]"
         except Exception as import_error:
             model_names = f"[red]❌ Unavailable (cannot import provider module): {str(import_error)}[/red]"
-        return (provider_name, maintainer, model_names)
+        return (provider_name, maintainer, model_names, skip)
 
     def _get_availability(self, provider_instance):
         try:

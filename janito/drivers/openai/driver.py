@@ -27,8 +27,8 @@ class OpenAIModelDriver(LLMDriver):
     available = DRIVER_AVAILABLE
     unavailable_reason = DRIVER_UNAVAILABLE_REASON
 
-    def __init__(self, tools_adapter=None):
-        super().__init__(tools_adapter=tools_adapter)
+    def __init__(self, tools_adapter=None, provider_name=None):
+        super().__init__(tools_adapter=tools_adapter, provider_name=provider_name)
 
     def _prepare_api_kwargs(self, config, conversation):
         """

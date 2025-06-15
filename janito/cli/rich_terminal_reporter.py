@@ -28,8 +28,17 @@ class RichTerminalReporter(EventHandlerBase):
         self._waiting_printed = False
 
     def on_RequestStarted(self, event):
-        # Print waiting message
-        self.console.print("[bold cyan]Waiting for LLM answer...[/bold cyan]", end="")
+        # Print waiting message with provider name
+        provider = None
+        if hasattr(event, 'payload') and isinstance(event.payload, dict):
+            provider = event.payload.get('provider_name')
+        if not provider:
+            provider = getattr(event, 'provider_name', None)
+        if not provider:
+            provider = getattr(event, 'driver_name', None)
+        if not provider:
+            provider = "LLM"
+        self.console.print(f"[bold cyan]Waiting for {provider}...[/bold cyan]", end="")
 
     def on_ResponseReceived(self, event):
         parts = event.parts if hasattr(event, 'parts') else None
