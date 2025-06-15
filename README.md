@@ -24,10 +24,10 @@ Janito is a command-line interface (CLI) tool for managing and interacting with 
 
 ## Installation
 
-Janito is a Python package. Install it using pip:
+Janito is a Python package. Since this is a development version, install it directly from GitHub:
 
 ```bash
-pip install janito
+pip install git+https://github.com/janito-dev/janito.git
 ```
 
 ## Usage

@@ -29,6 +29,9 @@ class DeepseekProvider(LLMProvider):
                 self._driver_config.model = self.DEFAULT_MODEL
             if not self._driver_config.api_key:
                 self._driver_config.api_key = self._api_key
+            # Set DeepSeek public endpoint as default base_url if not provided
+            if not getattr(self._driver_config, "base_url", None):
+                self._driver_config.base_url = "https://api.deepseek.com/v1"
             self.fill_missing_device_info(self._driver_config)
             self._driver = None  # to be provided by factory/agent
 

@@ -19,6 +19,6 @@ STATIC_PROVIDER_METADATA = {
         'maintainer': 'Needs maintainer',
     },
     'deepseek': {
-        'maintainer': 'Needs maintainer',
+        'maintainer': 'João Pinto <lamego.pinto@gmail.com>',
     },
 }
