@@ -36,7 +36,7 @@ After installation, use the `janito` command in your terminal.
 
 ### Basic Commands
 
-- **Set API Key for a Provider**
+- **Set API Key for a Provider (requires -p PROVIDER)**
   ```bash
   janito --set-api-key API_KEY -p PROVIDER
   ```
@@ -45,9 +45,9 @@ After installation, use the `janito` command in your terminal.
   > janito --set-api-key sk-xxxxxxx -p openai
   > ```
 
-- **Set the Default Provider**
+- **Set the Provider**
   ```bash
-  janito --set default_provider=provider_name
+  janito --set provider=provider_name
   ```
 
 - **List Supported Providers**
@@ -87,7 +87,7 @@ After installation, use the `janito` command in your terminal.
   janito -p openai -m gpt-3.5-turbo "Your prompt here"
   ```
 
-- **Set Provider-Specific Config**
+- **Set Provider-Specific Config (for the selected provider)**
   ```bash
   janito --set-config PROVIDER KEY VALUE
   ```
