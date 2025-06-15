@@ -1,19 +1,16 @@
 <p align="center">
-  <img src="imgs/happy- programmer.svg" alt="Janito Logo" width="180"/>
+  <img src="imgs/happy-programmer.svg" alt="Janito Logo" width="180"/>
 </p>
 
 # 🤖 Janito
 
-Janito brings conversational AI 🤝 to your terminal or browser, helping you automate code review, refactoring, documentation, and project tasks with Large Language Models (LLMs).
-
-## ❓ What is Janito?
-
-Janito is a developer- focused agent that understands natural language instructions and safely performs code and project operations. Use it to automate repetitive tasks, review and refactor code, interact with your project conversationally, and extend automation with plugins.
+Janito is a lightweight client for developers to automate code and project tasks using natural language and LLMs.
 
 ## ✨ Key Features
 
 -  ⚡ Automate code review, refactoring, and documentation
--  🖥️ Use via command- line or web interface
+-  💬 Interactive pair programming chat mode
+-  🖥️ Use via command-line with an optional web interface for manual edits
 -  🔌 Easily extend with custom tools and plugins
 -  🛡️ Robust configuration and quality checks
 -  👨‍💻 Designed for developers, by developers
@@ -26,11 +23,10 @@ Janito is a developer- focused agent that understands natural language instructi
 
 ## 🌐 Web Applications
 
--  **janito/web**: Main Flask web application interface. See [API Reference](reference/api.md#janitowebapp).
--  **janito/termweb**: Lightweight Quart- based web file viewer for CLI file links. See [API Reference](reference/api.md#janitotermwebapp).
+-  **janito/termweb**: Quart-based web application for file viewing and browser-based interaction. See [API Reference](reference/api.md#janitotermwebapp).
 
 ## 📚 More Detailed Documentation
-For the most comprehensive and up- to- date documentation, see the [README on GitHub](https://github.com/joaompinto/janito/blob/main/README.md).
+For the most comprehensive and up-to-date documentation, see the [README on GitHub](https://github.com/joaompinto/janito/blob/main/README.md).
 
 - - - 
 

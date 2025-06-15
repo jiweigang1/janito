@@ -29,9 +29,16 @@ class PromptHandler:
     def handle(self) -> None:
         import traceback
         user_prompt = " ".join(getattr(self.args, 'user_prompt', [])).strip()
+        # UTF-8 sanitize user_prompt
+        sanitized = user_prompt
+        try:
+            sanitized.encode('utf-8')
+        except UnicodeEncodeError:
+            sanitized = sanitized.encode('utf-8', errors='replace').decode('utf-8')
+            shared_console.print("[yellow]Warning: Some characters in your input were not valid UTF-8 and have been replaced.[/yellow]")
         try:
             self.generic_handler.handle_prompt(
-                user_prompt,
+                sanitized,
                 args=self.args,
                 print_header=True,
                 raw=getattr(self.args, 'raw', False)
