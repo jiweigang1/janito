@@ -62,12 +62,12 @@ After installation, use the `janito` command in your terminal.
 
 - **List Models for a Provider**
   ```bash
-  janito --provider PROVIDER --list-models
+  janito -p PROVIDER --list-models
   ```
 
 - **Submit a Prompt**
   ```bash
-  janito What is the capital of France?
+  janito "What is the capital of France?"
   ```
 
 - **Start Interactive Chat Shell**
@@ -89,8 +89,9 @@ After installation, use the `janito` command in your terminal.
 
 - **Set Provider-Specific Config (for the selected provider)**
   ```bash
-  janito --set-config PROVIDER KEY VALUE
+  janito --set openai.max_tokens=2048
   ```
+  > **Note:** Use `--set PROVIDER.key=value` for provider-specific settings (e.g., `openai.max_tokens`, `openai.base_url`).
 
 - **Enable Event Logging**
   ```bash
@@ -107,16 +108,16 @@ After installation, use the `janito` command in your terminal.
 | `--list-providers`     | List all supported LLM providers                                            |
 | `-l`, `--list-models`  | List models for current/selected provider                                   |
 | `--set-api-key`        | Set API key for a provider. **Requires** `-p PROVIDER` to specify the provider. |
-| `--set provider=name` | Set the current LLM provider (e.g., janito --set provider=name)                                                |
-| `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set the default model for the current/selected provider, or globally. |
-| `-s`, `--system`       | Set a system prompt                                                         |
-| `-r`, `--role`         | Set the role for the agent (overrides config)                                |
-| `-p`, `--provider`     | Select LLM provider (overrides config)                                      |
-| `-m`, `--model`        | Select model for the provider                                               |
+| `--set provider=name` | Set the current LLM provider (e.g., `janito --set provider=openai`)                                                |
+| `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set the default model for the current/selected provider, or globally. (e.g., `janito --set openai.model=gpt-3.5-turbo`) |
+| `-s`, `--system`       | Set a system prompt (e.g., `janito -s path/to/system_prompt.txt "Your prompt here"`) |
+| `-r`, `--role`         | Set the role for the agent (overrides config) (e.g., `janito -r "assistant" "Your prompt here"`) |
+| `-p`, `--provider`     | Select LLM provider (overrides config) (e.g., `janito -p openai "Your prompt here"`) |
+| `-m`, `--model`        | Select model for the provider (e.g., `janito -m gpt-3.5-turbo "Your prompt here"`) |
 | `-v`, `--verbose`      | Print extra information before answering                                    |
 | `-R`, `--raw`          | Print raw JSON response from API                                            |
 | `-e`, `--event-log`    | Log events to console as they occur                                         |
-| `[user_prompt]...`     | Prompt to submit (if no other command is used)                              |
+| `["user_prompt"]...`     | Prompt to submit (if no other command is used) (e.g., `janito "What is the capital of France?"`) |
 
 ### 🧩 Extended Chat Mode Commands
 Once inside the interactive chat mode, you can use these slash commands:
