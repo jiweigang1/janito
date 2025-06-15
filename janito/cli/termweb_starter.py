@@ -7,7 +7,6 @@ import os
 import threading
 import queue
 from rich.console import Console
-from janito.cli._termweb_log_utils import print_termweb_logs
 from janito.i18n import tr
 from janito.cli.config import get_termweb_port
 
@@ -75,8 +74,7 @@ def termweb_start_and_watch(shell_state, shellstate_lock, selected_port=None):
         else:
             termweb_proc.terminate()
             termweb_proc.wait()
-            console.print(f"[red]Failed to start TermWeb on port {port_to_use}. Check logs for details.[/red]")
-            print_termweb_logs(termweb_stdout.name, termweb_stderr.name, console)
+            # console.print(f"[red]Failed to start TermWeb on port {port_to_use}. Check logs for details.[/red]")
             with shellstate_lock:
                 shell_state.termweb_status = 'failed-start'
                 shell_state.termweb_pid = None
@@ -101,8 +99,7 @@ def termweb_start_and_watch(shell_state, shellstate_lock, selected_port=None):
                 if resp.status != 200:
                     raise Exception("Bad status")
             except Exception:
-                console.print(f"[red]TermWeb on port {port_to_use} appears to have stopped responding![/red]")
-                print_termweb_logs(termweb_stdout.name, termweb_stderr.name, console)
+                # console.print(f"[red]TermWeb on port {port_to_use} appears to have stopped responding![/red]")
                 with shellstate_lock:
                     shell_state.termweb_status = 'unresponsive'
                 break
