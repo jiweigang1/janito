@@ -76,4 +76,4 @@ class DeepseekProvider(LLMProvider):
         self._tools_adapter.event_bus = event_bus
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
 
-LLMProviderRegistry.register(OpenAIProvider.name, OpenAIProvider)
+LLMProviderRegistry.register(DeepseekProvider.name, DeepseekProvider)

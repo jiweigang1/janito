@@ -18,4 +18,7 @@ STATIC_PROVIDER_METADATA = {
     'anthropic': {
         'maintainer': 'Needs maintainer',
     },
+    'deepseek': {
+        'maintainer': 'Needs maintainer',
+    },
 }

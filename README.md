@@ -38,8 +38,12 @@ After installation, use the `janito` command in your terminal.
 
 - **Set API Key for a Provider**
   ```bash
-  janito --set-api-key API_KEY [-p PROVIDER]
+  janito --set-api-key API_KEY -p PROVIDER
   ```
+  > **Note:** The `-p PROVIDER` argument is required when setting an API key. For example:
+  > ```bash
+  > janito --set-api-key sk-xxxxxxx -p openai
+  > ```
 
 - **Set the Default Provider**
   ```bash
@@ -102,7 +106,7 @@ After installation, use the `janito` command in your terminal.
 | `--list-tools`         | List all registered tools                                                   |
 | `--list-providers`     | List all supported LLM providers                                            |
 | `-l`, `--list-models`  | List models for current/selected provider                                   |
-| `--set-api-key`        | Set API key for the current or selected provider (`API_KEY`). Use `-p PROVIDER` to set for a specific provider. |
+| `--set-api-key`        | Set API key for a provider. **Requires** `-p PROVIDER` to specify the provider. |
 | `--set provider=name` | Set the current LLM provider (e.g., janito --set provider=name)                                                |
 | `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set the default model for the current/selected provider, or globally. |
 | `-s`, `--system`       | Set a system prompt                                                         |
@@ -172,3 +176,17 @@ Contributions are welcome! Please see the `CONTRIBUTING.md` (if available) or op
 This project is licensed under the terms of the MIT license.
 
 For more information, see the documentation in the `docs/` directory or run `janito --help`.
+
+---
+
+## FAQ: Setting API Keys
+
+To set an API key for a provider, you **must** specify both the API key and the provider name:
+
+```bash
+janito --set-api-key YOUR_API_KEY -p PROVIDER_NAME
+```
+
+Replace `YOUR_API_KEY` with your actual key and `PROVIDER_NAME` with the provider (e.g., `openai`, `google`, etc.).
+
+If you omit the `-p PROVIDER_NAME` argument, Janito will show an error and not set the key.

@@ -13,6 +13,5 @@ MODEL_SPECS = {
     "o4-mini": LLMModelInfo(name="o4-mini", context=200000, max_input=100000, max_cot="N/A", max_response=100000, thinking_supported=True, default_temp=1.0, open="openai", driver="OpenAIModelDriver"),
     "o4-mini-high": LLMModelInfo(name="o4-mini-high", context=200000, max_input=100000, max_cot="N/A", max_response=100000, thinking_supported=True, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
     # duplicated codex-mini-latest and gpt-4-turbo with minimal properties for distinction
-    "codex-mini-latest-alt": LLMModelInfo(name="codex-mini-latest", context=4096, max_input="N/A", max_cot="N/A", max_response="N/A", thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIResponsesModelDriver"),
     "gpt-4-turbo-alt": LLMModelInfo(name="gpt-4-turbo", context=128000, max_input="N/A", max_cot="N/A", max_response="N/A", thinking_supported=False, default_temp=0.2, open="openai", driver="OpenAIModelDriver"),
 }

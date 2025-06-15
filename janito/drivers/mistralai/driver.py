@@ -22,8 +22,8 @@ except ImportError:
     DRIVER_UNAVAILABLE_REASON = "Missing dependency: mistralai (pip install mistralai)"
 
 class MistralAIModelDriver(LLMDriver):
-    available = DRIVER_AVAILABLE
-    unavailable_reason = DRIVER_UNAVAILABLE_REASON
+    available = False
+    unavailable_reason = "MistralAIModelDriver is not implemented yet."
 
     @classmethod
     def is_available(cls):
@@ -32,9 +32,4 @@ class MistralAIModelDriver(LLMDriver):
     name = "mistralai"
 
     def __init__(self, tools_adapter=None):
-        if not self.available:
-            raise ImportError(f"MistralAIModelDriver unavailable: {self.unavailable_reason}")
-        super().__init__()
-        self.tools_adapter = tools_adapter
-        self.config = None
-    # ... rest of the implementation ...
+        raise ImportError(self.unavailable_reason)

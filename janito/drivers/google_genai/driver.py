@@ -33,8 +33,8 @@ def extract_usage_metadata_native(usage_obj):
     return result
 
 class GoogleGenaiModelDriver(LLMDriver):
-    available = True
-    unavailable_reason = None
+    available = False
+    unavailable_reason = "GoogleGenaiModelDriver is not implemented yet."
 
     @classmethod
     def is_available(cls):
@@ -42,9 +42,4 @@ class GoogleGenaiModelDriver(LLMDriver):
 
     name = "google_genai"
     def __init__(self, tools_adapter=None):
-        if not self.available:
-            raise ImportError(f"GoogleGenaiModelDriver unavailable: {self.unavailable_reason}")
-        super().__init__()
-        self.tools_adapter = tools_adapter
-        self.config = None
-    # ... rest of the implementation ...
+        raise ImportError(self.unavailable_reason)
