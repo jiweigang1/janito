@@ -55,7 +55,7 @@ You’ll be dropped into a conversational prompt where you can interact with Jan
 
 --- 
 
-![Terminal Shell Screenshot](../imgs/terminal_shell.png)
+![Terminal Shell Screenshot](../imgs/terminal-shell.png)
 
 *Screenshot: Janito interactive shell in action*
 

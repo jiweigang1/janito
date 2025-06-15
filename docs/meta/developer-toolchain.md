@@ -1,6 +1,6 @@
 # Developer Toolchain Guide
 
-For tool development, see the [Tools Developer Guide](../guides/tools_developer_guide.md).
+For tool development, see the [Tools Developer Guide](../guides/tools-developer-guide.md).
 
 ## Code Style, Linting, and Pre-commit Hooks
 

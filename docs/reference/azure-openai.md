@@ -1,6 +1,6 @@
 # Using Azure OpenAI with Janito
 
-Janito supports models hosted on Azure OpenAI in addition to OpenAI-compatible and OpenRouter endpoints.
+Janito supports models hosted on Azure OpenAI in addition to OpenAI-compatible endpoints.
 
 ## Configuration Steps
 

@@ -69,14 +69,6 @@ class FetchUrlTool(ToolBase):
             return tr(
                 "Warning: Error fetching URL: {url}: {err}", url=url, err=str(err)
             )
-        self.update_progress(
-            {
-                "event": "progress",
-                "message": tr(
-                    "Fetched URL with status {status}", status=response.status_code
-                ),
-            }
-        )
         soup = BeautifulSoup(response.text, "html.parser")
         text = soup.get_text(separator="\n")
         if search_strings:

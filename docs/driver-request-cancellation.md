@@ -29,7 +29,7 @@ Janito's core driver flow is event-driven and supports cooperative, programmatic
 
 - The `cancel_event` is an optional field in the `DriverInput` dataclass (see `janito/llm/driver_input.py`).
 - Drivers are expected to check for cancellation at the start of processing and after any blocking or long-running operation (see `janito/llm/driver.py` and driver subclasses).
-- Example usage and code references are available in `docs/llm_drivers.md`.
+- Example usage and code references are available in `docs/llm-drivers.md`.
 
 ## Future Directions
 
@@ -55,10 +55,10 @@ This cooperative cancellation mechanism ensures that all major flows—agent loo
 
 - Use the `cancel_event` mechanism for both user-initiated and programmatic cancellation.
 - For UI or API integrations, expose a way to set the `cancel_event` to allow users or logic to abort requests.
-- For more details, see `docs/llm_drivers.md` and the relevant code in `janito/llm/agent.py`, `janito/llm/driver.py`, and driver implementations.
+- For more details, see `docs/llm-drivers.md` and the relevant code in `janito/llm/agent.py`, `janito/llm/driver.py`, and driver implementations.
 
 ## References
 
-- See `docs/llm_drivers.md` for architecture and example usage.
+- See `docs/llm-drivers.md` for architecture and example usage.
 - See CLI session handling for interruption logic.
 - See `janito/llm/driver_input.py`, `janito/llm/agent.py`, and driver implementations for code-level details.

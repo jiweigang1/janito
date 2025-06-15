@@ -61,3 +61,6 @@ coverage.xml
 
 # Janito logs/history (if not needed in VCS)
 .janito/
+
+# MkDocs build output
+site/

@@ -15,7 +15,7 @@ Janito is designed with a built-in agentic framework tailored specifically for c
 - **Limitations for Code:**
   - Lack deep understanding of code semantics, dependencies, and context.
   - Not designed for precise, context-aware code editing or refactoring.
-  - Struggle with the fragility and interconnectedness of code (see [Challenges of Code Generation and Editing for LLMs](code_generation_challenges.md)).
+  - Struggle with the fragility and interconnectedness of code (see [Challenges of Code Generation and Editing for LLMs](code-generation-challenges.md)).
 
 ## Janito’s Built-in Agentic Framework
 
@@ -24,7 +24,7 @@ Janito is designed with a built-in agentic framework tailored specifically for c
   - Maintaining traceability and explicit error handling.
   - Supporting developer workflows and codebase evolution.
 - **Key Features:**
-  - Step-by-step code search and inference, with user-visible progress (see [Code Generation Observability](code_generation_observability.md)).
+  - Step-by-step code search and inference, with user-visible progress (see [Code Generation Observability](code-generation-observability.md)).
   - Validation and testing of code changes.
   - Awareness of code structure, dependencies, and side effects.
   - Designed for iterative, collaborative development.

@@ -1,67 +1,48 @@
-# 🏁 Runtime Command-Line Options
+# 🏁 Janito CLI Options
 
-This page documents all command-line options for Janito. These options temporarily override configuration for a single session (do not persist changes to config files).
+This page documents all command-line options for Janito, as shown by `janito --help`. These options temporarily override configuration for a single session and do not persist changes to config files.
 
 ## 💡 Overview
 
 These options are useful for one-off runs, scripting, or experimentation. They take precedence over config files for the current invocation only.
 
-> ⚠️ **Warning:** Some models may not complete all required steps in a single-shot (one-off) run. If the model does not act as expected, try appending "; just do it" to your command-line prompt to encourage direct action.
-
 ## ⚙️ Options
 
 | Option | Description |
 |--------|-------------|
-| `prompt` | Prompt to send to the model (positional argument) |
-| `--lang` | Language for interface messages (e.g., en, pt). Overrides config if set. |
-| `--max-tokens` | Maximum tokens for model response (overrides config, default: 32000) |
-| `--max-tools` | Maximum number of tool calls allowed within a chat session (default: unlimited) |
-| `--model`, `-m` | Model name to use for this session (overrides config, does not persist) |
-| `--max-rounds` | Maximum number of agent rounds per prompt (overrides config, default: 50) |
-| `--system`, `-s` | Optional system prompt as a raw string |
-| `--system-file` | Path to a plain text file to use as the system prompt (no template rendering, takes precedence over --system) |
-| `--role`, `-r` | Role description for the default system prompt |
-| `--temperature`, `-t` | Sampling temperature (e.g., 0.0 - 2.0) |
-| `--verbose-http` | Enable verbose HTTP logging |
-| `--verbose-http-raw` | Enable raw HTTP wire-level logging |
-| `--verbose-response` | Pretty print the full response object |
-| `--list-tools` | List all registered tools and exit |
-| `--show-system` | Show model, parameters, system prompt, and tool definitions, then exit |
-| `--verbose-reason` | Print the tool call reason whenever a tool is invoked (for debugging) |
-| `--verbose-tools` | Print tool call parameters and results |
-| `--no-tools`, `-n` | Disable tool use (default: enabled) |
-| `--set-local-config` | Set a local config key-value pair, format "key=val" |
-| `--set-global-config` | Set a global config key-value pair, format "key=val" |
-| `--run-config` | Set a runtime (in-memory only) config key-value pair, format "key=val". Can be repeated. |
-| `--show-config` | Show effective configuration and exit |
-| `--set-api-key` | Set and save the API key globally |
+| `user_prompt` | Prompt to submit (positional argument) |
+| `-h`, `--help` | Show this help message and exit |
+| `--verbose-api` | Print API calls and responses of LLM driver APIs for debugging/tracing. |
+| `--verbose-tools` | Print info messages for tool execution in tools adapter. |
+| `--verbose-agent` | Print info messages for agent event and message part handling. |
+| `-z`, `--zero` | IDE zero mode: disables system prompt & all tools for raw LLM interaction |
+| `--unset KEY` | Unset (remove) a config key |
 | `--version` | Show program's version number and exit |
-| `--help-config` | Show all configuration options and exit |
-| `--continue-session` | Continue from the last saved conversation |
-| `--web` | Launch the Janito web server instead of CLI |
-| `--config-reset-local` | Remove the local config file (~/.janito/config.json) |
-| `--config-reset-global` | Remove the global config file (~/.janito/config.json) |
-| `--verbose-events` | Print all agent events before dispatching to the message handler (for debugging) |
-| `--vanilla`, `-V` | Vanilla mode: disables tools, system prompt, and temperature (unless -t is set) |
-| `--trust-tools`, `-T` | Suppress all tool output (trusted tools mode: only shows output file locations) |
-| `--profile` | Agent Profile name (only 'base' is supported) |
-| `--no-termweb` | Disable the built-in lightweight web file viewer for terminal links (enabled by default) |
-| `--termweb-port` | Port for the termweb server (default: 8088) |
-| `--info`, `-i` | Show basic program info and exit (useful for one-shot shell execution) |
+| `--list-tools` | List all registered tools |
+| `--show-config` | Show the current config |
+| `--list-providers` | List supported LLM providers |
+| `-l`, `--list-models` | List all supported models |
+| `--set-api-key API_KEY` | Set API key for the provider (requires -p PROVIDER) |
+| `--set [PROVIDER_NAME.]KEY=VALUE` | Set a config key |
+| `-s SYSTEM_PROMPT`, `--system SYSTEM_PROMPT` | Set a system prompt |
+| `-S`, `--show-system` | Show the resolved system prompt for the main agent |
+| `-r ROLE`, `--role ROLE` | Set the role for the agent |
+| `-p PROVIDER`, `--provider PROVIDER` | Select the provider |
+| `-m MODEL`, `--model MODEL` | Select the model |
+| `-t TEMPERATURE`, `--temperature TEMPERATURE` | Set the temperature |
+| `-v`, `--verbose` | Print extra information before answering |
+| `-R`, `--raw` | Print the raw JSON response from the OpenAI API (if applicable) |
+| `--no-termweb` | Disable the builtin lightweight web file viewer for terminal links (enabled by default) |
+| `--termweb-port TERMWEB_PORT` | Port for the termweb server (default: 8088) |
+| `-e`, `--event-log` | Enable event logging to the system bus |
+| `--event-debug` | Print debug info on event subscribe/submit methods |
 
-## 📝 Notes
-
-- These options do NOT persist changes to your configuration files.
-- For permanent changes, use `--set-local-config` or `--set-global-config`.
-- See `--help` for the full list of options.
-
-## 👨‍💻 Usage Examples
+## 👨‍💻 Usage Example
 
 ```sh
-janito "Prompt here" --model gpt-4.1 --max-tokens 500 --temperature 0.7
+janito -p openai -m gpt-3.5-turbo "Your prompt here"
 janito --list-tools
-janito "Prompt" --system "You are a helpful assistant." --no-tools
-janito --web
+janito "Prompt" --system "You are a helpful assistant." --no-termweb
 ```
 
-# _generated by janito.dev_
+_This page is generated from the output of `janito --help`._

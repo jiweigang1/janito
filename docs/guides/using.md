@@ -1,8 +1,8 @@
-# 🚀 Using Janito: Quickstart & Basic Usage
+# Using Janito: Quickstart & Basic Usage
 
-This guide shows you how to start using Janito after installation. For an overview of Janito, see the [Introduction](../index.md). For setup instructions, see the [Installation Guide](installation.md).
+This guide explains how to start using Janito after installation. For an overview, see the [Introduction](../index.md). For setup, see the [Installation Guide](installation.md) and [Configuration Guide](configuration.md).
 
-## 💡 Quickstart
+## Quickstart
 
 After installing Janito, you can use it from the command line or launch the web interface:
 
@@ -21,13 +21,13 @@ janito
 janito --web
 ```
 
-## 📝 Basic Usage Tips
+## Basic Usage Tips
 - Use natural language to describe what you want Janito to do (e.g., "Add type hints to all functions in utils.py").
 - In the chat shell, use `/help` for available commands.
 - Use CLI flags to customize behavior (see [CLI Options](../reference/cli-options.md)).
 
-## 📚 More Resources
-- See [System Prompt Profile](prompt_profiles.md) for details on the agent’s instructions and customization.
-- See [How Janito Uses Tools](using_tools.md) for details on automatic tool selection.
-- See the Supported Models page in the documentation navigation for information on LLM compatibility.
-- See [Costs & Value Transparency](../about/costs.md) for details on pricing and efficiency.
+## More Resources
+
+- [How Janito Uses Tools](using_tools.md): Automatic tool selection details.
+- Supported Models: See documentation navigation for LLM compatibility.
+- [Costs & Value Transparency](../about/costs.md): Pricing and efficiency details.

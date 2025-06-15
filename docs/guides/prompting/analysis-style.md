@@ -34,7 +34,7 @@ After declaring the role and domain, extend the prompt with clear, actionable an
 - Always start with a clear role and domain statement.
 - Extend with explicit analysis actions and output requirements.
 - Use precise, unambiguous language.
-- Follow with condition-before-action (CBA) structure for instructions (see [Prompt Design Style](prompt_design_style.md)).
+- Follow with condition-before-action (CBA) structure for instructions (see [Prompt Design Style](prompt-design-style.md)).
 - Avoid vague roles (e.g., "expert"). Specify the field or context when possible.
 
 ---
