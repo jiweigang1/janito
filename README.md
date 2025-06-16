@@ -85,7 +85,9 @@ After installation, use the `janito` command in your terminal.
 
 - **Set Provider-Specific Config**
   ```bash
-  janito --set-config PROVIDER KEY VALUE
+  # syntax: janito --set PROVIDER.KEY=VALUE
+  # example: set the default model for openai provider
+  janito --set openai.model=gpt-4o
   ```
 
 - **Enable Event Logging**
