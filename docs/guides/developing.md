@@ -26,4 +26,4 @@ This installs Janito in "editable" mode, so changes to the source code are insta
 ## Additional Development Setup
 
 - Ensure you are on the correct branch (e.g., `main`) for the latest development version.
-- For linting, pre-commit hooks, and other developer tools, see the [Developer Toolchain Guide](../meta/developer_toolchain.md).
+- For linting, pre-commit hooks, and other developer tools, see the Developer Toolchain Guide in the meta directory.

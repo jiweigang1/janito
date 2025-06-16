@@ -57,5 +57,3 @@ See `janito/drivers/openai/driver.py` for a complete example. Highlights:
 - OpenAI driver: [`janito/drivers/openai/driver.py`](https://github.com/janito-dev/janito/tree/main/janito/drivers/openai/driver.py)
 - Driver events: [`janito/driver_events.py`](https://github.com/janito-dev/janito/tree/main/janito/driver_events.py)
 
-For more details on event types and driver configuration, see also:
-- [`docs/llm_drivers_required_config.md`](llm_drivers_required_config.md)

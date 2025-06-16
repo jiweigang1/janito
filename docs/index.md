@@ -14,4 +14,10 @@ Janito is a lightweight language model client focused on software development ac
 -  👨‍💻 Designed for developers, by developers
 
 
-- - - 
+- - -
+
+## 📚 Learn More
+
+- [What Is a Language Model Client?](concepts/language-model-clients.md) — Thin vs. Thick Clients explained
+- **Concepts & Terminology:** See the [concepts](concepts/index.md) section for more foundational explanations.
+
