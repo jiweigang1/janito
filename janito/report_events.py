@@ -10,6 +10,7 @@ class ReportSubtype(Enum):
     WARNING = "warning"
     STDOUT = "stdout"
     STDERR = "stderr"
+    PROGRESS = "progress"
 
 class ReportAction(Enum):
     READ = "READ"

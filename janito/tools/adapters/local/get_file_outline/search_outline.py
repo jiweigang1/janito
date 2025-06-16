@@ -13,7 +13,7 @@ class SearchOutlineTool(ToolBase):
     tool_name = "search_outline"
 
     def run(self, file_path: str) -> str:
-        from janito.tool_utils import display_path
+        from janito.tools.tool_utils import display_path
         from janito.i18n import tr
 
         self.report_action(

@@ -4,17 +4,17 @@ The interactive shell lets you have a continuous conversation with Janito, just 
 
 ## ✨ Features
 
-- 🔄 Multi- turn conversations: Build on previous answers and context
+- 🔄 Multi-turn conversations: Build on previous answers and context
 - ⬆️⬇️ Command history: Use the up/down arrows to revisit previous prompts
 - 🎨 Syntax highlighting for code responses
 - 📋 Copy code snippets easily
-- 💡 Context- aware suggestions (where supported)
+- 💡 Context-aware suggestions (where supported)
 - 💾 Conversation state is saved/restored between sessions
 - 🖱️ **Clickable file links**: Click on file names in responses to open them in a web viewer for detailed inspection and actions (see below)
 
 --- 
 
-## 📝 Built- in Commands
+## 📝 Built-in Commands
 
 You can use these commands at any time (prefix with `/` or just type the name):
 
@@ -31,12 +31,12 @@ You can use these commands at any time (prefix with `/` or just type the name):
 | `/role <description>`  | Change the system role (e.g., "You are a code reviewer")        |
 | `/lang <code>`         | Change the interface language (e.g., `/lang pt`, `/lang en`)      |
 | `/clear`               | Clear the terminal screen                                        |
-| `/multi`               | Enter multiline input mode (write multi- line text, Esc+Enter)    |
+| `/multi`               | Enter multiline input mode (write multi-line text, Esc+Enter)    |
 | `/config`              | Show or set configuration (see: `/config show`, `/config set local|global key=value`) |
 
 ## 🖱️ Clickable File Links
 
-When Janito references files in its responses, the file names may appear as clickable links in supported terminals or web- based shells. Clicking these links will open the file in the lightweight web file viewer (powered by `janito/termweb`, a Quart- based web file viewer).
+When Janito references files in its responses, the file names may appear as clickable links in supported terminals or web-based shells. Clicking these links will open the file in the lightweight web file viewer (powered by `janito/termweb`, a Quart-based web file viewer).
 
 - **What you can do:**
   - View file contents in your browser
@@ -55,7 +55,7 @@ You’ll be dropped into a conversational prompt where you can interact with Jan
 
 --- 
 
-![Terminal Shell Screenshot](../imgs/terminal_shell.png)
+![Terminal Shell Screenshot](../imgs/terminal-shell.png)
 
 *Screenshot: Janito interactive shell in action*
 

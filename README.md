@@ -24,10 +24,10 @@ Janito is a command-line interface (CLI) tool for managing and interacting with 
 
 ## Installation
 
-Janito is a Python package. Install it using pip:
+Janito is a Python package. Since this is a development version, install it directly from GitHub:
 
 ```bash
-pip install janito
+pip install git+https://github.com/janito-dev/janito.git
 ```
 
 ## Usage
@@ -36,14 +36,18 @@ After installation, use the `janito` command in your terminal.
 
 ### Basic Commands
 
-- **Set API Key for a Provider**
+- **Set API Key for a Provider (requires -p PROVIDER)**
   ```bash
-  janito --set-api-key API_KEY [-p PROVIDER]
+  janito --set-api-key API_KEY -p PROVIDER
   ```
+  > **Note:** The `-p PROVIDER` argument is required when setting an API key. For example:
+  > ```bash
+  > janito --set-api-key sk-xxxxxxx -p openai
+  > ```
 
-- **Set the Default Provider**
+- **Set the Provider**
   ```bash
-  janito --set default_provider=provider_name
+  janito --set provider=provider_name
   ```
 
 - **List Supported Providers**
@@ -58,12 +62,12 @@ After installation, use the `janito` command in your terminal.
 
 - **List Models for a Provider**
   ```bash
-  janito --provider PROVIDER --list-models
+  janito -p PROVIDER --list-models
   ```
 
 - **Submit a Prompt**
   ```bash
-  janito What is the capital of France?
+  janito "What is the capital of France?"
   ```
 
 - **Start Interactive Chat Shell**
@@ -83,12 +87,14 @@ After installation, use the `janito` command in your terminal.
   janito -p openai -m gpt-3.5-turbo "Your prompt here"
   ```
 
-- **Set Provider-Specific Config**
+- **Set Provider-Specific Config (for the selected provider)**
   ```bash
   # syntax: janito --set PROVIDER.KEY=VALUE
   # example: set the default model for openai provider
   janito --set openai.model=gpt-4o
+
   ```
+  > **Note:** Use `--set PROVIDER.key=value` for provider-specific settings (e.g., `openai.max_tokens`, `openai.base_url`).
 
 - **Enable Event Logging**
   ```bash
@@ -104,17 +110,17 @@ After installation, use the `janito` command in your terminal.
 | `--list-tools`         | List all registered tools                                                   |
 | `--list-providers`     | List all supported LLM providers                                            |
 | `-l`, `--list-models`  | List models for current/selected provider                                   |
-| `--set-api-key`        | Set API key for the current or selected provider (`API_KEY`). Use `-p PROVIDER` to set for a specific provider. |
-| `--set provider=name` | Set the current LLM provider (e.g., janito --set provider=name)                                                |
-| `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set the default model for the current/selected provider, or globally. |
-| `-s`, `--system`       | Set a system prompt                                                         |
-| `-r`, `--role`         | Set the role for the agent (overrides config)                                |
-| `-p`, `--provider`     | Select LLM provider (overrides config)                                      |
-| `-m`, `--model`        | Select model for the provider                                               |
+| `--set-api-key`        | Set API key for a provider. **Requires** `-p PROVIDER` to specify the provider. |
+| `--set provider=name` | Set the current LLM provider (e.g., `janito --set provider=openai`)                                                |
+| `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set the default model for the current/selected provider, or globally. (e.g., `janito --set openai.model=gpt-3.5-turbo`) |
+| `-s`, `--system`       | Set a system prompt (e.g., `janito -s path/to/system_prompt.txt "Your prompt here"`) |
+| `-r`, `--role`         | Set the role for the agent (overrides config) (e.g., `janito -r "assistant" "Your prompt here"`) |
+| `-p`, `--provider`     | Select LLM provider (overrides config) (e.g., `janito -p openai "Your prompt here"`) |
+| `-m`, `--model`        | Select model for the provider (e.g., `janito -m gpt-3.5-turbo "Your prompt here"`) |
 | `-v`, `--verbose`      | Print extra information before answering                                    |
 | `-R`, `--raw`          | Print raw JSON response from API                                            |
 | `-e`, `--event-log`    | Log events to console as they occur                                         |
-| `[user_prompt]...`     | Prompt to submit (if no other command is used)                              |
+| `["user_prompt"]...`     | Prompt to submit (if no other command is used) (e.g., `janito "What is the capital of France?"`) |
 
 ### 🧩 Extended Chat Mode Commands
 Once inside the interactive chat mode, you can use these slash commands:
@@ -174,3 +180,17 @@ Contributions are welcome! Please see the `CONTRIBUTING.md` (if available) or op
 This project is licensed under the terms of the MIT license.
 
 For more information, see the documentation in the `docs/` directory or run `janito --help`.
+
+---
+
+## FAQ: Setting API Keys
+
+To set an API key for a provider, you **must** specify both the API key and the provider name:
+
+```bash
+janito --set-api-key YOUR_API_KEY -p PROVIDER_NAME
+```
+
+Replace `YOUR_API_KEY` with your actual key and `PROVIDER_NAME` with the provider (e.g., `openai`, `google`, etc.).
+
+If you omit the `-p PROVIDER_NAME` argument, Janito will show an error and not set the key.

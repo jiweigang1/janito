@@ -23,7 +23,7 @@ provider = OpenAIProvider(model_name="gpt-4o", config={"base_url": "https://api.
 - claude-3-haiku-20240307: Fastest, cheap, smaller context.
 
 **Auth:**
-- Expects official Claude API key via credential system or environment variables (e.g. ANTHROPIC_API_KEY).
+- Expects official Claude API key via credential system only (environment variables are not supported).
 
 **Usage:**
 - Use provider name `anthropic` in CLI/config. Model selection applies as above.
@@ -39,7 +39,7 @@ provider = OpenAIProvider(model_name="gpt-4o", config={"base_url": "https://api.
 - azure-gpt-4: GPT-4 model, hosted via Azure.
 
 **Auth:**
-- Expects API key and Azure endpoint via credential manager or environment variables.
+- Expects API key and Azure endpoint via credential manager only (environment variables are not supported).
 
 **Usage:**
 - Use provider name `azure_openai` in CLI/config. Model selection as shown above.

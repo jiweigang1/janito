@@ -16,7 +16,7 @@ definition = [
     (["--show-config"], {"action": "store_true", "help": "Show the current config"}),
     (["--list-providers"], {"action": "store_true", "help": "List supported LLM providers"}),
     (["-l", "--list-models"], {"action": "store_true", "help": "List all supported models"}),
-    (["--set-api-key"], {"metavar": "API_KEY", "help": "Set API key for the provider"}),
+    (["--set-api-key"], {"metavar": "API_KEY", "help": "Set API key for the provider (requires -p PROVIDER)"}),
     (["--set"], {"metavar": "[PROVIDER_NAME.]KEY=VALUE", "help": "Set a config key"}),
     (["-s", "--system"], {"metavar": "SYSTEM_PROMPT", "help": "Set a system prompt"}),
     (["-S", "--show-system"], {"action": "store_true", "help": "Show the resolved system prompt for the main agent"}),

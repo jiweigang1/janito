@@ -99,13 +99,9 @@ Each tool inherits from `ToolBase` and implements a specific function:
 
 - CLI entry points and utilities for command-line usage.
 
-### janito.web.app
-
-- Flask web application entry point. Provides the main web interface for interacting with the agent and tools via HTTP.
-
 ### janito.termweb.app
 
-- Bottle-based lightweight web file viewer. Used for serving static files and enabling clickable file links in CLI environments.
+- Quart-based web application entry point for file viewing and browser-based interaction. Provides the main web interface for interacting with the agent and tools via HTTP, and enables clickable file links in CLI environments.
 
 ---
 

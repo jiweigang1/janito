@@ -27,8 +27,8 @@ class OpenAIModelDriver(LLMDriver):
     available = DRIVER_AVAILABLE
     unavailable_reason = DRIVER_UNAVAILABLE_REASON
 
-    def __init__(self, tools_adapter=None):
-        super().__init__(tools_adapter=tools_adapter)
+    def __init__(self, tools_adapter=None, provider_name=None):
+        super().__init__(tools_adapter=tools_adapter, provider_name=provider_name)
 
     def _prepare_api_kwargs(self, config, conversation):
         """
@@ -111,7 +111,10 @@ class OpenAIModelDriver(LLMDriver):
             api_key_display = str(config.api_key)
             if api_key_display and len(api_key_display) > 8:
                 api_key_display = api_key_display[:4] + '...' + api_key_display[-4:]
-            client = openai.OpenAI(api_key=config.api_key)
+            client_kwargs = {"api_key": config.api_key}
+            if getattr(config, "base_url", None):
+                client_kwargs["base_url"] = config.base_url
+            client = openai.OpenAI(**client_kwargs)
             return client
         except Exception as e:
             print(f"[ERROR] Exception during OpenAI client instantiation: {e}", flush=True)

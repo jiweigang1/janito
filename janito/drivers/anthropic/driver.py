@@ -18,8 +18,8 @@ except ImportError:
     DRIVER_UNAVAILABLE_REASON = "Missing dependency: anthropic (pip install anthropic)"
 
 class AnthropicModelDriver(LLMDriver):
-    available = DRIVER_AVAILABLE
-    unavailable_reason = DRIVER_UNAVAILABLE_REASON
+    available = False
+    unavailable_reason = "AnthropicModelDriver is not implemented yet."
 
     @classmethod
     def is_available(cls):
@@ -31,11 +31,7 @@ class AnthropicModelDriver(LLMDriver):
     required_config = ["api_key", "model"]
 
     def __init__(self, tools_adapter=None):
-        if not self.available:
-            raise ImportError(f"AnthropicModelDriver unavailable: {self.unavailable_reason}")
-        super().__init__()
-        self.tools_adapter = tools_adapter
-        self.config = None
+        raise ImportError(self.unavailable_reason)
 
     def _create_client(self):
         try:

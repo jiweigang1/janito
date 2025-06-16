@@ -99,4 +99,10 @@ class AskUserTool(ToolBase):
                 session.multiline = False
                 continue
             else:
-                return response
+                sanitized = response.strip()
+                try:
+                    sanitized.encode('utf-8')
+                except UnicodeEncodeError:
+                    sanitized = sanitized.encode('utf-8', errors='replace').decode('utf-8')
+                    rich_print("[yellow]Warning: Some characters in your input were not valid UTF-8 and have been replaced.[/yellow]")
+                return sanitized

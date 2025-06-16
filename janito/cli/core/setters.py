@@ -17,7 +17,7 @@ def handle_set(args, config_mgr=None):
         return False
     try:
         if '=' not in set_arg:
-            print("Error: --set requires KEY=VALUE (e.g., --set default_provider=provider_name).")
+            print("Error: --set requires KEY=VALUE (e.g., --set provider=provider_name).")
             return True
         key, value = set_arg.split('=', 1)
         key, value = key.strip(), value.strip()
@@ -35,7 +35,7 @@ def handle_set(args, config_mgr=None):
             return _handle_set_base_url(value)
         if '.max_tokens' in key or '.base_url' in key:
             return _handle_set_provider_level_setting(key, value)
-        print(f"Error: Unknown config key '{key}'. Supported: default_provider, model, <provider>.model, max_tokens, base_url, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url")
+        print(f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url")
         return True
     except Exception as e:
         print(f"Error parsing --set value: {e}")
@@ -91,7 +91,7 @@ def _handle_set_provider_level_setting(key, value):
             global_config.set_provider_model_config(provider, model, 'base_url', value)
             print(f"base_url for provider '{provider}', model '{model}' set to {value}.")
             return True
-    print(f"Error: Unknown config key '{key}'. Supported: default_provider, model, <provider>.model, max_tokens, base_url, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url")
+    print(f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url")
     return True
 
 def _handle_set_config_provider(value):
@@ -126,7 +126,7 @@ def _handle_set_provider_model(key, value):
 
 def _handle_set_global_model(value):
     # Try to validate model choice (against current provider if possible)
-    provider_name = global_config.get('provider') or global_config.get('default_provider')
+    provider_name = global_config.get('provider')
     if provider_name:
         try:
             provider_cls = ProviderRegistry().get_provider(provider_name)

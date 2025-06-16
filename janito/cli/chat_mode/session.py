@@ -185,7 +185,16 @@ class ChatSession:
             except (KeyboardInterrupt, EOFError):
                 self._handle_exit()
                 return None
-        return cmd_input.strip()
+        sanitized = cmd_input.strip()
+        # Ensure UTF-8 validity and sanitize if needed
+        try:
+            # This will raise UnicodeEncodeError if not encodable
+            sanitized.encode('utf-8')
+        except UnicodeEncodeError:
+            # Replace invalid characters
+            sanitized = sanitized.encode('utf-8', errors='replace').decode('utf-8')
+            self.console.print("[yellow]Warning: Some characters in your input were not valid UTF-8 and have been replaced.[/yellow]")
+        return sanitized
 
     def _handle_exit(self):
         self.console.print("[bold yellow]Exiting chat. Goodbye![/bold yellow]")

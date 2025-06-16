@@ -29,11 +29,12 @@ class LLMDriver(ABC):
     available = True
     unavailable_reason = None
 
-    def __init__(self, tools_adapter=None):
+    def __init__(self, tools_adapter=None, provider_name=None):
         self.input_queue = Queue()
         self.output_queue = Queue()
         self._thread = None
         self.tools_adapter = tools_adapter
+        self.provider_name = provider_name
 
     def start(self):
         """Launch the driver's background thread to process DriverInput objects."""
@@ -97,7 +98,7 @@ class LLMDriver(ABC):
         if not self.available:
             self.handle_driver_unavailable(request_id)
             return
-        self.output_queue.put(RequestStarted(driver_name=self.__class__.__name__, request_id=request_id, payload={}))
+        self.output_queue.put(RequestStarted(driver_name=self.__class__.__name__, request_id=request_id, payload={"provider_name": self.provider_name}))
         # Check for cancel_event before starting
         if hasattr(driver_input, 'cancel_event') and driver_input.cancel_event is not None and driver_input.cancel_event.is_set():
             self.output_queue.put(RequestFinished(driver_name=self.__class__.__name__, request_id=request_id, status=RequestStatus.CANCELLED, reason="Canceled before start"))

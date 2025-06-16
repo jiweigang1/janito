@@ -67,7 +67,7 @@ class OpenAIProvider(LLMProvider):
         """
         Creates and returns a new OpenAIModelDriver instance with input/output queues.
         """
-        driver = OpenAIModelDriver(tools_adapter=self._tools_adapter)
+        driver = OpenAIModelDriver(tools_adapter=self._tools_adapter, provider_name=self.name)
         driver.config = self._driver_config
         # NOTE: The caller is responsible for calling driver.start() if background processing is needed.
         return driver
