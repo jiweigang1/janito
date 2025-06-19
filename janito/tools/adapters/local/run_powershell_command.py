@@ -16,15 +16,17 @@ class RunPowershellCommandTool(ToolBase):
     All commands are automatically prepended with UTF-8 output encoding:
     $OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8;
     For file output, it is recommended to use -Encoding utf8 in your PowerShell commands (e.g., Out-File -Encoding utf8) to ensure correct file encoding.
-    Args:
+
+    Parameters:
         command (str): The PowerShell command to execute. This string is passed directly to PowerShell using the --Command argument (not as a script file).
-        timeout (int, optional): Timeout in seconds for the command. Defaults to 60.
-        require_confirmation (bool, optional): If True, require user confirmation before running. Defaults to False.
-        requires_user_input (bool, optional): If True, warns that the command may require user input and might hang. Defaults to False. Non-interactive commands are preferred for automation and reliability.
+        timeout (int): Timeout in seconds for the command. Defaults to 60.
+        require_confirmation (bool): If True, require user confirmation before running. Defaults to False.
+        requires_user_input (bool): If True, warns that the command may require user input and might hang. Defaults to False. Non-interactive commands are preferred for automation and reliability.
+
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
-
+    provides_execution = True
     tool_name = "run_powershell_command"
 
     def _confirm_and_warn(self, command, require_confirmation, requires_user_input):

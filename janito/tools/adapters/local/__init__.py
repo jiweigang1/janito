@@ -50,3 +50,5 @@ for tool_class in [
     ValidateFileSyntaxTool,
 ]:
     local_tools_adapter.register_tool(tool_class)
+
+# DEBUG: Print registered tools at startup

@@ -13,13 +13,15 @@ from janito.i18n import tr
 class PythonCodeRunTool(ToolBase):
     """
     Tool to execute Python code by passing it to the interpreter via standard input (stdin).
-    Args:
+
+    Parameters:
         code (str): The Python code to execute as a string.
-        timeout (int, optional): Timeout in seconds for the command. Defaults to 60.
+        timeout (int): Timeout in seconds for the command. Defaults to 60.
+
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
-
+    provides_execution = True
     tool_name = "python_code_run"
 
     def run(self, code: str, timeout: int = 60) -> str:

@@ -41,6 +41,13 @@ definition = [
             "help": "IDE zero mode: disables system prompt & all tools for raw LLM interaction",
         },
     ),
+    (
+        ["-x", "--exec"],
+        {
+            "action": "store_true",
+            "help": "Enable execution/run tools (allows running code or shell tools from the CLI)",
+        },
+    ),
     (["--unset"], {"metavar": "KEY", "help": "Unset (remove) a config key"}),
     (["--version"], {"action": "version", "version": None}),
     (["--list-tools"], {"action": "store_true", "help": "List all registered tools"}),
@@ -128,6 +135,7 @@ MODIFIER_KEYS = [
     "termweb_port",
     "verbose_api",
     "verbose_tools",
+    "exec",
 ]
 SETTER_KEYS = ["set", "set_provider", "set_api_key", "unset"]
 GETTER_KEYS = ["show_config", "list_providers", "list_models", "list_tools"]
@@ -186,6 +194,9 @@ class JanitoCLI:
             if getattr(self.args, k, None) is not None
         }
 
+    def exec_enabled(self):
+        return getattr(self.args, "exec", False)
+
     def classify(self):
         if any(getattr(self.args, k, None) for k in SETTER_KEYS):
             return RunMode.SET
@@ -237,6 +248,7 @@ class JanitoCLI:
                 llm_driver_config,
                 agent_role,
                 verbose_tools=self.args.verbose_tools,
+                exec_enabled=self.exec_enabled(),
             )
         elif run_mode == RunMode.GET:
             handle_getter(self.args)

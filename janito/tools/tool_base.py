@@ -7,6 +7,7 @@ class ToolBase:
     Base class for all tools in the janito project.
     Extend this class to implement specific tool functionality.
     """
+    provides_execution = False  # Indicates if the tool provides execution capability (default: False)
 
     def __init__(self, name=None, event_bus=None):
         self.name = name or self.__class__.__name__

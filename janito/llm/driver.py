@@ -43,7 +43,14 @@ class LLMDriver(ABC):
         self.provider_name = provider_name
 
     def start(self):
-        """Launch the driver's background thread to process DriverInput objects."""
+        """Validate tool schemas (if any) and launch the driver's background thread to process DriverInput objects."""
+        # Validate all tool schemas before starting the thread
+        if self.tools_adapter is not None:
+            from janito.tools.tools_schema import ToolSchemaBase
+            validator = ToolSchemaBase()
+            for tool in self.tools_adapter.get_tools():
+                # Validate the tool's class (not instance)
+                validator.validate_tool_class(tool.__class__)
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
 

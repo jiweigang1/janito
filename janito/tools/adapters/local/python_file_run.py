@@ -13,13 +13,15 @@ from janito.i18n import tr
 class PythonFileRunTool(ToolBase):
     """
     Tool to execute a specified Python script file.
-    Args:
+
+    Parameters:
         file_path (str): Path to the Python script file to execute.
-        timeout (int, optional): Timeout in seconds for the command. Defaults to 60.
+        timeout (int): Timeout in seconds for the command. Defaults to 60.
+
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
-
+    provides_execution = True
     tool_name = "python_file_run"
 
     def run(self, file_path: str, timeout: int = 60) -> str:

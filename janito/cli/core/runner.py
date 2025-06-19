@@ -88,10 +88,22 @@ def prepare_llm_driver_config(args, modifiers):
     return provider, llm_driver_config, agent_role
 
 
-def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=False):
-
+def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=False, exec_enabled=False):
+    """
+    Main runner for CLI execution. If exec_enabled is False, disables execution/run tools.
+    """
     zero_mode = getattr(args, "zero", False)
     from janito.provider_registry import ProviderRegistry
+
+    # Patch: disable execution/run tools if not enabled
+    if not exec_enabled:
+        print("[DEBUG] handle_runner: Disabling execution/run tools (provides_execution=True)")
+        import janito.tools
+        adapter = janito.tools.get_local_tools_adapter()
+        if hasattr(adapter, "disable_execution_tools"):
+            adapter.disable_execution_tools()
+    else:
+        pass
 
     provider_instance = ProviderRegistry().get_instance(provider, llm_driver_config)
     mode = get_prompt_mode(args)

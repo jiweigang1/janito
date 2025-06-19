@@ -3,6 +3,13 @@ from janito.tools.tools_adapter import ToolsAdapterBase as ToolsAdapter
 
 
 class LocalToolsAdapter(ToolsAdapter):
+    def disable_execution_tools(self):
+        """Unregister all tools with provides_execution = True."""
+        to_remove = [name for name, entry in self._tools.items()
+                     if getattr(entry["instance"], "provides_execution", False)]
+        for name in to_remove:
+            self.unregister_tool(name)
+
     """
     Adapter for local, statically registered tools in the agent/tools system.
     Handles registration, lookup, enabling/disabling, listing, and now, tool execution (merged from executor).
@@ -52,6 +59,7 @@ class LocalToolsAdapter(ToolsAdapter):
 
     def get_tools(self):
         return [entry["instance"] for entry in self._tools.values()]
+
 
     def add_tool(self, tool):
         # Register by instance (useful for hand-built objects)
