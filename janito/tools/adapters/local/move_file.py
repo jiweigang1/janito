@@ -20,6 +20,7 @@ class MoveFileTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
+
     tool_name = "move_file"
 
     def run(

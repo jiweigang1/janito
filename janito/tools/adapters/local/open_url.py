@@ -14,6 +14,7 @@ class OpenUrlTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
+
     tool_name = "open_url"
 
     def run(self, url: str) -> str:
@@ -24,7 +25,9 @@ class OpenUrlTool(ToolBase):
         try:
             webbrowser.open(url)
         except Exception as err:
-            self.report_error(tr("❗ Error opening URL: {url}: {err}", url=url, err=str(err)))
+            self.report_error(
+                tr("❗ Error opening URL: {url}: {err}", url=url, err=str(err))
+            )
             return tr("Warning: Error opening URL: {url}: {err}", url=url, err=str(err))
         self.report_success(tr("✅ URL opened in browser: {url}", url=url))
         return tr("URL opened in browser: {url}", url=url)

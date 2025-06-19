@@ -18,7 +18,9 @@ class TermwebLogTailShellHandler(ShellCmdHandler):
         status = getattr(self.shell_state, "termweb_status", None)
         live_status = getattr(self.shell_state, "termweb_live_status", None)
         status_checked = getattr(self.shell_state, "termweb_live_checked_time", None)
-        shared_console.print(f"[bold cyan][termweb] Current run status: {status} | Last health check: {live_status} at {status_checked}")
+        shared_console.print(
+            f"[bold cyan][termweb] Current run status: {status} | Last health check: {live_status} at {status_checked}"
+        )
         if not stdout_path and not stderr_path:
             shared_console.print(
                 "[yellow][termweb] No termweb log files found for this session.[/yellow]"
@@ -47,8 +49,11 @@ class TermwebLogTailShellHandler(ShellCmdHandler):
                     )
             except Exception:
                 pass
-        if (not stdout_path or not stdout_lines) and (not stderr_path or not stderr_lines):
+        if (not stdout_path or not stdout_lines) and (
+            not stderr_path or not stderr_lines
+        ):
             shared_console.print("[termweb] No output or errors captured in logs.")
+
 
 def handle_termweb_status(*args, shell_state=None, **kwargs):
     if shell_state is None:
@@ -57,6 +62,7 @@ def handle_termweb_status(*args, shell_state=None, **kwargs):
         )
         return
     from janito.cli.config import get_termweb_port
+
     port = get_termweb_port()
     port_source = "config"
     pid = getattr(shell_state, "termweb_pid", None)
@@ -64,7 +70,7 @@ def handle_termweb_status(*args, shell_state=None, **kwargs):
     stderr_path = getattr(shell_state, "termweb_stderr_path", None)
     running = False
     if port and hasattr(shell_state, "termweb_live_status"):
-        running = shell_state.termweb_live_status == 'online'
+        running = shell_state.termweb_live_status == "online"
     console.print("[bold cyan]TermWeb Server Status:[/bold cyan]")
     console.print(f"  Running: {'[green]Yes[/green]' if running else '[red]No[/red]'}")
     if pid:
@@ -74,9 +80,7 @@ def handle_termweb_status(*args, shell_state=None, **kwargs):
         url = f"http://localhost:{port}/"
         console.print(f"  URL: [underline blue]{url}[/underline blue]")
     else:
-        console.print(
-            "  [yellow]No port configured in config.[/yellow]"
-        )
+        console.print("  [yellow]No port configured in config.[/yellow]")
     if stdout_path:
         console.print(f"  Stdout log: {stdout_path}")
     if stderr_path:

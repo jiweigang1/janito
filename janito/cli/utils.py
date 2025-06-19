@@ -1,6 +1,8 @@
 """
 Utility functions for janito CLI (shared).
 """
+
+
 def format_tokens(n):
     if n >= 1_000_000:
         return f"{n/1_000_000:.2f}m"
@@ -8,6 +10,7 @@ def format_tokens(n):
         return f"{n/1_000:.2f}k"
     else:
         return str(n)
+
 
 def format_generation_time(generation_time_ms):
     minutes = int(generation_time_ms // 60000)

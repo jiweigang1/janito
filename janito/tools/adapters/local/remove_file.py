@@ -21,6 +21,7 @@ class RemoveFileTool(ToolBase):
             - "			 Successfully removed the file at ..."
             - "			 Cannot remove file: ..."
     """
+
     tool_name = "remove_file"
 
     def run(self, file_path: str, backup: bool = False) -> str:
@@ -56,5 +57,7 @@ class RemoveFileTool(ToolBase):
                 )
             return msg
         except Exception as e:
-            self.report_error(tr("❌ Error removing file: {error}", error=e), ReportAction.REMOVE)
+            self.report_error(
+                tr("❌ Error removing file: {error}", error=e), ReportAction.REMOVE
+            )
             return tr("❌ Error removing file: {error}", error=e)

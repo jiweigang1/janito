@@ -19,12 +19,13 @@ class PythonFileRunTool(ToolBase):
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
+
     tool_name = "python_file_run"
 
     def run(self, file_path: str, timeout: int = 60) -> str:
         self.report_action(
             tr("🚀 Running: python {file_path}", file_path=file_path),
-            ReportAction.EXECUTE
+            ReportAction.EXECUTE,
         )
         try:
             with (
@@ -63,7 +64,7 @@ class PythonFileRunTool(ToolBase):
                 stderr_file.flush()
                 self.report_success(
                     tr("✅ Return code {return_code}", return_code=return_code),
-                    ReportAction.EXECUTE
+                    ReportAction.EXECUTE,
                 )
                 return self._format_result(
                     stdout_file.name, stderr_file.name, return_code
@@ -83,7 +84,8 @@ class PythonFileRunTool(ToolBase):
                 file_obj.flush()
                 # Always supply a default action for stdout/stderr reporting
                 from janito.report_events import ReportAction
-                report_func(line.rstrip('\r\n'), ReportAction.EXECUTE)
+
+                report_func(line.rstrip("\r\n"), ReportAction.EXECUTE)
                 if count_func == "stdout":
                     stdout_lines += 1
                 else:
@@ -108,7 +110,10 @@ class PythonFileRunTool(ToolBase):
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             process.kill()
-            self.report_error(tr("❌ Timed out after {timeout} seconds.", timeout=timeout), ReportAction.EXECUTE)
+            self.report_error(
+                tr("❌ Timed out after {timeout} seconds.", timeout=timeout),
+                ReportAction.EXECUTE,
+            )
             return None
 
     def _format_result(self, stdout_file_name, stderr_file_name, return_code):
@@ -140,10 +145,16 @@ class PythonFileRunTool(ToolBase):
             if stderr_lines > 0 and stderr_content.strip():
                 result += f"stderr_file: {stderr_file_name} (lines: {stderr_lines})\n"
             result += f"returncode: {return_code}\n"
-            result += "--- python_file_run: STDOUT (head/tail) ---\n" + head_tail(stdout_content) + "\n"
+            result += (
+                "--- python_file_run: STDOUT (head/tail) ---\n"
+                + head_tail(stdout_content)
+                + "\n"
+            )
             if stderr_content.strip():
                 result += (
-                    "--- python_file_run: STDERR (head/tail) ---\n" + head_tail(stderr_content) + "\n"
+                    "--- python_file_run: STDERR (head/tail) ---\n"
+                    + head_tail(stderr_content)
+                    + "\n"
                 )
             result += "Use the view_file tool to inspect the contents of these files when needed."
             return result

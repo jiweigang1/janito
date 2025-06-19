@@ -14,6 +14,7 @@ available = GoogleGenaiModelDriver.available
 unavailable_reason = GoogleGenaiModelDriver.unavailable_reason
 maintainer = "Needs maintainer"
 
+
 class GoogleProvider(LLMProvider):
     MODEL_SPECS = MODEL_SPECS
     maintainer = "Needs maintainer"
@@ -53,9 +54,9 @@ class GoogleProvider(LLMProvider):
     def unavailable_reason(self):
         return unavailable_reason
 
-
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
+
         # Always create a new driver with the passed-in tools_adapter
         driver = GoogleGenaiModelDriver(tools_adapter=tools_adapter)
         return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
@@ -63,5 +64,6 @@ class GoogleProvider(LLMProvider):
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
         self._tools_adapter.event_bus = event_bus
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
+
 
 LLMProviderRegistry.register(GoogleProvider.name, GoogleProvider)

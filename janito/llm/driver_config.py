@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+
 @dataclass
 class LLMDriverConfig:
     # For OpenAI and similar providers that distinguish between completion and response tokens
@@ -22,10 +23,12 @@ class LLMDriverConfig:
     presence_penalty: Optional[float] = None
     frequency_penalty: Optional[float] = None
     stop: Optional[Any] = None  # list or string, depending on backend
-    extra: dict = field(default_factory=dict)  # for provider-specific miscellaneous config fields
+    extra: dict = field(
+        default_factory=dict
+    )  # for provider-specific miscellaneous config fields
 
     def to_dict(self) -> dict:
         d = self.__dict__.copy()
-        d.update(d.pop('extra', {}))
+        d.update(d.pop("extra", {}))
         # Remove Nones (for compatibility)
         return {k: v for k, v in d.items() if v is not None}

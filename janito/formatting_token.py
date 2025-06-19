@@ -2,9 +2,11 @@
 Token summary formatter for rich and pt markup.
 - Used to display token/message counters after completions.
 """
+
 from janito.perf_singleton import performance_collector
 
 from rich.rule import Rule
+
 
 def format_tokens(n, tag=None, use_rich=False):
     if n is None:
@@ -21,6 +23,7 @@ def format_tokens(n, tag=None, use_rich=False):
         else:
             return f"<{tag}>{val}</{tag}>"
     return val
+
 
 def format_token_message_summary(msg_count, usage, width=96, use_rich=False):
     """

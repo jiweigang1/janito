@@ -28,6 +28,7 @@ class FindFilesTool(ToolBase):
             "Warning: Empty file pattern provided. Operation skipped."
             If max_results is reached, appends a note to the output.
     """
+
     tool_name = "find_files"
 
     def _match_directories(self, root, dirs, pat):
@@ -50,7 +51,70 @@ class FindFilesTool(ToolBase):
             dir_output.add(os.path.join(root, d))
         return dir_output
 
-    def run(self, paths: str, pattern: str, max_depth: int = None, include_gitignored: bool = False) -> str:
+    def _handle_file_path(self, directory, patterns):
+        dir_output = set()
+        filename = os.path.basename(directory)
+        for pat in patterns:
+            # Only match files, not directories, for file paths
+            if not (pat.endswith("/") or pat.endswith("\\")):
+                if fnmatch.fnmatch(filename, pat):
+                    dir_output.add(directory)
+                    break
+        return dir_output
+
+    def _handle_directory_path(self, directory, patterns, max_depth, include_gitignored):
+        dir_output = set()
+        for root, dirs, files in walk_dir_with_gitignore(
+            directory,
+            max_depth=max_depth,
+            include_gitignored=include_gitignored,
+        ):
+            for pat in patterns:
+                if pat.endswith("/") or pat.endswith("\\"):
+                    dir_output.update(self._match_directories(root, dirs, pat))
+                else:
+                    dir_output.update(self._match_files(root, files, pat))
+                    dir_output.update(
+                        self._match_dirs_without_slash(root, dirs, pat)
+                    )
+        return dir_output
+
+    def _report_search(self, pattern, disp_path, depth_msg):
+        self.report_action(
+            tr(
+                "🔍 Search for files '{pattern}' in '{disp_path}'{depth_msg} ...",
+                pattern=pattern,
+                disp_path=disp_path,
+                depth_msg=depth_msg,
+            ),
+            ReportAction.READ,
+        )
+
+    def _report_success(self, count):
+        self.report_success(
+            tr(
+                " ✅ {count} {file_word}",
+                count=count,
+                file_word=pluralize("file", count),
+            ),
+            ReportAction.READ,
+        )
+
+    def _format_output(self, directory, dir_output):
+        if directory.strip() == ".":
+            dir_output = {
+                p[2:] if (p.startswith("./") or p.startswith(".\\")) else p
+                for p in dir_output
+            }
+        return sorted(dir_output)
+
+    def run(
+        self,
+        paths: str,
+        pattern: str,
+        max_depth: int = None,
+        include_gitignored: bool = False,
+    ) -> str:
         if not pattern:
             self.report_warning(tr("ℹ️ Empty file pattern provided."), ReportAction.READ)
             return tr("Warning: Empty file pattern provided. Operation skipped.")
@@ -63,49 +127,14 @@ class FindFilesTool(ToolBase):
                 if max_depth is not None and max_depth > 0
                 else ""
             )
-            self.report_action(
-                tr(
-                    "🔍 Search for files '{pattern}' in '{disp_path}'{depth_msg} ...",
-                    pattern=pattern,
-                    disp_path=disp_path,
-                    depth_msg=depth_msg,
-                ),
-                ReportAction.READ,
-            )
+            self._report_search(pattern, disp_path, depth_msg)
             dir_output = set()
             if os.path.isfile(directory):
-                filename = os.path.basename(directory)
-                for pat in patterns:
-                    # Only match files, not directories, for file paths
-                    if not (pat.endswith("/") or pat.endswith("\\")):
-                        if fnmatch.fnmatch(filename, pat):
-                            dir_output.add(directory)
-                            break
+                dir_output = self._handle_file_path(directory, patterns)
             elif os.path.isdir(directory):
-                for root, dirs, files in walk_dir_with_gitignore(
-                    directory, max_depth=max_depth, include_gitignored=include_gitignored
-                ):
-                    for pat in patterns:
-                        if pat.endswith("/") or pat.endswith("\\"):
-                            dir_output.update(self._match_directories(root, dirs, pat))
-                        else:
-                            dir_output.update(self._match_files(root, files, pat))
-                            dir_output.update(
-                                self._match_dirs_without_slash(root, dirs, pat)
-                            )
-            self.report_success(
-                tr(
-                    " ✅ {count} {file_word}",
-                    count=len(dir_output),
-                    file_word=pluralize("file", len(dir_output)),
-                ),
-                ReportAction.READ
-            )
-            if directory.strip() == ".":
-                dir_output = {
-                    p[2:] if (p.startswith("./") or p.startswith(".\\")) else p
-                    for p in dir_output
-                }
-            results.extend(sorted(dir_output))
+                dir_output = self._handle_directory_path(directory, patterns, max_depth, include_gitignored)
+            self._report_success(len(dir_output))
+            results.extend(self._format_output(directory, dir_output))
         result = "\n".join(results)
         return result
+

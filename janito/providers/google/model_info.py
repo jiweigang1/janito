@@ -10,7 +10,8 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open="google",
-        driver="GoogleGenaiModelDriver", other={"preview": True}
+        driver="GoogleGenaiModelDriver",
+        other={"preview": True},
     ),
     "gemini-2.5-flash-preview-05-20": LLMModelInfo(
         name="gemini-2.5-flash-preview-05-20",
@@ -21,7 +22,8 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open="google",
-        driver="GoogleGenaiModelDriver", other={"preview": True, "flash": True}
+        driver="GoogleGenaiModelDriver",
+        other={"preview": True, "flash": True},
     ),
     "gemini-2.5-flash-preview-04-17": LLMModelInfo(
         name="gemini-2.5-flash-preview-04-17",
@@ -32,6 +34,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open="google",
-        driver="GoogleGenaiModelDriver", other={"preview": True, "flash": True}
-    )
+        driver="GoogleGenaiModelDriver",
+        other={"preview": True, "flash": True},
+    ),
 }

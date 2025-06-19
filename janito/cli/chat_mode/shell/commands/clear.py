@@ -1,6 +1,7 @@
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 from janito.cli.console import shared_console
 
+
 class ClearShellHandler(ShellCmdHandler):
     help_text = "Clear the terminal screen using Rich console."
 

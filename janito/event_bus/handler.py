@@ -1,6 +1,7 @@
 import inspect
 from .bus import event_bus
 
+
 class EventHandlerBase:
     """
     Base class for event handler classes.
@@ -8,6 +9,7 @@ class EventHandlerBase:
     Pass one or more event modules (e.g., janito.report_events, janito.driver_events) to the constructor.
     Raises an error if a handler method does not match any known event class.
     """
+
     def __init__(self, *event_modules):
         unknown_event_methods = []
         for name, method in inspect.getmembers(self, predicate=inspect.ismethod):

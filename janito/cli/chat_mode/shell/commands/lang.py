@@ -7,6 +7,7 @@ import janito.i18n as i18n
 from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
+
 class LangShellHandler(ShellCmdHandler):
     help_text = "Change the interface language (e.g., /lang en)"
 

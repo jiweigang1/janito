@@ -11,13 +11,16 @@ from queue import Queue
 available = OpenAIModelDriver.available
 unavailable_reason = OpenAIModelDriver.unavailable_reason
 
+
 class DeepseekProvider(LLMProvider):
     name = "deepseek"
     maintainer = "Needs maintainer"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "deepseek-chat"  # Options: deepseek-chat, deepseek-coder
 
-    def __init__(self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None):
+    def __init__(
+        self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
+    ):
         if not self.available:
             self._driver = None
         else:
@@ -53,18 +56,23 @@ class DeepseekProvider(LLMProvider):
         """
         Creates and returns a new OpenAIModelDriver instance with input/output queues.
         """
-        driver = OpenAIModelDriver(tools_adapter=self._tools_adapter, provider_name=self.name)
+        driver = OpenAIModelDriver(
+            tools_adapter=self._tools_adapter, provider_name=self.name
+        )
         driver.config = self._driver_config
         # NOTE: The caller is responsible for calling driver.start() if background processing is needed.
         return driver
 
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
+
         # Always create a new driver with the passed-in tools_adapter
         if tools_adapter is None:
             tools_adapter = get_local_tools_adapter()
         # Should use new-style driver construction via queues/factory (handled elsewhere)
-        raise NotImplementedError("create_agent must be constructed via new factory using input/output queues and config.")
+        raise NotImplementedError(
+            "create_agent must be constructed via new factory using input/output queues and config."
+        )
 
     @property
     def model_name(self):
@@ -78,5 +86,6 @@ class DeepseekProvider(LLMProvider):
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
         self._tools_adapter.event_bus = event_bus
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
+
 
 LLMProviderRegistry.register(DeepseekProvider.name, DeepseekProvider)

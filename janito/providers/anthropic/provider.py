@@ -13,13 +13,16 @@ available = AnthropicModelDriver.available
 unavailable_reason = AnthropicModelDriver.unavailable_reason
 maintainer = "Needs maintainer"
 
+
 class AnthropicProvider(LLMProvider):
     name = "anthropic"
     maintainer = "Needs maintainer"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "claude-3-opus-20240229"
 
-    def __init__(self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None):
+    def __init__(
+        self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
+    ):
         if not self.available:
             self._driver = None
             return
@@ -37,7 +40,9 @@ class AnthropicProvider(LLMProvider):
     @property
     def driver(self):
         if not self.available:
-            raise ImportError(f"AnthropicProvider unavailable: {self.unavailable_reason}")
+            raise ImportError(
+                f"AnthropicProvider unavailable: {self.unavailable_reason}"
+            )
         return self._driver
 
     @property
@@ -48,12 +53,13 @@ class AnthropicProvider(LLMProvider):
     def unavailable_reason(self):
         return unavailable_reason
 
-
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
         from janito.drivers.anthropic.driver import AnthropicModelDriver
+
         # Always create a new driver with the passed-in tools_adapter
         driver = AnthropicModelDriver(tools_adapter=tools_adapter)
         return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
+
 
 LLMProviderRegistry.register(AnthropicProvider.name, AnthropicProvider)

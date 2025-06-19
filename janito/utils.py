@@ -1,5 +1,6 @@
 import inspect
 
+
 def kwargs_from_locals(*names):
     """
     Return a dict of {name: value} for each name from the caller's local scope.

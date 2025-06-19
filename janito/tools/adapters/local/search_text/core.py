@@ -11,6 +11,7 @@ from .traverse_directory import traverse_directory
 
 from janito.tools.adapters.local.adapter import register_local_tool as register_tool
 
+
 @register_tool
 class SearchTextTool(ToolBase):
     """
@@ -28,6 +29,7 @@ class SearchTextTool(ToolBase):
              If count_only is True, returns per-file and total match counts.
         If max_results is reached, appends a note to the output.
     """
+
     tool_name = "search_text"
 
     def _handle_file(
@@ -94,10 +96,7 @@ class SearchTextTool(ToolBase):
             info_str += tr(" [max_depth={max_depth}]", max_depth=max_depth)
         if count_only:
             info_str += " [count]"
-        self.report_action(
-            info_str,
-            ReportAction.READ
-        )
+        self.report_action(info_str, ReportAction.READ)
         if os.path.isfile(search_path):
             dir_output, dir_limit_reached, per_file_counts = self._handle_file(
                 search_path,
@@ -141,8 +140,14 @@ class SearchTextTool(ToolBase):
         file_label = pluralize("file", num_files)
         file_word_max = file_word + (" (max)" if dir_limit_reached else "")
         self.report_success(
-            tr(" ✅ {count} {file_word} from {num_files} {file_label}", count=count, file_word=file_word_max, num_files=num_files, file_label=file_label),
-            ReportAction.READ
+            tr(
+                " ✅ {count} {file_word} from {num_files} {file_label}",
+                count=count,
+                file_word=file_word_max,
+                num_files=num_files,
+                file_label=file_label,
+            ),
+            ReportAction.READ,
         )
         return info_str, dir_output, dir_limit_reached, per_file_counts
 

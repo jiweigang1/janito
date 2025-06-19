@@ -2,6 +2,7 @@ import attr
 from typing import ClassVar
 from datetime import datetime
 
+
 @attr.s(auto_attribs=True, kw_only=True)
 class Event:
     """
@@ -9,5 +10,6 @@ class Event:
     Represents a generic event with a category.
     Automatically sets a timestamp at creation.
     """
+
     category: ClassVar[str] = "generic"
     timestamp: datetime = attr.ib(factory=datetime.utcnow)

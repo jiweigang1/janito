@@ -36,7 +36,14 @@ def should_limit(max_results, total_results, match_count, count_only, dir_output
 
 
 def read_file_lines(
-    path, pattern, regex, use_regex, case_sensitive, count_only, max_results, total_results
+    path,
+    pattern,
+    regex,
+    use_regex,
+    case_sensitive,
+    count_only,
+    max_results,
+    total_results,
 ):
     dir_output = []
     dir_limit_reached = False

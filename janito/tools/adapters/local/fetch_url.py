@@ -11,7 +11,7 @@ from janito.tools.tool_utils import pluralize
 class FetchUrlTool(ToolBase):
     """
     Fetch the content of a web page and extract its text.
-    
+
     Args:
         url (str): The URL of the web page to fetch.
         search_strings (list[str], optional): Strings to search for in the page content.
@@ -21,6 +21,7 @@ class FetchUrlTool(ToolBase):
             - "No lines found for the provided search strings."
             - "Warning: Empty URL provided. Operation skipped."
     """
+
     tool_name = "fetch_url"
 
     def run(self, url: str, search_strings: list[str] = None) -> str:
@@ -91,6 +92,6 @@ class FetchUrlTool(ToolBase):
                 num_lines=num_lines,
                 line_word=pluralize("line", num_lines),
             ),
-            ReportAction.READ
+            ReportAction.READ,
         )
         return text

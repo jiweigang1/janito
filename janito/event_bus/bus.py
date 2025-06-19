@@ -4,6 +4,7 @@ from bisect import insort
 import itertools
 import threading
 
+
 class EventBus:
     """
     Generic event bus for publish/subscribe event-driven communication with handler priorities.
@@ -11,6 +12,7 @@ class EventBus:
     Handlers with lower priority numbers are called first (default priority=100).
     Thread-safe for concurrent subscribe, unsubscribe, and publish operations.
     """
+
     def __init__(self):
         # _subscribers[event_type] = list of (priority, seq, callback)
         self._subscribers = defaultdict(list)
@@ -24,14 +26,18 @@ class EventBus:
             entry = (priority, seq, callback)
             callbacks = self._subscribers[event_type]
             # Prevent duplicate subscriptions of the same callback with the same priority
-            if not any(cb == callback and prio == priority for prio, _, cb in callbacks):
+            if not any(
+                cb == callback and prio == priority for prio, _, cb in callbacks
+            ):
                 insort(callbacks, entry)
 
     def unsubscribe(self, event_type, callback):
         """Unsubscribe a callback from a specific event type (all priorities)."""
         with self._lock:
             callbacks = self._subscribers[event_type]
-            self._subscribers[event_type] = [entry for entry in callbacks if entry[2] != callback]
+            self._subscribers[event_type] = [
+                entry for entry in callbacks if entry[2] != callback
+            ]
 
     def publish(self, event):
         """
@@ -56,6 +62,7 @@ class EventBus:
         # Call handlers outside the lock to avoid deadlocks
         for priority, seq, callback in unique_handlers:
             callback(event)
+
 
 # Singleton instance for global use
 event_bus = EventBus()

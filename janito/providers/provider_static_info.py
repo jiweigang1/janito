@@ -1,21 +1,21 @@
 # Provider static metadata registry for listing purposes (name, maintainer, and future fields)
 STATIC_PROVIDER_METADATA = {
-    'openai': {
-        'maintainer': 'João Pinto <lamego.pinto@gmail.com>',
+    "openai": {
+        "maintainer": "João Pinto <lamego.pinto@gmail.com>",
     },
-    'azure_openai': {
-        'maintainer': 'João Pinto <lamego.pinto@gmail.com>',
+    "azure_openai": {
+        "maintainer": "João Pinto <lamego.pinto@gmail.com>",
     },
-    'google': {
-        'maintainer': 'Needs maintainer',
+    "google": {
+        "maintainer": "Needs maintainer",
     },
-    'mistralai': {
-        'maintainer': 'Needs maintainer',
+    "mistralai": {
+        "maintainer": "Needs maintainer",
     },
-    'anthropic': {
-        'maintainer': 'Needs maintainer',
+    "anthropic": {
+        "maintainer": "Needs maintainer",
     },
-    'deepseek': {
-        'maintainer': 'João Pinto <lamego.pinto@gmail.com>',
+    "deepseek": {
+        "maintainer": "João Pinto <lamego.pinto@gmail.com>",
     },
 }

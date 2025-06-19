@@ -6,6 +6,7 @@ import shutil
 import re
 from janito.tools.adapters.local.validate_file_syntax.core import validate_file_syntax
 
+
 @register_local_tool
 class ReplaceTextInFileTool(ToolBase):
     """
@@ -27,6 +28,7 @@ class ReplaceTextInFileTool(ToolBase):
             - "No changes made. [Warning: Search text not found in file] Please review the original file."
             - "Error replacing text: <error message>"
     """
+
     tool_name = "replace_text_in_file"
 
     def run(
@@ -72,7 +74,7 @@ class ReplaceTextInFileTool(ToolBase):
             warning, concise_warning = self._handle_warnings(
                 replaced_count, file_changed, occurrences
             )
-            
+
             if concise_warning:
                 return concise_warning
             self._report_success(match_lines)
@@ -143,12 +145,16 @@ class ReplaceTextInFileTool(ToolBase):
         if replaced_count == 0:
             warning = tr(" [Warning: Search text not found in file]")
         if not file_changed:
-            self.report_warning(tr(" ℹ️ No changes made. (not found)"), ReportAction.CREATE)
+            self.report_warning(
+                tr(" ℹ️ No changes made. (not found)"), ReportAction.CREATE
+            )
             concise_warning = tr(
                 "No changes made. The search text was not found. Expand your search context with surrounding lines if needed."
             )
         if occurrences > 1 and replaced_count == 0:
-            self.report_warning(tr(" ℹ️ No changes made. (not unique)"), ReportAction.CREATE)
+            self.report_warning(
+                tr(" ℹ️ No changes made. (not unique)"), ReportAction.CREATE
+            )
             concise_warning = tr(
                 "No changes made. The search text is not unique. Expand your search context with surrounding lines to ensure uniqueness."
             )
@@ -159,7 +165,8 @@ class ReplaceTextInFileTool(ToolBase):
         if match_lines:
             lines_str = ", ".join(str(line_no) for line_no in match_lines)
             self.report_success(
-                tr(" ✅ replaced at {lines_str}", lines_str=lines_str), ReportAction.CREATE
+                tr(" ✅ replaced at {lines_str}", lines_str=lines_str),
+                ReportAction.CREATE,
             )
         else:
             self.report_success(tr(" ✅ replaced (lines unknown)"), ReportAction.CREATE)

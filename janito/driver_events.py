@@ -3,6 +3,7 @@ from typing import Any, ClassVar
 from enum import Enum
 from janito.event_bus.event import Event
 
+
 class RequestStatus(Enum):
     SUCCESS = "success"
     ERROR = "error"
@@ -10,27 +11,33 @@ class RequestStatus(Enum):
     EMPTY_RESPONSE = "empty_response"
     TIMEOUT = "timeout"
 
+
 @attr.s(auto_attribs=True, kw_only=True)
 class DriverEvent(Event):
     """
     Base class for events related to a driver (e.g., LLM, API provider).
     Includes driver name and request ID for correlation.
     """
+
     category: ClassVar[str] = "driver"
     driver_name: str = None
     request_id: str = None
+
 
 @attr.s(auto_attribs=True, kw_only=True)
 class GenerationStarted(DriverEvent):
     conversation_history: Any = None
 
+
 @attr.s(auto_attribs=True, kw_only=True)
 class GenerationFinished(DriverEvent):
     total_turns: int = 0
 
+
 @attr.s(auto_attribs=True, kw_only=True)
 class RequestStarted(DriverEvent):
     payload: Any = None
+
 
 @attr.s(auto_attribs=True, kw_only=True)
 class RequestFinished(DriverEvent):
@@ -42,8 +49,11 @@ class RequestFinished(DriverEvent):
     - For empty response, fill error/details fields as appropriate.
     - For timeout, fill error/details fields as appropriate.
     """
+
     response: Any = None
-    status: RequestStatus = None  # RequestStatus.SUCCESS, ERROR, CANCELLED, EMPTY_RESPONSE, TIMEOUT
+    status: RequestStatus = (
+        None  # RequestStatus.SUCCESS, ERROR, CANCELLED, EMPTY_RESPONSE, TIMEOUT
+    )
     usage: dict = None
     finish_type: str = None  # 'success', 'error', 'cancelled', etc. (legacy)
     error: str = None
@@ -52,27 +62,33 @@ class RequestFinished(DriverEvent):
     reason: str = None  # for cancellations or empty/timeout reasons
     details: dict = None  # for additional info (empty response, timeout, etc.)
 
+
 @attr.s(auto_attribs=True, kw_only=True)
 class ContentPartFound(DriverEvent):
     content_part: Any = None
+
 
 @attr.s(auto_attribs=True, kw_only=True)
 class ToolCallStarted(DriverEvent):
     tool_call_id: str = None
     name: str = None
     arguments: Any = None
+
     @property
     def tool_name(self):
         return self.name
+
 
 @attr.s(auto_attribs=True, kw_only=True)
 class ToolCallFinished(DriverEvent):
     tool_call_id: str = None
     name: str = None
     result: Any = None
+
     @property
     def tool_name(self):
         return self.name
+
 
 @attr.s(auto_attribs=True, kw_only=True)
 class ResponseReceived(DriverEvent):

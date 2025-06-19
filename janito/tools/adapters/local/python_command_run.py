@@ -19,6 +19,7 @@ class PythonCommandRunTool(ToolBase):
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
+
     tool_name = "python_command_run"
 
     def run(self, code: str, timeout: int = 60) -> str:
@@ -26,8 +27,7 @@ class PythonCommandRunTool(ToolBase):
             self.report_warning(tr("ℹ️ Empty code provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty code provided. Operation skipped.")
         self.report_action(
-            tr("🐍 Running: python -c ...\n{code}\n", code=code),
-            ReportAction.EXECUTE
+            tr("🐍 Running: python -c ...\n{code}\n", code=code), ReportAction.EXECUTE
         )
         try:
             with (
@@ -66,7 +66,7 @@ class PythonCommandRunTool(ToolBase):
                 stderr_file.flush()
                 self.report_success(
                     tr("✅ Return code {return_code}", return_code=return_code),
-                    ReportAction.EXECUTE
+                    ReportAction.EXECUTE,
                 )
                 return self._format_result(
                     stdout_file.name, stderr_file.name, return_code
@@ -85,7 +85,8 @@ class PythonCommandRunTool(ToolBase):
                 file_obj.write(line)
                 file_obj.flush()
                 from janito.tools.tool_base import ReportAction
-                report_func(line.rstrip('\r\n'), ReportAction.EXECUTE)
+
+                report_func(line.rstrip("\r\n"), ReportAction.EXECUTE)
                 if count_func == "stdout":
                     stdout_lines += 1
                 else:
@@ -110,7 +111,10 @@ class PythonCommandRunTool(ToolBase):
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             process.kill()
-            self.report_error(tr("❌ Timed out after {timeout} seconds.", timeout=timeout), ReportAction.EXECUTE)
+            self.report_error(
+                tr("❌ Timed out after {timeout} seconds.", timeout=timeout),
+                ReportAction.EXECUTE,
+            )
             return None
 
     def _format_result(self, stdout_file_name, stderr_file_name, return_code):
@@ -142,10 +146,16 @@ class PythonCommandRunTool(ToolBase):
             if stderr_lines > 0 and stderr_content.strip():
                 result += f"stderr_file: {stderr_file_name} (lines: {stderr_lines})\n"
             result += f"returncode: {return_code}\n"
-            result += "--- python_command_run: STDOUT (head/tail) ---\n" + head_tail(stdout_content) + "\n"
+            result += (
+                "--- python_command_run: STDOUT (head/tail) ---\n"
+                + head_tail(stdout_content)
+                + "\n"
+            )
             if stderr_content.strip():
                 result += (
-                    "--- python_command_run: STDERR (head/tail) ---\n" + head_tail(stderr_content) + "\n"
+                    "--- python_command_run: STDERR (head/tail) ---\n"
+                    + head_tail(stderr_content)
+                    + "\n"
                 )
             result += "Use the view_file tool to inspect the contents of these files when needed."
             return result

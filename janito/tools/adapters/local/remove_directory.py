@@ -21,6 +21,7 @@ class RemoveDirectoryTool(ToolBase):
             - "Directory removed: /path/to/dir"
             - "Error removing directory: <error message>"
     """
+
     tool_name = "remove_directory"
 
     def run(self, file_path: str, recursive: bool = False) -> str:
@@ -48,12 +49,15 @@ class RemoveDirectoryTool(ToolBase):
                 os.rmdir(file_path)
             self.report_success(
                 tr("✅ 1 {dir_word}", dir_word=pluralize("directory", 1)),
-                ReportAction.CREATE
+                ReportAction.CREATE,
             )
             msg = tr("Directory removed: {disp_path}", disp_path=disp_path)
             if backup_zip:
                 msg += tr(" (backup at {backup_zip})", backup_zip=backup_zip)
             return msg
         except Exception as e:
-            self.report_error(tr(" ❌ Error removing directory: {error}", error=e), ReportAction.REMOVE)
+            self.report_error(
+                tr(" ❌ Error removing directory: {error}", error=e),
+                ReportAction.REMOVE,
+            )
             return tr("Error removing directory: {error}", error=e)

@@ -5,7 +5,10 @@ from janito.tools.tool_utils import pluralize
 
 def prepare_pattern(pattern, is_regex, case_sensitive, report_error, report_warning):
     if not pattern:
-        report_error(tr("Error: Empty search pattern provided. Operation aborted."), ReportAction.SEARCH)
+        report_error(
+            tr("Error: Empty search pattern provided. Operation aborted."),
+            ReportAction.SEARCH,
+        )
         return (
             None,
             False,

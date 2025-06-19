@@ -1,11 +1,14 @@
 import threading
 import queue
 
+
 class QueueEventBusSentinel:
     """
     Special event to signal the end of event publishing for QueueEventBus.
     """
+
     pass
+
 
 class QueueEventBus:
     """
@@ -13,6 +16,7 @@ class QueueEventBus:
     API-compatible with EventBus for publish/subscribe, but all events go into one queue.
     Thread-safe for concurrent publish operations.
     """
+
     def __init__(self):
         self._queue = queue.Queue()
         self._lock = threading.Lock()

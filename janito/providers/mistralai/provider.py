@@ -13,6 +13,7 @@ from janito.drivers.mistralai.driver import MistralAIModelDriver
 available = MistralAIModelDriver.available
 unavailable_reason = MistralAIModelDriver.unavailable_reason
 
+
 class MistralAIProvider(LLMProvider):
     MODEL_SPECS = MODEL_SPECS
     name = "mistralai"
@@ -20,7 +21,9 @@ class MistralAIProvider(LLMProvider):
 
     DEFAULT_MODEL = "mistral-medium-latest"
 
-    def __init__(self, config: LLMDriverConfig = None, auth_manager: LLMAuthManager = None):
+    def __init__(
+        self, config: LLMDriverConfig = None, auth_manager: LLMAuthManager = None
+    ):
         if not self.available:
             self._driver = None
             return
@@ -38,7 +41,9 @@ class MistralAIProvider(LLMProvider):
     @property
     def driver(self):
         if not self.available:
-            raise ImportError(f"MistralAIProvider unavailable: {self.unavailable_reason}")
+            raise ImportError(
+                f"MistralAIProvider unavailable: {self.unavailable_reason}"
+            )
         return self._driver
 
     @property
@@ -51,6 +56,7 @@ class MistralAIProvider(LLMProvider):
 
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
+
         # Always create a new driver with the passed-in tools_adapter
         driver = MistralAIModelDriver(tools_adapter=tools_adapter)
         return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
@@ -58,5 +64,6 @@ class MistralAIProvider(LLMProvider):
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
         self._tools_adapter.event_bus = event_bus
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
+
 
 LLMProviderRegistry.register(MistralAIProvider.name, MistralAIProvider)

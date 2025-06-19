@@ -14,7 +14,7 @@ from janito.tools.adapters.local.validate_file_syntax.core import validate_file_
 class CreateFileTool(ToolBase):
     """
     Create a new file with the given content.
-    
+
     Args:
         file_path (str): Path to the file to create.
         content (str): Content to write to the file.
@@ -22,9 +22,10 @@ class CreateFileTool(ToolBase):
     Returns:
         str: Status message indicating the result. Example:
             - "✅ Successfully created the file at ..."
-    
+
     Note: Syntax validation is automatically performed after this operation.
     """
+
     tool_name = "create_file"
 
     def run(self, file_path: str, content: str, overwrite: bool = False) -> str:
@@ -62,12 +63,17 @@ class CreateFileTool(ToolBase):
         with open(file_path, "w", encoding="utf-8", errors="replace") as f:
             f.write(content)
         new_lines = content.count("\n") + 1 if content else 0
-        self.report_success(tr("✅ {new_lines} lines", new_lines=new_lines), ReportAction.CREATE)
+        self.report_success(
+            tr("✅ {new_lines} lines", new_lines=new_lines), ReportAction.CREATE
+        )
         # Perform syntax validation and append result
         validation_result = validate_file_syntax(file_path)
         if is_overwrite:
             # Overwrite branch: return minimal overwrite info to user
-            return tr("✅ {new_lines} lines", new_lines=new_lines) + f"\n{validation_result}"
+            return (
+                tr("✅ {new_lines} lines", new_lines=new_lines)
+                + f"\n{validation_result}"
+            )
         else:
             # Create branch: return detailed create success to user
             return (

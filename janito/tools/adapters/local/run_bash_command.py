@@ -8,6 +8,7 @@ import sys
 import os
 import threading
 
+
 @register_local_tool
 class RunBashCommandTool(ToolBase):
     """
@@ -21,13 +22,14 @@ class RunBashCommandTool(ToolBase):
     Returns:
         str: File paths and line counts for stdout and stderr.
     """
+
     tool_name = "run_bash_command"
 
     def _stream_output(self, stream, file_obj, report_func, count_func, counter):
         for line in stream:
             file_obj.write(line)
             file_obj.flush()
-            report_func(line.rstrip('\r\n'), ReportAction.EXECUTE)
+            report_func(line.rstrip("\r\n"), ReportAction.EXECUTE)
             if count_func == "stdout":
                 counter["stdout"] += 1
             else:
@@ -52,7 +54,7 @@ class RunBashCommandTool(ToolBase):
                 tr(
                     "⚠️  Warning: This command might be interactive, require user input, and might hang."
                 ),
-                ReportAction.EXECUTE
+                ReportAction.EXECUTE,
             )
             sys.stdout.flush()
         try:
@@ -109,7 +111,7 @@ class RunBashCommandTool(ToolBase):
                             " ❌ Timed out after {timeout} seconds.",
                             timeout=timeout,
                         ),
-                        ReportAction.EXECUTE
+                        ReportAction.EXECUTE,
                     )
                     return tr(
                         "Command timed out after {timeout} seconds.", timeout=timeout
@@ -123,7 +125,7 @@ class RunBashCommandTool(ToolBase):
                         " ✅ return code {return_code}",
                         return_code=return_code,
                     ),
-                    ReportAction.EXECUTE
+                    ReportAction.EXECUTE,
                 )
                 max_lines = 100
                 # Read back the output for summary
@@ -168,8 +170,5 @@ class RunBashCommandTool(ToolBase):
                     )
                     return result
         except Exception as e:
-            self.report_error(
-                tr(" ❌ Error: {error}", error=e),
-                ReportAction.EXECUTE
-            )
+            self.report_error(tr(" ❌ Error: {error}", error=e), ReportAction.EXECUTE)
             return tr("Error running command: {error}", error=e)

@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+
 @dataclass
 class LLMModelInfo:
     name: str
@@ -18,9 +19,12 @@ class LLMModelInfo:
 
     def to_dict(self) -> dict:
         d = self.__dict__.copy()
-        if not self.open: d.pop("open")
-        if not self.category: d.pop("category")
-        if not self.driver: d.pop("driver")
+        if not self.open:
+            d.pop("open")
+        if not self.category:
+            d.pop("category")
+        if not self.driver:
+            d.pop("driver")
         if not self.other:
             d.pop("other")
         return d

@@ -2,6 +2,7 @@ import inspect
 import typing
 import re
 
+
 class ToolSchemaBase:
     def parse_param_section(self, lines, param_section_headers):
         param_descs = {}
@@ -60,23 +61,33 @@ class ToolSchemaBase:
         return summary, param_descs, return_desc
 
     def validate_tool_class(self, tool_class):
-        if not hasattr(tool_class, "tool_name") or not isinstance(tool_class.tool_name, str):
-            raise ValueError("Tool class must have a class-level 'tool_name' attribute (str) for registry and schema generation.")
+        if not hasattr(tool_class, "tool_name") or not isinstance(
+            tool_class.tool_name, str
+        ):
+            raise ValueError(
+                "Tool class must have a class-level 'tool_name' attribute (str) for registry and schema generation."
+            )
         if not hasattr(tool_class, "run") or not callable(getattr(tool_class, "run")):
             raise ValueError("Tool class must have a callable 'run' method.")
         func = tool_class.run
         tool_name = tool_class.tool_name
         sig = inspect.signature(func)
         if sig.return_annotation is inspect._empty or sig.return_annotation is not str:
-            raise ValueError(f"Tool '{tool_name}' must have an explicit return type of 'str'. Found: {sig.return_annotation}")
+            raise ValueError(
+                f"Tool '{tool_name}' must have an explicit return type of 'str'. Found: {sig.return_annotation}"
+            )
         missing_type_hints = [
             name
             for name, param in sig.parameters.items()
             if name != "self" and param.annotation is inspect._empty
         ]
         if missing_type_hints:
-            raise ValueError(f"Tool '{tool_name}' is missing type hints for parameter(s): {', '.join(missing_type_hints)}.\nAll parameters must have explicit type hints for schema generation.")
-        class_doc = tool_class.__doc__.strip() if tool_class and tool_class.__doc__ else ""
+            raise ValueError(
+                f"Tool '{tool_name}' is missing type hints for parameter(s): {', '.join(missing_type_hints)}.\nAll parameters must have explicit type hints for schema generation."
+            )
+        class_doc = (
+            tool_class.__doc__.strip() if tool_class and tool_class.__doc__ else ""
+        )
         summary, param_descs, return_desc = self.parse_docstring(class_doc)
         description = summary
         if return_desc:
@@ -87,5 +98,7 @@ class ToolSchemaBase:
             if name != "self" and name not in param_descs
         ]
         if undocumented:
-            raise ValueError(f"Tool '{tool_name}' is missing docstring documentation for parameter(s): {', '.join(undocumented)}.\nParameter documentation must be provided in the Tool class docstring, not the method docstring.")
+            raise ValueError(
+                f"Tool '{tool_name}' is missing docstring documentation for parameter(s): {', '.join(undocumented)}.\nParameter documentation must be provided in the Tool class docstring, not the method docstring."
+            )
         return func, tool_name, sig, summary, param_descs, return_desc, description

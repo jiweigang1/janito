@@ -10,6 +10,6 @@ MODEL_SPECS = {
         thinking_supported=False,
         default_temp=0.2,
         open="azure_openai",
-        driver="AzureOpenAIModelDriver"
+        driver="AzureOpenAIModelDriver",
     )
 }

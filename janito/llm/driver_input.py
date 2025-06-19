@@ -4,6 +4,7 @@ import threading
 from janito.llm.driver_config import LLMDriverConfig
 from janito.conversation_history import LLMConversationHistory
 
+
 @dataclass
 class DriverInput:
     config: LLMDriverConfig

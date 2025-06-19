@@ -24,6 +24,7 @@ class RunPowershellCommandTool(ToolBase):
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
+
     tool_name = "run_powershell_command"
 
     def _confirm_and_warn(self, command, require_confirmation, requires_user_input):
@@ -32,7 +33,7 @@ class RunPowershellCommandTool(ToolBase):
                 tr(
                     "⚠️  Warning: This command might be interactive, require user input, and might hang."
                 ),
-                ReportAction.EXECUTE
+                ReportAction.EXECUTE,
             )
         if require_confirmation:
             confirmed = self.ask_user_confirmation(
@@ -42,7 +43,9 @@ class RunPowershellCommandTool(ToolBase):
                 )
             )
             if not confirmed:
-                self.report_warning(tr("⚠️ Execution cancelled by user."), ReportAction.EXECUTE)
+                self.report_warning(
+                    tr("⚠️ Execution cancelled by user."), ReportAction.EXECUTE
+                )
                 return False
         return True
 
@@ -71,7 +74,7 @@ class RunPowershellCommandTool(ToolBase):
         for line in stream:
             file_obj.write(line)
             file_obj.flush()
-            report_func(line.rstrip('\r\n'), ReportAction.EXECUTE)
+            report_func(line.rstrip("\r\n"), ReportAction.EXECUTE)
             if count_func == "stdout":
                 counter["stdout"] += 1
             else:
@@ -193,7 +196,7 @@ class RunPowershellCommandTool(ToolBase):
                             " ❌ Timed out after {timeout} seconds.",
                             timeout=timeout,
                         ),
-                        ReportAction.EXECUTE
+                        ReportAction.EXECUTE,
                     )
                     return tr(
                         "Command timed out after {timeout} seconds.", timeout=timeout
@@ -204,14 +207,11 @@ class RunPowershellCommandTool(ToolBase):
                 stderr_file.flush()
                 self.report_success(
                     tr(" ✅ return code {return_code}", return_code=return_code),
-                    ReportAction.EXECUTE
+                    ReportAction.EXECUTE,
                 )
                 return self._format_result(
                     requires_user_input, return_code, stdout_file, stderr_file
                 )
         except Exception as e:
-            self.report_error(
-                tr(" ❌ Error: {error}", error=e),
-                ReportAction.EXECUTE
-            )
+            self.report_error(tr(" ❌ Error: {error}", error=e), ReportAction.EXECUTE)
             return tr("Error running command: {error}", error=e)

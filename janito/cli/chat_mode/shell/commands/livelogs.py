@@ -1,6 +1,7 @@
 from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
+
 class LivelogsShellHandler(ShellCmdHandler):
     help_text = "Show the last lines of livereload logs. Usage: /livelogs [lines]"
 
@@ -10,7 +11,9 @@ class LivelogsShellHandler(ShellCmdHandler):
         if lines_arg and lines_arg.isdigit():
             lines = int(lines_arg)
         stdout_path = self.shell_state.termweb_stdout_path if self.shell_state else None
-        stderr_path = self.shell_state.livereload_stderr_path if self.shell_state else None
+        stderr_path = (
+            self.shell_state.livereload_stderr_path if self.shell_state else None
+        )
         if not stdout_path and not stderr_path:
             shared_console.print(
                 "[yellow][livereload] No livereload log files found for this session.[/yellow]"
@@ -40,5 +43,7 @@ class LivelogsShellHandler(ShellCmdHandler):
                     )
             except Exception as e:
                 shared_console.print(f"[red][livereload][stderr] Error: {e}[/red]")
-        if (not stdout_path or not stdout_lines) and (not stderr_path or not stderr_lines):
+        if (not stdout_path or not stdout_lines) and (
+            not stderr_path or not stderr_lines
+        ):
             shared_console.print("[livereload] No output or errors captured in logs.")

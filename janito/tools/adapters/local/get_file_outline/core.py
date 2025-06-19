@@ -10,6 +10,7 @@ from janito.i18n import tr
 
 from janito.tools.adapters.local.adapter import register_local_tool as register_tool
 
+
 @register_tool
 class GetFileOutlineTool(ToolBase):
     """
@@ -18,12 +19,16 @@ class GetFileOutlineTool(ToolBase):
     Args:
         file_path (str): Path to the file to outline.
     """
+
     tool_name = "get_file_outline"
 
     def run(self, file_path: str) -> str:
         try:
             self.report_action(
-                tr("📄 Outline file '{disp_path}' ...", disp_path=display_path(file_path)),
+                tr(
+                    "📄 Outline file '{disp_path}' ...",
+                    disp_path=display_path(file_path),
+                ),
                 ReportAction.READ,
             )
             ext = os.path.splitext(file_path)[1].lower()

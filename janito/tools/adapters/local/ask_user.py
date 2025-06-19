@@ -10,7 +10,8 @@ from prompt_toolkit.enums import EditingMode
 from prompt_toolkit.formatted_text import HTML
 from janito.cli.chat_mode.prompt_style import chat_shell_style
 from prompt_toolkit.styles import Style
-toolbar_style = Style.from_dict({'bottom-toolbar': 'fg:yellow bg:darkred'})
+
+toolbar_style = Style.from_dict({"bottom-toolbar": "fg:yellow bg:darkred"})
 
 
 @register_local_tool
@@ -27,6 +28,7 @@ class AskUserTool(ToolBase):
             - "No"
             - "Some detailed answer..."
     """
+
     tool_name = "ask_user"
 
     def run(self, question: str) -> str:
@@ -60,7 +62,8 @@ class AskUserTool(ToolBase):
             buf.validate_and_handle()
             _f12_index["value"] = (idx + 1) % len(_f12_instructions)
 
-                # Use shared CLI styles
+            # Use shared CLI styles
+
         # prompt_style contains the prompt area and input background
         # toolbar_style contains the bottom-toolbar styling
 
@@ -101,8 +104,12 @@ class AskUserTool(ToolBase):
             else:
                 sanitized = response.strip()
                 try:
-                    sanitized.encode('utf-8')
+                    sanitized.encode("utf-8")
                 except UnicodeEncodeError:
-                    sanitized = sanitized.encode('utf-8', errors='replace').decode('utf-8')
-                    rich_print("[yellow]Warning: Some characters in your input were not valid UTF-8 and have been replaced.[/yellow]")
+                    sanitized = sanitized.encode("utf-8", errors="replace").decode(
+                        "utf-8"
+                    )
+                    rich_print(
+                        "[yellow]Warning: Some characters in your input were not valid UTF-8 and have been replaced.[/yellow]"
+                    )
                 return sanitized

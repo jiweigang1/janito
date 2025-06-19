@@ -4,6 +4,7 @@ import janito.driver_events as driver_events
 import janito.report_events as report_events
 import janito.tools.tool_events as tool_events
 
+
 class PerformanceCollector(EventHandlerBase):
     _last_request_usage = None
 
@@ -12,12 +13,15 @@ class PerformanceCollector(EventHandlerBase):
     Collects timing, token usage, status, error, turn, content part, and tool usage data.
     Also tracks request durations.
     """
+
     def __init__(self):
         super().__init__(driver_events, report_events, tool_events)
         # Aggregated stats
         self.total_requests = 0
         self.status_counter = Counter()
-        self.token_usage = defaultdict(int)  # keys: total_tokens, prompt_tokens, completion_tokens
+        self.token_usage = defaultdict(
+            int
+        )  # keys: total_tokens, prompt_tokens, completion_tokens
         self.error_count = 0
         self.error_messages = []
         self.error_exceptions = []
@@ -38,7 +42,7 @@ class PerformanceCollector(EventHandlerBase):
         self._events = []
 
     def on_RequestStarted(self, event):
-        self._events.append(('RequestStarted', event))
+        self._events.append(("RequestStarted", event))
         # Store the start time if possible
         # Assumes 'event' has a unique .request_id and a .timestamp (in seconds)
         request_id = event.request_id
@@ -47,52 +51,52 @@ class PerformanceCollector(EventHandlerBase):
             self._request_start_times[request_id] = timestamp
 
     def on_RequestFinished(self, event):
-        self._events.append(('RequestFinished', event))
+        self._events.append(("RequestFinished", event))
         # Calculate and record the duration if start time is available
-        request_id = getattr(event, 'request_id', None)
-        finish_time = getattr(event, 'timestamp', None)
+        request_id = getattr(event, "request_id", None)
+        finish_time = getattr(event, "timestamp", None)
         if request_id is not None and finish_time is not None:
             start_time = self._request_start_times.pop(request_id, None)
             if start_time is not None:
                 delta = finish_time - start_time
-                if hasattr(delta, 'total_seconds'):
+                if hasattr(delta, "total_seconds"):
                     self._durations.append(delta.total_seconds())
                 else:
                     self._durations.append(float(delta))
         self.total_requests += 1
-        self.status_counter[getattr(event, 'status', None)] += 1
-        usage = getattr(event, 'usage', None)
+        self.status_counter[getattr(event, "status", None)] += 1
+        usage = getattr(event, "usage", None)
         if usage:
             self._last_request_usage = usage.copy()
             for k, v in usage.items():
                 if isinstance(v, (int, float)):
                     self.token_usage[k] += v
         # Error handling
-        if getattr(event, 'status', None) in ('error', 'cancelled'):
+        if getattr(event, "status", None) in ("error", "cancelled"):
             self.error_count += 1
-            self.error_messages.append(getattr(event, 'error', None))
-            self.error_exceptions.append(getattr(event, 'exception', None))
+            self.error_messages.append(getattr(event, "error", None))
+            self.error_exceptions.append(getattr(event, "exception", None))
 
     def on_GenerationFinished(self, event):
-        self._events.append(('GenerationFinished', event))
+        self._events.append(("GenerationFinished", event))
         self.generation_finished_count += 1
         self.total_turns += event.total_turns
 
     def on_ContentPartFound(self, event):
-        self._events.append(('ContentPartFound', event))
+        self._events.append(("ContentPartFound", event))
         self.content_part_count += 1
 
     def on_ToolCallStarted(self, event):
-        self._events.append(('ToolCallStarted', event))
+        self._events.append(("ToolCallStarted", event))
         self.total_tool_events += 1
         self.tool_names_counter[event.tool_name] += 1
 
     def on_ReportEvent(self, event):
-        self._events.append(('ReportEvent', event))
+        self._events.append(("ReportEvent", event))
         # Only count errors for reporting
         if event.subtype:
             self.tool_subtype_counter[str(event.subtype)] += 1
-            if str(event.subtype).lower() == 'error':
+            if str(event.subtype).lower() == "error":
                 self.tool_error_count += 1
                 self.tool_error_messages.append(event.message)
 

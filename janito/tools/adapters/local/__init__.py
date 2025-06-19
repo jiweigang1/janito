@@ -27,11 +27,26 @@ local_tools_adapter = LocalToolsAdapter()
 
 # Register tools
 for tool_class in [
-    AskUserTool, CopyFileTool, CreateDirectoryTool, CreateFileTool, FetchUrlTool,
-    FindFilesTool, ViewFileTool, MoveFileTool, OpenUrlTool,
-    PythonCodeRunTool, PythonCommandRunTool, PythonFileRunTool,
-    RemoveDirectoryTool, RemoveFileTool, ReplaceTextInFileTool,
-    RunBashCommandTool, RunPowershellCommandTool,
-    GetFileOutlineTool, SearchOutlineTool, SearchTextTool, ValidateFileSyntaxTool
+    AskUserTool,
+    CopyFileTool,
+    CreateDirectoryTool,
+    CreateFileTool,
+    FetchUrlTool,
+    FindFilesTool,
+    ViewFileTool,
+    MoveFileTool,
+    OpenUrlTool,
+    PythonCodeRunTool,
+    PythonCommandRunTool,
+    PythonFileRunTool,
+    RemoveDirectoryTool,
+    RemoveFileTool,
+    ReplaceTextInFileTool,
+    RunBashCommandTool,
+    RunPowershellCommandTool,
+    GetFileOutlineTool,
+    SearchOutlineTool,
+    SearchTextTool,
+    ValidateFileSyntaxTool,
 ]:
     local_tools_adapter.register_tool(tool_class)

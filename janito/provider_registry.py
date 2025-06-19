@@ -1,6 +1,7 @@
 """
 ProviderRegistry: Handles provider listing and selection logic for janito CLI.
 """
+
 from rich.table import Table
 from janito.cli.console import shared_console
 from janito.providers.registry import LLMProviderRegistry
@@ -8,6 +9,7 @@ from janito.providers.provider_static_info import STATIC_PROVIDER_METADATA
 from janito.llm.auth import LLMAuthManager
 import sys
 from janito.exceptions import MissingProviderSelectionException
+
 
 class ProviderRegistry:
     def list_providers(self):
@@ -50,8 +52,12 @@ class ProviderRegistry:
 
     def _get_provider_info(self, provider_name):
         static_info = STATIC_PROVIDER_METADATA.get(provider_name, {})
-        maintainer_val = static_info.get('maintainer', '-')
-        maintainer = ("[red]🚨 Needs maintainer[/red]" if maintainer_val == "Needs maintainer" else f"👤 {maintainer_val}")
+        maintainer_val = static_info.get("maintainer", "-")
+        maintainer = (
+            "[red]🚨 Needs maintainer[/red]"
+            if maintainer_val == "Needs maintainer"
+            else f"👤 {maintainer_val}"
+        )
         model_names = "-"
         unavailable_reason = None
         skip = False
@@ -68,11 +74,19 @@ class ProviderRegistry:
                 model_names = f"[red]❌ Not implemented[/red]"
             except Exception as e:
                 instantiation_failed = True
-                unavailable_reason = f"Unavailable (import error or missing dependency): {str(e)}"
+                unavailable_reason = (
+                    f"Unavailable (import error or missing dependency): {str(e)}"
+                )
                 model_names = f"[red]❌ {unavailable_reason}[/red]"
             if not instantiation_failed and provider_instance is not None:
-                available, unavailable_reason = self._get_availability(provider_instance)
-                if not available and unavailable_reason and "not implemented" in str(unavailable_reason).lower():
+                available, unavailable_reason = self._get_availability(
+                    provider_instance
+                )
+                if (
+                    not available
+                    and unavailable_reason
+                    and "not implemented" in str(unavailable_reason).lower()
+                ):
                     skip = True
                 if available:
                     model_names = self._get_model_names(provider_name)
@@ -84,8 +98,8 @@ class ProviderRegistry:
 
     def _get_availability(self, provider_instance):
         try:
-            available = getattr(provider_instance, 'available', True)
-            unavailable_reason = getattr(provider_instance, 'unavailable_reason', None)
+            available = getattr(provider_instance, "available", True)
+            unavailable_reason = getattr(provider_instance, "unavailable_reason", None)
         except Exception as e:
             available = False
             unavailable_reason = f"Error reading runtime availability: {str(e)}"
@@ -93,16 +107,17 @@ class ProviderRegistry:
 
     def _get_model_names(self, provider_name):
         provider_to_specs = {
-            'openai': 'janito.providers.openai.model_info',
-            'azure_openai': 'janito.providers.azure_openai.model_info',
-            'google': 'janito.providers.google.model_info',
-            'mistralai': 'janito.providers.mistralai.model_info',
-            
-            'deepseek': 'janito.providers.deepseek.model_info',
+            "openai": "janito.providers.openai.model_info",
+            "azure_openai": "janito.providers.azure_openai.model_info",
+            "google": "janito.providers.google.model_info",
+            "mistralai": "janito.providers.mistralai.model_info",
+            "deepseek": "janito.providers.deepseek.model_info",
         }
         if provider_name in provider_to_specs:
             try:
-                mod = __import__(provider_to_specs[provider_name], fromlist=["MODEL_SPECS"])
+                mod = __import__(
+                    provider_to_specs[provider_name], fromlist=["MODEL_SPECS"]
+                )
                 return ", ".join(mod.MODEL_SPECS.keys())
             except Exception:
                 return "(Error)"
@@ -116,6 +131,7 @@ class ProviderRegistry:
     def get_provider(self, provider_name):
         """Return the provider class for the given provider name."""
         from janito.providers.registry import LLMProviderRegistry
+
         if not provider_name:
             raise ValueError("Provider name must be specified.")
         return LLMProviderRegistry.get(provider_name)
@@ -128,6 +144,7 @@ class ProviderRegistry:
         if config is not None:
             return provider_class(config=config)
         return provider_class()
+
 
 # For backward compatibility
 def list_providers():

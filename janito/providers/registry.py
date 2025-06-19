@@ -1,10 +1,12 @@
 from typing import Type, Dict
 from janito.llm.provider import LLMProvider
 
+
 class LLMProviderRegistry:
     """
     Registry for LLM provider classes.
     """
+
     _providers: Dict[str, Type[LLMProvider]] = {}
 
     @classmethod

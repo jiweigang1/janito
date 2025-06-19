@@ -12,13 +12,14 @@ from pathlib import Path
 import time
 from janito.event_bus.bus import event_bus
 
+
 class LLMAgent:
     _event_lock: threading.Lock
     _latest_event: Optional[str]
 
     @property
     def template_vars(self):
-        if not hasattr(self, '_template_vars'):
+        if not hasattr(self, "_template_vars"):
             self._template_vars = {}
         return self._template_vars
 
@@ -27,7 +28,19 @@ class LLMAgent:
     Maintains conversation history as required by the new driver interface.
     """
 
-    def __init__(self, llm_provider, tools_adapter: ToolsAdapterBase, agent_name: Optional[str] = None, system_prompt: Optional[str] = None, temperature: Optional[float] = None, conversation_history: Optional[LLMConversationHistory] = None, input_queue: Queue = None, output_queue: Queue = None, verbose_agent: bool = False, **kwargs: Any):
+    def __init__(
+        self,
+        llm_provider,
+        tools_adapter: ToolsAdapterBase,
+        agent_name: Optional[str] = None,
+        system_prompt: Optional[str] = None,
+        temperature: Optional[float] = None,
+        conversation_history: Optional[LLMConversationHistory] = None,
+        input_queue: Queue = None,
+        output_queue: Queue = None,
+        verbose_agent: bool = False,
+        **kwargs: Any,
+    ):
         self.llm_provider = llm_provider
         self.tools_adapter = tools_adapter
         self.agent_name = agent_name
@@ -43,23 +56,23 @@ class LLMAgent:
 
     def get_provider_name(self):
         # Try to get provider name from driver, fallback to llm_provider, else '?'
-        if self.driver and hasattr(self.driver, 'name'):
+        if self.driver and hasattr(self.driver, "name"):
             return self.driver.name
-        elif hasattr(self.llm_provider, 'name'):
+        elif hasattr(self.llm_provider, "name"):
             return self.llm_provider.name
         return "?"
 
     def get_model_name(self):
         # Try to get model name from driver, fallback to llm_provider, else '?'
-        if self.driver and hasattr(self.driver, 'model_name'):
+        if self.driver and hasattr(self.driver, "model_name"):
             return self.driver.model_name
-        elif hasattr(self.llm_provider, 'model_name'):
+        elif hasattr(self.llm_provider, "model_name"):
             return self.llm_provider.model_name
         return "?"
 
     def set_template_var(self, key: str, value: str) -> None:
         """Set a variable for system prompt templating."""
-        if not hasattr(self, '_template_vars'):
+        if not hasattr(self, "_template_vars"):
             self._template_vars = {}
         self._template_vars[key] = value
 
@@ -69,16 +82,16 @@ class LLMAgent:
     def set_system_using_template(self, template_path: str, **kwargs) -> None:
         env = Environment(
             loader=FileSystemLoader(Path(template_path).parent),
-            autoescape=select_autoescape()
+            autoescape=select_autoescape(),
         )
         template = env.get_template(Path(template_path).name)
         self.system_prompt = template.render(**kwargs)
 
     def _refresh_system_prompt_from_template(self):
-        if hasattr(self, '_template_vars') and hasattr(self, 'system_prompt_template'):
+        if hasattr(self, "_template_vars") and hasattr(self, "system_prompt_template"):
             env = Environment(
                 loader=FileSystemLoader(Path(self.system_prompt_template).parent),
-                autoescape=select_autoescape()
+                autoescape=select_autoescape(),
             )
             template = env.get_template(Path(self.system_prompt_template).name)
             self.system_prompt = template.render(**self._template_vars)
@@ -91,31 +104,45 @@ class LLMAgent:
             self.conversation_history.add_message(role, prompt_or_messages)
         elif isinstance(prompt_or_messages, list):
             for msg in prompt_or_messages:
-                self.conversation_history.add_message(msg.get('role', role), msg.get('content', ''))
+                self.conversation_history.add_message(
+                    msg.get("role", role), msg.get("content", "")
+                )
 
     def _ensure_system_prompt(self):
-        if self.system_prompt and (not self.conversation_history._history or self.conversation_history._history[0]['role'] != 'system'):
-            self.conversation_history._history.insert(0, {'role': 'system', 'content': self.system_prompt})
+        if self.system_prompt and (
+            not self.conversation_history._history
+            or self.conversation_history._history[0]["role"] != "system"
+        ):
+            self.conversation_history._history.insert(
+                0, {"role": "system", "content": self.system_prompt}
+            )
 
-    def _validate_and_update_history(self, prompt: str = None, messages: Optional[List[dict]] = None, role: str = "user"):
+    def _validate_and_update_history(
+        self,
+        prompt: str = None,
+        messages: Optional[List[dict]] = None,
+        role: str = "user",
+    ):
         if prompt is None and not messages:
-            raise ValueError("Either prompt or messages must be provided to Agent.chat.")
+            raise ValueError(
+                "Either prompt or messages must be provided to Agent.chat."
+            )
         if prompt is not None:
             self._add_prompt_to_history(prompt, role)
         elif messages:
             self._add_prompt_to_history(messages, role)
 
     def _log_event_verbose(self, event):
-        if getattr(self, 'verbose_agent', False):
-            if hasattr(event, 'parts'):
-                for i, part in enumerate(getattr(event, 'parts', [])):
+        if getattr(self, "verbose_agent", False):
+            if hasattr(event, "parts"):
+                for i, part in enumerate(getattr(event, "parts", [])):
                     pass  # Add detailed logging here if needed
             else:
                 pass  # Add detailed logging here if needed
 
     def _handle_event_type(self, event):
-        event_class = getattr(event, '__class__', None)
-        if event_class is not None and event_class.__name__ == 'ResponseReceived':
+        event_class = getattr(event, "__class__", None)
+        if event_class is not None and event_class.__name__ == "ResponseReceived":
             added_tool_results = self._handle_response_received(event)
             return event, added_tool_results
         # For all other events (including RequestFinished with status='error', RequestStarted), do not exit loop
@@ -125,19 +152,21 @@ class LLMAgent:
         return DriverInput(
             config=config,
             conversation_history=self.conversation_history,
-            cancel_event=cancel_event
+            cancel_event=cancel_event,
         )
 
-    def _process_next_response(self, poll_timeout: float = 1.0, max_wait_time: float = 300.0):
+    def _process_next_response(
+        self, poll_timeout: float = 1.0, max_wait_time: float = 300.0
+    ):
         """
         Wait for a single event from the output queue (with timeout), process it, and return the result.
         This function is intended to be called from the main agent loop, which controls the overall flow.
         """
-        if getattr(self, 'verbose_agent', False):
+        if getattr(self, "verbose_agent", False):
             print("[agent] [DEBUG] Entered _process_next_response")
         elapsed = 0.0
         try:
-            if getattr(self, 'verbose_agent', False):
+            if getattr(self, "verbose_agent", False):
                 print("[agent] [DEBUG] Waiting for event from output_queue...")
             return self._poll_for_event(poll_timeout, max_wait_time)
         except KeyboardInterrupt:
@@ -153,25 +182,33 @@ class LLMAgent:
                 if elapsed >= max_wait_time:
                     error_msg = f"[ERROR] No output from driver in agent.chat() after {max_wait_time} seconds (timeout exit)"
                     print(error_msg)
-                    print('[DEBUG] Exiting _process_next_response due to timeout')
+                    print("[DEBUG] Exiting _process_next_response due to timeout")
                     return None, False
                 continue
-            if getattr(self, 'verbose_agent', False):
+            if getattr(self, "verbose_agent", False):
                 print(f"[agent] [DEBUG] Received event from output_queue: {event}")
             event_bus.publish(event)
             self._log_event_verbose(event)
-            event_class = getattr(event, '__class__', None)
+            event_class = getattr(event, "__class__", None)
             event_name = event_class.__name__ if event_class else None
-            if event_name == 'ResponseReceived':
+            if event_name == "ResponseReceived":
                 result = self._handle_event_type(event)
                 return result
-            elif (event_name == 'RequestFinished' and getattr(event, 'status', None) in [RequestStatus.ERROR, RequestStatus.EMPTY_RESPONSE, RequestStatus.TIMEOUT]):
+            elif event_name == "RequestFinished" and getattr(event, "status", None) in [
+                RequestStatus.ERROR,
+                RequestStatus.EMPTY_RESPONSE,
+                RequestStatus.TIMEOUT,
+            ]:
                 return (event, False)
 
     def _handle_keyboard_interrupt(self):
-        if hasattr(self, 'input_queue') and self.input_queue is not None:
+        if hasattr(self, "input_queue") and self.input_queue is not None:
             from janito.driver_events import RequestFinished
-            cancel_event = RequestFinished(status=RequestStatus.CANCELLED, reason="User interrupted (KeyboardInterrupt)")
+
+            cancel_event = RequestFinished(
+                status=RequestStatus.CANCELLED,
+                reason="User interrupted (KeyboardInterrupt)",
+            )
             self.input_queue.put(cancel_event)
 
     def _get_event_from_output_queue(self, poll_timeout):
@@ -185,15 +222,18 @@ class LLMAgent:
         Handle a ResponseReceived event: execute tool calls if present, update history.
         Returns True if the agent loop should continue (tool calls found), False otherwise.
         """
-        if getattr(self, 'verbose_agent', False):
+        if getattr(self, "verbose_agent", False):
             print("[agent] [INFO] Handling ResponseReceived event.")
         from janito.llm.message_parts import FunctionCallMessagePart
+
         tool_calls = []
         tool_results = []
         for part in event.parts:
             if isinstance(part, FunctionCallMessagePart):
-                if getattr(self, 'verbose_agent', False):
-                    print(f"[agent] [DEBUG] Tool call detected: {getattr(part, 'name', repr(part))} with arguments: {getattr(part, 'arguments', None)}")
+                if getattr(self, "verbose_agent", False):
+                    print(
+                        f"[agent] [DEBUG] Tool call detected: {getattr(part, 'name', repr(part))} with arguments: {getattr(part, 'arguments', None)}"
+                    )
                 tool_calls.append(part)
                 result = self.tools_adapter.execute_function_call_message_part(part)
                 tool_results.append(result)
@@ -202,39 +242,65 @@ class LLMAgent:
             tool_calls_list = []
             tool_results_list = []
             for call, result in zip(tool_calls, tool_results):
-                function_name = getattr(call, 'name', None) or (getattr(call, 'function', None) and getattr(call.function, 'name', None)) or 'function'
-                arguments = getattr(call, 'function', None) and getattr(call.function, 'arguments', None)
-                tool_call_id = getattr(call, 'tool_call_id', None)
-                tool_calls_list.append({
-                    'id': tool_call_id,
-                    'type': 'function',
-                    'function': {
-                        'name': function_name,
-                        'arguments': arguments if isinstance(arguments, str) else str(arguments) if arguments else ''
+                function_name = (
+                    getattr(call, "name", None)
+                    or (
+                        getattr(call, "function", None)
+                        and getattr(call.function, "name", None)
+                    )
+                    or "function"
+                )
+                arguments = getattr(call, "function", None) and getattr(
+                    call.function, "arguments", None
+                )
+                tool_call_id = getattr(call, "tool_call_id", None)
+                tool_calls_list.append(
+                    {
+                        "id": tool_call_id,
+                        "type": "function",
+                        "function": {
+                            "name": function_name,
+                            "arguments": (
+                                arguments
+                                if isinstance(arguments, str)
+                                else str(arguments) if arguments else ""
+                            ),
+                        },
                     }
-                })
-                tool_results_list.append({
-                    'name': function_name,
-                    'content': str(result),
-                    'tool_call_id': tool_call_id
-                })
+                )
+                tool_results_list.append(
+                    {
+                        "name": function_name,
+                        "content": str(result),
+                        "tool_call_id": tool_call_id,
+                    }
+                )
             # Add assistant tool_calls message
             import json
+
             self.conversation_history.add_message(
-                'tool_calls',
-                json.dumps(tool_calls_list)
+                "tool_calls", json.dumps(tool_calls_list)
             )
             # Add tool_results message
             self.conversation_history.add_message(
-                'tool_results',
-                json.dumps(tool_results_list)
+                "tool_results", json.dumps(tool_results_list)
             )
             return True  # Continue the loop
         else:
             return False  # No tool calls, return event
 
-    def chat(self, prompt: str = None, messages: Optional[List[dict]] = None, role: str = "user", config=None):
-        if hasattr(self, 'driver') and self.driver and hasattr(self.driver, 'clear_output_queue'):
+    def chat(
+        self,
+        prompt: str = None,
+        messages: Optional[List[dict]] = None,
+        role: str = "user",
+        config=None,
+    ):
+        if (
+            hasattr(self, "driver")
+            and self.driver
+            and hasattr(self.driver, "clear_output_queue")
+        ):
             self.driver.clear_output_queue()
         """
         Main agent conversation loop supporting function/tool calls and conversation history extension, now as a blocking event-driven loop with event publishing.
@@ -254,6 +320,7 @@ class LLMAgent:
             config = self.llm_provider.driver_config
         loop_count = 1
         import threading
+
         cancel_event = threading.Event()
         while True:
             self._print_verbose_chat_loop(loop_count)
@@ -264,21 +331,29 @@ class LLMAgent:
             except KeyboardInterrupt:
                 cancel_event.set()
                 raise
-            if getattr(self, 'verbose_agent', False):
-                print(f"[agent] [DEBUG] Returned from _process_next_response: result={result}, added_tool_results={added_tool_results}")
+            if getattr(self, "verbose_agent", False):
+                print(
+                    f"[agent] [DEBUG] Returned from _process_next_response: result={result}, added_tool_results={added_tool_results}"
+                )
             if result is None:
-                if getattr(self, 'verbose_agent', False):
-                    print(f"[agent] [INFO] Exiting chat loop: _process_next_response returned None result (likely timeout or error). Returning (None, False).")
+                if getattr(self, "verbose_agent", False):
+                    print(
+                        f"[agent] [INFO] Exiting chat loop: _process_next_response returned None result (likely timeout or error). Returning (None, False)."
+                    )
                 return None, False
             if not added_tool_results:
-                if getattr(self, 'verbose_agent', False):
-                    print(f"[agent] [INFO] Exiting chat loop: _process_next_response returned added_tool_results=False (final response or no more tool calls). Returning result: {result}")
+                if getattr(self, "verbose_agent", False):
+                    print(
+                        f"[agent] [INFO] Exiting chat loop: _process_next_response returned added_tool_results=False (final response or no more tool calls). Returning result: {result}"
+                    )
                 return result
             loop_count += 1
 
     def _print_verbose_chat_loop(self, loop_count):
-        if getattr(self, 'verbose_agent', False):
-            print(f"[agent] [DEBUG] Preparing new driver_input (loop_count={loop_count}) with updated conversation history:")
+        if getattr(self, "verbose_agent", False):
+            print(
+                f"[agent] [DEBUG] Preparing new driver_input (loop_count={loop_count}) with updated conversation history:"
+            )
             for msg in self.conversation_history.get_history():
                 print("   ", msg)
 
@@ -300,16 +375,16 @@ class LLMAgent:
 
     def get_provider_name(self) -> str:
         """Return the provider name, if available."""
-        if hasattr(self.llm_provider, 'name'):
-            return getattr(self.llm_provider, 'name', '?')
-        if self.driver and hasattr(self.driver, 'name'):
-            return getattr(self.driver, 'name', '?')
+        if hasattr(self.llm_provider, "name"):
+            return getattr(self.llm_provider, "name", "?")
+        if self.driver and hasattr(self.driver, "name"):
+            return getattr(self.driver, "name", "?")
         return "?"
 
     def get_model_name(self) -> str:
         """Return the model name, if available."""
-        if self.driver and hasattr(self.driver, 'model_name'):
-            return getattr(self.driver, 'model_name', '?')
+        if self.driver and hasattr(self.driver, "model_name"):
+            return getattr(self.driver, "model_name", "?")
         return "?"
 
     def get_name(self) -> Optional[str]:
@@ -319,11 +394,15 @@ class LLMAgent:
         """
         Return the provider name for this agent, if available.
         """
-        if hasattr(self, 'llm_provider') and hasattr(self.llm_provider, 'name'):
+        if hasattr(self, "llm_provider") and hasattr(self.llm_provider, "name"):
             return self.llm_provider.name
-        if hasattr(self, 'driver') and self.driver and hasattr(self.driver, 'provider_name'):
+        if (
+            hasattr(self, "driver")
+            and self.driver
+            and hasattr(self.driver, "provider_name")
+        ):
             return self.driver.provider_name
-        if hasattr(self, 'driver') and self.driver and hasattr(self.driver, 'name'):
+        if hasattr(self, "driver") and self.driver and hasattr(self.driver, "name"):
             return self.driver.name
         return "?"
 
@@ -331,9 +410,13 @@ class LLMAgent:
         """
         Return the model name for this agent, if available.
         """
-        if hasattr(self, 'driver') and self.driver and hasattr(self.driver, 'model_name'):
+        if (
+            hasattr(self, "driver")
+            and self.driver
+            and hasattr(self.driver, "model_name")
+        ):
             return self.driver.model_name
-        if hasattr(self, 'llm_provider') and hasattr(self.llm_provider, 'model_name'):
+        if hasattr(self, "llm_provider") and hasattr(self.llm_provider, "model_name"):
             return self.llm_provider.model_name
         return "?"
 
@@ -343,11 +426,18 @@ class LLMAgent:
         :param timeout: Optional timeout in seconds.
         Handles KeyboardInterrupt gracefully.
         """
-        if hasattr(self, 'driver') and self.driver and hasattr(self.driver, '_thread') and self.driver._thread:
+        if (
+            hasattr(self, "driver")
+            and self.driver
+            and hasattr(self.driver, "_thread")
+            and self.driver._thread
+        ):
             try:
                 self.driver._thread.join(timeout)
             except KeyboardInterrupt:
-                print("\n[INFO] Interrupted by user during driver shutdown. Cleaning up...")
+                print(
+                    "\n[INFO] Interrupted by user during driver shutdown. Cleaning up..."
+                )
                 # Optionally, perform additional cleanup here
                 # Do not re-raise to suppress traceback and exit gracefully
                 return

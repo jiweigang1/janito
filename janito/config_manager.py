@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 from threading import Lock
 
+
 class ConfigManager:
     """
     Unified configuration manager supporting:
@@ -9,6 +10,7 @@ class ConfigManager:
       - File-based configuration
       - Runtime overrides (e.g., CLI args)
     """
+
     _instance = None
     _lock = Lock()
 
@@ -18,12 +20,9 @@ class ConfigManager:
                 cls._instance = super(ConfigManager, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, 
-                 config_path=None, 
-                 defaults=None, 
-                 runtime_overrides=None):
+    def __init__(self, config_path=None, defaults=None, runtime_overrides=None):
         # Lazy single-init
-        if hasattr(self, '_initialized') and self._initialized:
+        if hasattr(self, "_initialized") and self._initialized:
             return
         self._initialized = True
 
@@ -32,7 +31,6 @@ class ConfigManager:
         self.file_config = {}
         self.runtime_overrides = dict(runtime_overrides) if runtime_overrides else {}
         self._load_file_config()
-
 
     def _load_file_config(self):
         if self.config_path.exists():
@@ -79,26 +77,33 @@ class ConfigManager:
 
     # Namespaced provider/model config
     def get_provider_config(self, provider, default=None):
-        providers = self.file_config.get('providers') or {}
+        providers = self.file_config.get("providers") or {}
         return providers.get(provider) or (default or {})
+
     def set_provider_config(self, provider, key, value):
-        if 'providers' not in self.file_config:
-            self.file_config['providers'] = {}
-        if provider not in self.file_config['providers']:
-            self.file_config['providers'][provider] = {}
-        self.file_config['providers'][provider][key] = value
+        if "providers" not in self.file_config:
+            self.file_config["providers"] = {}
+        if provider not in self.file_config["providers"]:
+            self.file_config["providers"][provider] = {}
+        self.file_config["providers"][provider][key] = value
+
     def get_provider_model_config(self, provider, model, default=None):
-        return self.file_config.get('providers') or {}.get(provider, {}).get('models', {}).get(model) or (default or {})
+        return (
+            self.file_config.get("providers")
+            or {}.get(provider, {}).get("models", {}).get(model)
+            or (default or {})
+        )
+
     def set_provider_model_config(self, provider, model, key, value):
-        if 'providers' not in self.file_config:
-            self.file_config['providers'] = {}
-        if provider not in self.file_config['providers']:
-            self.file_config['providers'][provider] = {}
-        if 'models' not in self.file_config['providers'][provider]:
-            self.file_config['providers'][provider]['models'] = {}
-        if model not in self.file_config['providers'][provider]['models']:
-            self.file_config['providers'][provider]['models'][model] = {}
-        self.file_config['providers'][provider]['models'][model][key] = value
+        if "providers" not in self.file_config:
+            self.file_config["providers"] = {}
+        if provider not in self.file_config["providers"]:
+            self.file_config["providers"][provider] = {}
+        if "models" not in self.file_config["providers"][provider]:
+            self.file_config["providers"][provider]["models"] = {}
+        if model not in self.file_config["providers"][provider]["models"]:
+            self.file_config["providers"][provider]["models"][model] = {}
+        self.file_config["providers"][provider]["models"][model][key] = value
 
     # Support loading runtime overrides after init (e.g. after parsing CLI args)
     def apply_runtime_overrides(self, overrides_dict):

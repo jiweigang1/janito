@@ -10,7 +10,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open="mistralai",
-        driver="MistralAIModelDriver"
+        driver="MistralAIModelDriver",
     ),
     "mistral-large-latest": LLMModelInfo(
         name="mistral-large-latest",
@@ -21,7 +21,7 @@ MODEL_SPECS = {
         thinking_supported=True,
         default_temp=0.2,
         open="mistralai",
-        driver="MistralAIModelDriver"
+        driver="MistralAIModelDriver",
     ),
     "mistral-small-latest": LLMModelInfo(
         name="mistral-small-latest",
@@ -32,6 +32,6 @@ MODEL_SPECS = {
         thinking_supported=False,
         default_temp=0.2,
         open="mistralai",
-        driver="MistralAIModelDriver"
-    )
+        driver="MistralAIModelDriver",
+    ),
 }

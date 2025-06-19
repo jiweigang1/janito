@@ -20,6 +20,7 @@ _DRIVER_REGISTRY: Dict[str, Type] = {
     "OpenAIModelDriver": OpenAIModelDriver,
 }
 
+
 def get_driver_class(name: str):
     """Get the driver class by string name."""
     try:

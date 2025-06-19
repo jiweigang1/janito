@@ -24,7 +24,14 @@ def filter_dirs(dirs, root, gitignore_filter):
 
 
 def process_file_count_only(
-    file_path, per_file_counts, pattern, regex, use_regex, case_sensitive, max_results, total_results
+    file_path,
+    per_file_counts,
+    pattern,
+    regex,
+    use_regex,
+    case_sensitive,
+    max_results,
+    total_results,
 ):
     match_count, file_limit_reached, _ = read_file_lines(
         file_path,

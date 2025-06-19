@@ -13,13 +13,16 @@ available = AzureOpenAIModelDriver.available
 unavailable_reason = AzureOpenAIModelDriver.unavailable_reason
 maintainer = "João Pinto <lamego.pinto@gmail.com>"
 
+
 class AzureOpenAIProvider(LLMProvider):
     name = "azure_openai"
     maintainer = "João Pinto <lamego.pinto@gmail.com>"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "azure_openai_deployment"
 
-    def __init__(self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None):
+    def __init__(
+        self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
+    ):
         if not self.available:
             self._driver = None
             return
@@ -36,11 +39,12 @@ class AzureOpenAIProvider(LLMProvider):
         self.fill_missing_device_info(self._driver_config)
         self._driver = AzureOpenAIModelDriver(tools_adapter=self._tools_adapter)
 
-
     @property
     def driver(self):
         if not self.available:
-            raise ImportError(f"AzureOpenAIProvider unavailable: {self.unavailable_reason}")
+            raise ImportError(
+                f"AzureOpenAIProvider unavailable: {self.unavailable_reason}"
+            )
         return self._driver
 
     @property
@@ -51,10 +55,10 @@ class AzureOpenAIProvider(LLMProvider):
     def unavailable_reason(self):
         return unavailable_reason
 
-
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
         from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
+
         # Always create a new driver with the passed-in tools_adapter
         driver = AzureOpenAIModelDriver(tools_adapter=tools_adapter)
         return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)

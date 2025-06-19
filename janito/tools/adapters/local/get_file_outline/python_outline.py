@@ -109,7 +109,7 @@ def extract_signature_and_decorators(lines, start_idx):
     sig_lineno = start_idx
     for i in range(start_idx - 1, -1, -1):
         striped = lines[i].strip()
-        if striped.startswith("@"): 
+        if striped.startswith("@"):
             decorators.insert(0, striped)
             sig_lineno = i
         elif not striped:
@@ -124,6 +124,7 @@ def extract_signature_and_decorators(lines, start_idx):
             sig_lineno = k
             break
     return sig_line, decorators, sig_lineno
+
 
 def extract_docstring(lines, start_idx, end_idx):
     """Extracts a docstring from lines[start_idx:end_idx] if present."""
@@ -147,6 +148,7 @@ def extract_docstring(lines, start_idx, end_idx):
         else:
             break
     return ""
+
 
 def build_outline_entry(obj, lines, outline):
     obj_type, name, start, end, parent, indent = obj
@@ -221,36 +223,50 @@ def parse_python_outline(lines: List[str]):
             stack.append(obj)
             last_top_obj = obj
         elif assign_match and indent == 0:
-            outline.append({
-                "type": "const" if assign_match.group(2).isupper() else "var",
-                "name": assign_match.group(2),
-                "start": idx + 1,
-                "end": idx + 1,
-                "parent": "",
-                "signature": line.strip(),
-                "decorators": [],
-                "docstring": "",
-            })
+            outline.append(
+                {
+                    "type": "const" if assign_match.group(2).isupper() else "var",
+                    "name": assign_match.group(2),
+                    "start": idx + 1,
+                    "end": idx + 1,
+                    "parent": "",
+                    "signature": line.strip(),
+                    "decorators": [],
+                    "docstring": "",
+                }
+            )
         if line.strip().startswith("if __name__ == "):
-            outline.append({
-                "type": "main",
-                "name": "__main__",
-                "start": idx + 1,
-                "end": idx + 1,
-                "parent": "",
-                "signature": line.strip(),
-                "decorators": [],
-                "docstring": "",
-            })
+            outline.append(
+                {
+                    "type": "main",
+                    "name": "__main__",
+                    "start": idx + 1,
+                    "end": idx + 1,
+                    "parent": "",
+                    "signature": line.strip(),
+                    "decorators": [],
+                    "docstring": "",
+                }
+            )
         # Close stack objects if indent falls back
         while stack and indent <= stack[-1][5] and idx + 1 > stack[-1][2]:
             finished = stack.pop()
-            outline_entry = finished[:2] + (finished[2], idx + 1, finished[4], finished[5])
+            outline_entry = finished[:2] + (
+                finished[2],
+                idx + 1,
+                finished[4],
+                finished[5],
+            )
             build_outline_entry(outline_entry, lines, outline)
     # Close any remaining objects
     while stack:
         finished = stack.pop()
-        outline_entry = finished[:2] + (finished[2], len(lines), finished[4], finished[5])
+        outline_entry = finished[:2] + (
+            finished[2],
+            len(lines),
+            finished[4],
+            finished[5],
+        )
         build_outline_entry(outline_entry, lines, outline)
     return outline
 

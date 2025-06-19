@@ -5,6 +5,7 @@ from janito.i18n import tr
 import shutil
 from janito.tools.adapters.local.validate_file_syntax.core import validate_file_syntax
 
+
 @register_local_tool
 class DeleteTextInFileTool(ToolBase):
     """
@@ -18,6 +19,7 @@ class DeleteTextInFileTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
+
     tool_name = "delete_text_in_file"
 
     def run(
@@ -39,28 +41,32 @@ class DeleteTextInFileTool(ToolBase):
         self.report_action(info_msg, ReportAction.CREATE)
         try:
             content = self._read_file_content(file_path)
-            occurrences, match_lines = self._find_marker_blocks(content, start_marker, end_marker)
+            occurrences, match_lines = self._find_marker_blocks(
+                content, start_marker, end_marker
+            )
             if occurrences == 0:
-                self.report_warning(tr(" ℹ️ No blocks found between markers."), ReportAction.CREATE)
+                self.report_warning(
+                    tr(" ℹ️ No blocks found between markers."), ReportAction.CREATE
+                )
                 return tr(
-                    "No blocks found between markers in {file_path}.", file_path=file_path
+                    "No blocks found between markers in {file_path}.",
+                    file_path=file_path,
                 )
             backup_path = file_path + ".bak"
             if backup:
                 self._backup_file(file_path, backup_path)
-            new_content, deleted_blocks = self._delete_blocks(content, start_marker, end_marker)
+            new_content, deleted_blocks = self._delete_blocks(
+                content, start_marker, end_marker
+            )
             self._write_file_content(file_path, new_content)
             validation_result = validate_file_syntax(file_path)
             self._report_success(match_lines)
-            return (
-                tr(
-                    "Deleted {count} block(s) between markers in {file_path}. (backup at {backup_path})",
-                    count=deleted_blocks,
-                    file_path=file_path,
-                    backup_path=backup_path if backup else "N/A",
-                )
-                + (f"\n{validation_result}" if validation_result else "")
-            )
+            return tr(
+                "Deleted {count} block(s) between markers in {file_path}. (backup at {backup_path})",
+                count=deleted_blocks,
+                file_path=file_path,
+                backup_path=backup_path if backup else "N/A",
+            ) + (f"\n{validation_result}" if validation_result else "")
         except Exception as e:
             self.report_error(tr(" ❌ Error: {error}", error=e), ReportAction.REPLACE)
             return tr("Error deleting text: {error}", error=e)
@@ -101,7 +107,9 @@ class DeleteTextInFileTool(ToolBase):
             end_idx = new_content.find(end_marker, start_idx + len(start_marker))
             if end_idx == -1:
                 break
-            new_content = new_content[:start_idx] + new_content[end_idx + len(end_marker):]
+            new_content = (
+                new_content[:start_idx] + new_content[end_idx + len(end_marker) :]
+            )
             count += 1
         return new_content, count
 
@@ -116,7 +124,13 @@ class DeleteTextInFileTool(ToolBase):
         if match_lines:
             lines_str = ", ".join(str(line_no) for line_no in match_lines)
             self.report_success(
-                tr(" ✅ deleted block(s) starting at line(s): {lines_str}", lines_str=lines_str), ReportAction.CREATE
+                tr(
+                    " ✅ deleted block(s) starting at line(s): {lines_str}",
+                    lines_str=lines_str,
+                ),
+                ReportAction.CREATE,
             )
         else:
-            self.report_success(tr(" ✅ deleted block(s) (lines unknown)"), ReportAction.CREATE)
+            self.report_success(
+                tr(" ✅ deleted block(s) (lines unknown)"), ReportAction.CREATE
+            )

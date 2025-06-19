@@ -166,10 +166,7 @@ Janito is built to be extensible. You can add new LLM providers or tools by impl
 ## Supported Providers
 
 - OpenAI
-- Google Gemini
-- Mistral
-- 
-- (And more via plugins)
+- DeepSeek
 
 ## Contributing
 
@@ -180,6 +177,12 @@ Contributions are welcome! Please see the `CONTRIBUTING.md` (if available) or op
 This project is licensed under the terms of the MIT license.
 
 For more information, see the documentation in the `docs/` directory or run `janito --help`.
+
+---
+
+## 📖 Detailed Documentation
+
+Full and up-to-date documentation is available at: https://janito-dev.github.io/janito/
 
 ---
 

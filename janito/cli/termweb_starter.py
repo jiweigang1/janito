@@ -33,6 +33,7 @@ def termweb_start_and_watch(shell_state, shellstate_lock, selected_port=None):
     Communicates (termweb_proc, started: bool, stdout_path, stderr_path) via result_queue if provided.
     Returns the Thread object.
     """
+
     def termweb_worker(shell_state, shellstate_lock, selected_port, check_interval=2.0):
         """
         Worker to start termweb process, then monitor its running state/health, and update shell_state fields in a thread-safe manner.
@@ -46,16 +47,21 @@ def termweb_start_and_watch(shell_state, shellstate_lock, selected_port=None):
         if not os.path.isfile(app_py_path):
             try:
                 import janito_termweb
+
                 app_py_path = janito_termweb.__file__.replace("__init__.py", "app.py")
             except ImportError:
                 with shellstate_lock:
-                    shell_state.termweb_status = 'notfound'
+                    shell_state.termweb_status = "notfound"
                     shell_state.termweb_pid = None
                     shell_state.termweb_stdout_path = None
                     shell_state.termweb_stderr_path = None
                 return
-        termweb_stdout = tempfile.NamedTemporaryFile(delete=False, mode="w+", encoding="utf-8")
-        termweb_stderr = tempfile.NamedTemporaryFile(delete=False, mode="w+", encoding="utf-8")
+        termweb_stdout = tempfile.NamedTemporaryFile(
+            delete=False, mode="w+", encoding="utf-8"
+        )
+        termweb_stderr = tempfile.NamedTemporaryFile(
+            delete=False, mode="w+", encoding="utf-8"
+        )
         port_to_use = selected_port if selected_port is not None else get_termweb_port()
         termweb_proc = subprocess.Popen(
             [sys.executable, app_py_path, "--port", str(port_to_use)],
@@ -66,7 +72,7 @@ def termweb_start_and_watch(shell_state, shellstate_lock, selected_port=None):
         # Step 1: Wait for server to become healthy (initial check)
         if wait_for_termweb(port_to_use, timeout=3.0):
             with shellstate_lock:
-                shell_state.termweb_status = 'running'
+                shell_state.termweb_status = "running"
                 shell_state.termweb_pid = termweb_proc.pid
                 shell_state.termweb_stdout_path = termweb_stdout.name
                 shell_state.termweb_stderr_path = termweb_stderr.name
@@ -76,7 +82,7 @@ def termweb_start_and_watch(shell_state, shellstate_lock, selected_port=None):
             termweb_proc.wait()
             # console.print(f"[red]Failed to start TermWeb on port {port_to_use}. Check logs for details.[/red]")
             with shellstate_lock:
-                shell_state.termweb_status = 'failed-start'
+                shell_state.termweb_status = "failed-start"
                 shell_state.termweb_pid = None
                 shell_state.termweb_stdout_path = termweb_stdout.name
                 shell_state.termweb_stderr_path = termweb_stderr.name
@@ -86,10 +92,11 @@ def termweb_start_and_watch(shell_state, shellstate_lock, selected_port=None):
         # Step 2: Run watcher loop; exit and set fields if process or health fails
         import time
         from http.client import HTTPConnection
+
         while True:
             if termweb_proc.poll() is not None:  # means process exited
                 with shellstate_lock:
-                    shell_state.termweb_status = 'terminated'
+                    shell_state.termweb_status = "terminated"
                     shell_state.termweb_pid = None
                 break
             try:
@@ -101,11 +108,15 @@ def termweb_start_and_watch(shell_state, shellstate_lock, selected_port=None):
             except Exception:
                 # console.print(f"[red]TermWeb on port {port_to_use} appears to have stopped responding![/red]")
                 with shellstate_lock:
-                    shell_state.termweb_status = 'unresponsive'
+                    shell_state.termweb_status = "unresponsive"
                 break
             time.sleep(check_interval)
 
     # Launch background thread
-    t = threading.Thread(target=termweb_worker, args=(shell_state, shellstate_lock, selected_port), daemon=True)
+    t = threading.Thread(
+        target=termweb_worker,
+        args=(shell_state, shellstate_lock, selected_port),
+        daemon=True,
+    )
     t.start()
     return t

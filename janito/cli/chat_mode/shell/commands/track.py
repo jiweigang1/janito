@@ -3,6 +3,7 @@ from janito.cli.console import shared_console
 from rich.table import Table
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
+
 class TrackShellHandler(ShellCmdHandler):
     help_text = "Show the list of the last tool executions"
 
@@ -10,7 +11,9 @@ class TrackShellHandler(ShellCmdHandler):
         tracker = ToolUseTracker.instance()
         history = tracker.get_history()
         if not history:
-            shared_console.print("[bold yellow]No tool usage history found.[/bold yellow]")
+            shared_console.print(
+                "[bold yellow]No tool usage history found.[/bold yellow]"
+            )
             return
         table = Table(show_header=True, header_style="bold magenta")
         table.add_column("#", style="dim", width=4)
@@ -33,6 +36,8 @@ class TrackShellHandler(ShellCmdHandler):
                         params["content"] = content[:120] + "... (trimmed)"
                     else:
                         params["content"] = content
-            param_result = f"{params}\n--- Result ---\n{result}" if result else str(params)
+            param_result = (
+                f"{params}\n--- Result ---\n{result}" if result else str(params)
+            )
             table.add_row(str(idx), tool, param_result)
         shared_console.print(table)

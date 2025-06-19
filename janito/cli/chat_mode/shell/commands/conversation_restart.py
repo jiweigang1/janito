@@ -3,8 +3,12 @@ from janito.cli.chat_mode.shell.session.manager import reset_session_id
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 from janito.cli.console import shared_console
 
+
 def handle_restart(shell_state=None):
-    from janito.cli.chat_mode.shell.session.manager import load_last_conversation, save_conversation
+    from janito.cli.chat_mode.shell.session.manager import (
+        load_last_conversation,
+        save_conversation,
+    )
 
     reset_session_id()
     save_path = os.path.join(".janito", "last_conversation.json")
@@ -31,12 +35,13 @@ def handle_restart(shell_state=None):
     shared_console.clear()
 
     # Reset conversation history using the agent's method
-    if hasattr(shell_state, 'agent') and shell_state.agent:
+    if hasattr(shell_state, "agent") and shell_state.agent:
         shell_state.agent.reset_conversation_history()
 
     # Reset tool use tracker
     try:
         from janito.tools.tool_use_tracker import ToolUseTracker
+
         ToolUseTracker.instance().clear_history()
     except Exception as e:
         shared_console.print(
@@ -51,17 +56,23 @@ def handle_restart(shell_state=None):
     # Reset the performance collector's last usage (so toolbar immediately reflects cleared stats)
     try:
         from janito.perf_singleton import performance_collector
+
         performance_collector.reset_last_request_usage()
     except Exception as e:
-        shared_console.print(f"[bold yellow]Warning: Failed to reset PerformanceCollector token info:[/bold yellow] {e}")
+        shared_console.print(
+            f"[bold yellow]Warning: Failed to reset PerformanceCollector token info:[/bold yellow] {e}"
+        )
 
     shared_console.print(
         "[bold green]Conversation history has been started (context reset).[/bold green]"
     )
 
+
 handle_restart.help_text = "Start a new conversation (reset context)"
+
 
 class RestartShellHandler(ShellCmdHandler):
     help_text = "Start a new conversation (reset context)"
+
     def run(self):
         handle_restart(self.shell_state)

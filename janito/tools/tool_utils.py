@@ -6,9 +6,11 @@ Add your shared helper functions here.
 import os
 import urllib.parse
 
+
 def example_utility_function(x):
     """A simple example utility function."""
     return f"Processed: {x}"
+
 
 def display_path(path):
     """
@@ -19,6 +21,7 @@ def display_path(path):
         str: Display path, as an ANSI hyperlink.
     """
     from janito.cli.config import get_termweb_port
+
     port = get_termweb_port()
     if os.path.isabs(path):
         cwd = os.path.abspath(os.getcwd())
@@ -33,6 +36,7 @@ def display_path(path):
     url = f"http://localhost:{port}/?path={urllib.parse.quote(path)}"
     # Use Rich markup for hyperlinks
     return f"[link={url}]{disp}[/link]"
+
 
 def pluralize(word: str, count: int) -> str:
     """Return the pluralized form of word if count != 1, unless word already ends with 's'."""

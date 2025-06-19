@@ -1,6 +1,7 @@
 from janito.tools.tool_base import ToolBase
 from janito.report_events import ReportAction
 
+
 class SearchOutlineTool(ToolBase):
     """
     Tool for searching outlines in files.
@@ -10,6 +11,7 @@ class SearchOutlineTool(ToolBase):
     Returns:
         str: Outline search result or status message.
     """
+
     tool_name = "search_outline"
 
     def run(self, file_path: str) -> str:
@@ -17,7 +19,10 @@ class SearchOutlineTool(ToolBase):
         from janito.i18n import tr
 
         self.report_action(
-            tr("🔍 Searching for outline in '{disp_path}'", disp_path=display_path(file_path)),
+            tr(
+                "🔍 Searching for outline in '{disp_path}'",
+                disp_path=display_path(file_path),
+            ),
             ReportAction.READ,
         )
         # ... rest of implementation ...

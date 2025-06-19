@@ -15,12 +15,14 @@ CONFIG_OPTIONS = {
 
 DEFAULT_TERMWEB_PORT = 8088
 
+
 def get_termweb_port():
     port = config.get("termweb_port")
     try:
         return int(port)
     except Exception:
         return DEFAULT_TERMWEB_PORT
+
 
 def set_termweb_port(port):
     config.file_set("termweb_port", int(port))

@@ -4,6 +4,7 @@ from collections import OrderedDict
 from typing import List
 from janito.tools.tools_schema import ToolSchemaBase
 
+
 class OpenAISchemaGenerator(ToolSchemaBase):
     PYTHON_TYPE_TO_JSON = {
         str: "string",
@@ -27,7 +28,9 @@ class OpenAISchemaGenerator(ToolSchemaBase):
 
     def generate_schema(self, tool_class):
         # DEBUG: Print class and .name for trace
-        func, tool_name, sig, summary, param_descs, return_desc, description = self.validate_tool_class(tool_class)
+        func, tool_name, sig, summary, param_descs, return_desc, description = (
+            self.validate_tool_class(tool_class)
+        )
         properties = OrderedDict()
         required = []
         # Removed tool_call_reason from properties and required
@@ -51,12 +54,10 @@ class OpenAISchemaGenerator(ToolSchemaBase):
             },
         }
 
+
 def generate_tool_schemas(tool_classes: List[type]):
     generator = OpenAISchemaGenerator()
     return [
-        {
-            "type": "function",
-            "function": generator.generate_schema(tool_class)
-        }
+        {"type": "function", "function": generator.generate_schema(tool_class)}
         for tool_class in tool_classes
     ]

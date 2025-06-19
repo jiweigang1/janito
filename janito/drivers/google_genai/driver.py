@@ -3,6 +3,7 @@ Google Gemini LLM driver.
 
 This driver handles interaction with the Google Gemini API, including support for tool/function calls and event publishing.
 """
+
 import json
 import time
 import uuid
@@ -11,11 +12,17 @@ from typing import Optional, List, Dict, Any, Union
 from janito.llm.driver import LLMDriver
 from janito.drivers.google_genai.schema_generator import generate_tool_declarations
 from janito.driver_events import (
-    GenerationStarted, GenerationFinished, RequestStarted, RequestFinished, ResponseReceived, RequestStatus
+    GenerationStarted,
+    GenerationFinished,
+    RequestStarted,
+    RequestFinished,
+    ResponseReceived,
+    RequestStatus,
 )
 from janito.tools.adapters.local.adapter import LocalToolsAdapter
 from janito.llm.message_parts import TextMessagePart, FunctionCallMessagePart
 from janito.llm.driver_config import LLMDriverConfig
+
 
 def extract_usage_metadata_native(usage_obj):
     if usage_obj is None:
@@ -32,6 +39,7 @@ def extract_usage_metadata_native(usage_obj):
                 result[attr] = value
     return result
 
+
 class GoogleGenaiModelDriver(LLMDriver):
     available = False
     unavailable_reason = "GoogleGenaiModelDriver is not implemented yet."
@@ -41,5 +49,6 @@ class GoogleGenaiModelDriver(LLMDriver):
         return cls.available
 
     name = "google_genai"
+
     def __init__(self, tools_adapter=None):
         raise ImportError(self.unavailable_reason)

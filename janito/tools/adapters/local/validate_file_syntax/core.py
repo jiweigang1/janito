@@ -60,11 +60,10 @@ def validate_file_syntax(
         return _handle_validation_error(e, report_warning)
 
 
-
 class ValidateFileSyntaxTool(ToolBase):
     """
     Validate a file for syntax issues.
-    
+
     Supported types:
       - Python (.py, .pyw)
       - JSON (.json)
@@ -83,6 +82,7 @@ class ValidateFileSyntaxTool(ToolBase):
             - "⚠️ Warning: Syntax error: <error message>"
             - "⚠️ Warning: Unsupported file extension: <ext>"
     """
+
     tool_name = "validate_file_syntax"
 
     def run(self, file_path: str) -> str:
@@ -92,7 +92,7 @@ class ValidateFileSyntaxTool(ToolBase):
                 "🔎 Validate syntax for file '{disp_path}' ...",
                 disp_path=disp_path,
             ),
-            ReportAction.READ
+            ReportAction.READ,
         )
         result = validate_file_syntax(
             file_path,

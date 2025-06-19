@@ -24,6 +24,7 @@ class ViewFileTool(ToolBase):
             - "Error reading file: <error message>"
             - "❗ not found"
     """
+
     tool_name = "view_file"
 
     def run(self, file_path: str, from_line: int = None, to_line: int = None) -> str:
@@ -56,6 +57,7 @@ class ViewFileTool(ToolBase):
 
     def _list_directory(self, file_path, disp_path):
         import os
+
         try:
             entries = os.listdir(file_path)
             entries.sort()
@@ -67,7 +69,9 @@ class ViewFileTool(ToolBase):
                     formatted_entries.append(entry + "/")
                 else:
                     formatted_entries.append(entry)
-            header = f"--- view_file: {disp_path} [directory, {len(entries)} entries] ---\n"
+            header = (
+                f"--- view_file: {disp_path} [directory, {len(entries)} entries] ---\n"
+            )
             listing = "\n".join(formatted_entries)
             self.report_success(tr("📁 Directory ({count} items)", count=len(entries)))
             return header + listing + "\n"

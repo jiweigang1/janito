@@ -15,8 +15,13 @@ from .track import TrackShellHandler
 from janito.cli.console import shared_console
 
 COMMAND_HANDLERS = {
-    "/clear": __import__("janito.cli.chat_mode.shell.commands.clear", fromlist=["ClearShellHandler"]).ClearShellHandler,
-    "/restart": __import__("janito.cli.chat_mode.shell.commands.conversation_restart", fromlist=["RestartShellHandler"]).RestartShellHandler,
+    "/clear": __import__(
+        "janito.cli.chat_mode.shell.commands.clear", fromlist=["ClearShellHandler"]
+    ).ClearShellHandler,
+    "/restart": __import__(
+        "janito.cli.chat_mode.shell.commands.conversation_restart",
+        fromlist=["RestartShellHandler"],
+    ).RestartShellHandler,
     "/edit": EditShellHandler,
     "/view": ViewShellHandler,
     "/lang": LangShellHandler,
@@ -33,8 +38,10 @@ COMMAND_HANDLERS = {
     "/track": TrackShellHandler,
 }
 
+
 def get_shell_command_names():
-    return sorted(cmd for cmd in COMMAND_HANDLERS.keys() if cmd.startswith('/'))
+    return sorted(cmd for cmd in COMMAND_HANDLERS.keys() if cmd.startswith("/"))
+
 
 def handle_command(command, shell_state=None):
     parts = command.strip().split(maxsplit=1)
