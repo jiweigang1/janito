@@ -16,9 +16,9 @@ janito "Refactor the data processing module to improve readability."
 janito
 ```
 
-### Launch the Web Interface
+### Launch the Web Terminal Interface
 ```bash
-janito --web
+janito termweb
 ```
 
 ## Basic Usage Tips

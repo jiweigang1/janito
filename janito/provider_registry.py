@@ -97,7 +97,7 @@ class ProviderRegistry:
             'azure_openai': 'janito.providers.azure_openai.model_info',
             'google': 'janito.providers.google.model_info',
             'mistralai': 'janito.providers.mistralai.model_info',
-            'dashscope': 'janito.providers.dashscope.model_info',
+            
             'deepseek': 'janito.providers.deepseek.model_info',
         }
         if provider_name in provider_to_specs:

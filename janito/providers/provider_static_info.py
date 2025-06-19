@@ -12,9 +12,6 @@ STATIC_PROVIDER_METADATA = {
     'mistralai': {
         'maintainer': 'Needs maintainer',
     },
-    'dashscope': {
-        'maintainer': 'Needs maintainer',
-    },
     'anthropic': {
         'maintainer': 'Needs maintainer',
     },
