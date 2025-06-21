@@ -88,7 +88,7 @@ class GetFileOutlineTool(ToolBase):
         except Exception as e:
             self.report_error(
                 tr("❌ Error reading file: {error}", error=e),
-                ReportAction.OUTLINE,
+                ReportAction.READ,
             )
             return tr("Error reading file: {error}", error=e)
 
@@ -146,6 +146,6 @@ class GetFileOutlineTool(ToolBase):
         except Exception as e:
             self.report_error(
                 tr("❌ Error reading file: {error}", error=e),
-                ReportAction.OUTLINE,
+                ReportAction.READ,
             )
             return tr("Error reading file: {error}", error=e)
