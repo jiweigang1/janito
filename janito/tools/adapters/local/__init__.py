@@ -9,6 +9,7 @@ from .find_files import FindFilesTool
 from .view_file import ViewFileTool
 from .move_file import MoveFileTool
 from .open_url import OpenUrlTool
+from .open_html_in_browser import OpenHtmlInBrowserTool
 from .python_code_run import PythonCodeRunTool
 from .python_command_run import PythonCommandRunTool
 from .python_file_run import PythonFileRunTool
@@ -36,6 +37,7 @@ for tool_class in [
     ViewFileTool,
     MoveFileTool,
     OpenUrlTool,
+    OpenHtmlInBrowserTool,
     PythonCodeRunTool,
     PythonCommandRunTool,
     PythonFileRunTool,
@@ -52,3 +54,4 @@ for tool_class in [
     local_tools_adapter.register_tool(tool_class)
 
 # DEBUG: Print registered tools at startup
+
