@@ -77,6 +77,27 @@ After installation, use the `janito` command in your terminal.
 
 ### Advanced Options
 
+- **Enable Inline Web File Viewer for Clickable Links**
+  
+  By default, Janito can open referenced files in a browser-based viewer when you click on file links in supported terminals. To enable this feature for your session, use the `-w` or `--web` flag:
+  
+  ```bash
+  janito -w
+  ```
+  This starts the lightweight web file viewer (termweb) in the background, allowing you to inspect files referenced in responses directly in your browser. Combine with interactive mode or prompts as needed.
+  
+  > **Tip:** Use with the interactive shell for the best experience with clickable file links.
+
+
+- **Enable Execution Tools (Code/Shell Execution)**
+  
+  By default, tools that can execute code or shell commands are **disabled** for safety. To enable these tools (such as code execution, shell commands, etc.), use the `--exec` or `-x` flag:
+  
+  ```bash
+  janito -x "Run this code: print('Hello, world!')"
+  ```
+  > **Warning:** Enabling execution tools allows running arbitrary code or shell commands. Only use `--exec` if you trust your prompt and environment.
+
 - **Set a System Prompt**
   ```bash
   janito -s path/to/system_prompt.txt "Your prompt here"
@@ -105,6 +126,9 @@ After installation, use the `janito` command in your terminal.
 
 ### Core CLI Options
 | Option                  | Description                                                                 |
+|------------------------|-----------------------------------------------------------------------------|
+| `-w`, `--web`          | Enable the builtin lightweight web file viewer for clickable file links (termweb). |
+
 |------------------------|-----------------------------------------------------------------------------|
 | `--version`            | Show program version                                                        |
 | `--list-tools`         | List all registered tools                                                   |

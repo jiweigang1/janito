@@ -16,6 +16,11 @@ janito "Refactor the data processing module to improve readability."
 janito
 ```
 
+Or, to enable clickable file links in your browser during the session:
+```bash
+janito -w
+```
+
 ### Launch the Web Terminal Interface
 ```bash
 janito termweb

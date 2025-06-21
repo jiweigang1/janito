@@ -36,7 +36,7 @@ You can use these commands at any time (prefix with `/` or just type the name):
 
 ## 🖱️ Clickable File Links
 
-When Janito references files in its responses, the file names may appear as clickable links in supported terminals or web-based shells. Clicking these links will open the file in the lightweight web file viewer (powered by `janito/termweb`, a Quart-based web file viewer).
+When Janito references files in its responses, the file names may appear as clickable links in supported terminals or web-based shells. To enable this, start Janito with the `-w` or `--web` flag. Clicking these links will open the file in the lightweight web file viewer (powered by `janito/termweb`, a Quart-based web file viewer).
 
 - **What you can do:**
   - View file contents in your browser

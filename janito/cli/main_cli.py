@@ -95,10 +95,11 @@ definition = [
         },
     ),
     (
-        ["--no-termweb"],
+        ["-w", "--web"],
         {
             "action": "store_true",
-            "help": "Disable the builtin lightweight web file viewer for terminal links (enabled by default)",
+            "default": False,
+            "help": "Enable the builtin lightweight web file viewer for terminal links (disabled by default)",
         },
     ),
     (
@@ -131,7 +132,7 @@ MODIFIER_KEYS = [
     "temperature",
     "verbose",
     "raw",
-    "no_termweb",
+    "web",
     "termweb_port",
     "verbose_api",
     "verbose_tools",

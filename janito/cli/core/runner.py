@@ -97,7 +97,6 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
 
     # Patch: disable execution/run tools if not enabled
     if not exec_enabled:
-        print("[DEBUG] handle_runner: Disabling execution/run tools (provides_execution=True)")
         import janito.tools
         adapter = janito.tools.get_local_tools_adapter()
         if hasattr(adapter, "disable_execution_tools"):

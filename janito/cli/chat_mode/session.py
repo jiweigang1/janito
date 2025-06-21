@@ -100,8 +100,9 @@ class ChatSession:
 
         # TERMWEB logic migrated from runner
         self.termweb_support = False
-        if args and not getattr(args, "no_termweb", False):
+        if args and getattr(args, "web", False):
             self.termweb_support = True
+            self.shell_state.termweb_support = self.termweb_support
             from janito.cli.termweb_starter import termweb_start_and_watch
             from janito.cli.config import get_termweb_port
             import threading
@@ -158,7 +159,8 @@ class ChatSession:
             self._termweb_liveness_thread.start()
             # No queue or blocking checks; UI (and timer) will observe self.shell_state fields
 
-        elif args and getattr(args, "no_termweb", False):
+        else:
+            self.shell_state.termweb_support = False
             self.shell_state.termweb_status = "offline"
 
     def run(self):

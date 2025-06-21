@@ -11,7 +11,6 @@ from .session import HistoryShellHandler
 from .termweb_log import TermwebLogTailShellHandler
 from .tools import ToolsShellHandler
 from .help import HelpShellHandler
-from .track import TrackShellHandler
 from janito.cli.console import shared_console
 
 COMMAND_HANDLERS = {
@@ -35,7 +34,6 @@ COMMAND_HANDLERS = {
     "/tools": ToolsShellHandler,
     "/multi": MultiShellHandler,
     "/help": HelpShellHandler,
-    "/track": TrackShellHandler,
 }
 
 

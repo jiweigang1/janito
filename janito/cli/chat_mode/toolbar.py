@@ -38,6 +38,7 @@ def get_toolbar_func(perf: PerformanceCollector, msg_count: int, shell_state):
         model_name = "?"
         role = "?"
         agent = shell_state.agent if hasattr(shell_state, "agent") else None
+        termweb_support = getattr(shell_state, "termweb_support", False)
         termweb_port = (
             shell_state.termweb_port if hasattr(shell_state, "termweb_port") else None
         )
@@ -48,7 +49,9 @@ def get_toolbar_func(perf: PerformanceCollector, msg_count: int, shell_state):
         )
         # Use cached liveness check only (set by background thread in shell_state)
         this_termweb_status = termweb_status
-        if termweb_status == "starting" or termweb_status is None:
+        if not termweb_support:
+            this_termweb_status = None
+        elif termweb_status == "starting" or termweb_status is None:
             this_termweb_status = termweb_status
         else:
             live_status = (

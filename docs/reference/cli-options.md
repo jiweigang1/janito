@@ -16,6 +16,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 | `--verbose-tools` | Print info messages for tool execution in tools adapter. |
 | `--verbose-agent` | Print info messages for agent event and message part handling. |
 | `-z`, `--zero` | IDE zero mode: disables system prompt & all tools for raw LLM interaction |
+| `-x`, `--exec` | Enable execution/run tools (allows running code or shell tools from the CLI). **Disabled by default for safety.** |
 | `--unset KEY` | Unset (remove) a config key |
 | `--version` | Show program's version number and exit |
 | `--list-tools` | List all registered tools |
@@ -32,7 +33,8 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 | `-t TEMPERATURE`, `--temperature TEMPERATURE` | Set the temperature |
 | `-v`, `--verbose` | Print extra information before answering |
 | `-R`, `--raw` | Print the raw JSON response from the OpenAI API (if applicable) |
-| `--no-termweb` | Disable the builtin lightweight web file viewer for terminal links (enabled by default) |
+| `-w`, `--web` | Enable the builtin lightweight web file viewer for terminal links (disabled by default) |
+
 | `--termweb-port TERMWEB_PORT` | Port for the termweb server (default: 8088) |
 | `-e`, `--event-log` | Enable event logging to the system bus |
 | `--event-debug` | Print debug info on event subscribe/submit methods |
@@ -42,7 +44,17 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 ```sh
 janito -p openai -m gpt-3.5-turbo "Your prompt here"
 janito --list-tools
-janito "Prompt" --system "You are a helpful assistant." --no-termweb
+janito -w  # Enable clickable file links via web viewer (termweb)
+
 ```
+
+### ⚠️ Enabling Execution Tools
+
+By default, tools that can execute code or shell commands are **disabled** for safety. To enable these tools (such as code execution, shell commands, etc.), use the `--exec` or `-x` flag:
+
+```sh
+janito -x "Run this code: print('Hello, world!')"
+```
+> **Warning:** Enabling execution tools allows running arbitrary code or shell commands. Only use `--exec` if you trust your prompt and environment.
 
 _This page is generated from the output of `janito --help`._
