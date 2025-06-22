@@ -14,6 +14,14 @@ from janito.cli.core.event_logger import (
 
 definition = [
     (
+        ["-W", "--workdir"],
+        {
+            "metavar": "WORKDIR",
+            "help": "Working directory to chdir to before tool execution",
+            "default": None,
+        },
+    ),
+    (
         ["--verbose-api"],
         {
             "action": "store_true",

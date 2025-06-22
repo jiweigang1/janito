@@ -32,6 +32,7 @@ class PythonCodeRunTool(ToolBase):
             tr("⚡ Running: python (stdin mode) ...\n{code}\n", code=code),
             ReportAction.EXECUTE,
         )
+        self.report_stdout("\n")
         try:
             with (
                 tempfile.NamedTemporaryFile(

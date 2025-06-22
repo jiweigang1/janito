@@ -24,7 +24,12 @@ from .search_text.core import SearchTextTool
 from .validate_file_syntax.core import ValidateFileSyntaxTool
 
 # Singleton tools adapter with all standard tools registered
-local_tools_adapter = LocalToolsAdapter()
+import os
+local_tools_adapter = LocalToolsAdapter(workdir=os.getcwd())
+
+def get_local_tools_adapter(workdir=None):
+    import os
+    return LocalToolsAdapter(workdir=workdir or os.getcwd())
 
 # Register tools
 for tool_class in [

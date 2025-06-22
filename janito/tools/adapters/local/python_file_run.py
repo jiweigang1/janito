@@ -29,6 +29,7 @@ class PythonFileRunTool(ToolBase):
             tr("🚀 Running: python {file_path}", file_path=file_path),
             ReportAction.EXECUTE,
         )
+        self.report_stdout("\n")
         try:
             with (
                 tempfile.NamedTemporaryFile(

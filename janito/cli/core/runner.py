@@ -98,11 +98,12 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
     # Patch: disable execution/run tools if not enabled
     if not exec_enabled:
         import janito.tools
-        adapter = janito.tools.get_local_tools_adapter()
+        adapter = janito.tools.get_local_tools_adapter(workdir=getattr(args, "workdir", None))
         if hasattr(adapter, "disable_execution_tools"):
             adapter.disable_execution_tools()
     else:
-        pass
+        import janito.tools
+        adapter = janito.tools.get_local_tools_adapter(workdir=getattr(args, "workdir", None))
 
     provider_instance = ProviderRegistry().get_instance(provider, llm_driver_config)
     mode = get_prompt_mode(args)

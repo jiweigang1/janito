@@ -15,9 +15,13 @@ class LocalToolsAdapter(ToolsAdapter):
     Handles registration, lookup, enabling/disabling, listing, and now, tool execution (merged from executor).
     """
 
-    def __init__(self, tools=None, event_bus=None, allowed_tools=None):
+    def __init__(self, tools=None, event_bus=None, allowed_tools=None, workdir=None):
         super().__init__(tools=tools, event_bus=event_bus, allowed_tools=allowed_tools)
         self._tools: Dict[str, Dict[str, Any]] = {}
+        self.workdir = workdir
+        if self.workdir:
+            import os
+            os.chdir(self.workdir)
         if tools:
             for tool in tools:
                 self.register_tool(tool)
