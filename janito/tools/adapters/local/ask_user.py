@@ -43,26 +43,13 @@ class AskUserTool(ToolBase):
         def _(event):
             pass
 
-        # F12 instruction rotation
-        _f12_instructions = [
-            tr("proceed"),
-            tr("go ahead"),
-            tr("continue"),
-            tr("next"),
-            tr("okay"),
-        ]
-        _f12_index = {"value": 0}
-
         @bindings.add("f12")
         def _(event):
-            """When F12 is pressed, rotate through a set of short instructions."""
             buf = event.app.current_buffer
-            idx = _f12_index["value"]
-            buf.text = _f12_instructions[idx]
+            buf.text = "Do It"
             buf.validate_and_handle()
-            _f12_index["value"] = (idx + 1) % len(_f12_instructions)
 
-            # Use shared CLI styles
+        # Use shared CLI styles
 
         # prompt_style contains the prompt area and input background
         # toolbar_style contains the bottom-toolbar styling
