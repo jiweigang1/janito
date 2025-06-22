@@ -1,5 +1,6 @@
 from janito.tools.tool_base import ToolBase
 from janito.tools.adapters.local.adapter import register_local_tool
+from janito.report_events import ReportAction
 import webbrowser
 import os
 
@@ -21,14 +22,22 @@ class OpenHtmlInBrowserTool(ToolBase):
     tool_name = "open_html_in_browser"
 
     def run(self, file_path: str) -> str:
+        from janito.i18n import tr
+        disp_path = file_path
+        self.report_action(tr("📖 Opening HTML file: '{disp_path}'", disp_path=disp_path), ReportAction.EXECUTE)
+
         if not os.path.exists(file_path):
-            return "⚠️ Error: The specified file does not exist."
-        
+            self.report_error(tr("⚠️ The specified file does not exist: '{disp_path}'", disp_path=disp_path))
+            return "⚠️ The specified file does not exist."
+
         if not file_path.lower().endswith('.html'):
-            return "⚠️ Error: The specified file is not an HTML file."
-        
+            self.report_error(tr("⚠️ The specified file is not an HTML file: '{disp_path}'", disp_path=disp_path))
+            return "⚠️ The specified file is not an HTML file."
+
         try:
             webbrowser.open(f"file://{os.path.abspath(file_path)}")
-            return "✅ Opened."
+            self.report_success(tr("✅ Ok"))
+            return "✅ Ok"
         except Exception as e:
-            return f"⚠️ Error: {str(e)}"
+            self.report_error(tr("⚠️ Failed to open the HTML file: {err}", err=str(e)))
+            return f"⚠️ Failed to open the file: {str(e)}"
