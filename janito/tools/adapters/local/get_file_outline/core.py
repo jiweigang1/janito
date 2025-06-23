@@ -2,6 +2,7 @@ from janito.tools.adapters.local.adapter import register_local_tool
 from .python_outline import parse_python_outline
 from .markdown_outline import parse_markdown_outline
 from janito.formatting import OutlineFormatter
+from .java_outline import parse_java_outline
 import os
 from janito.tools.tool_base import ToolBase
 from janito.report_events import ReportAction
@@ -67,6 +68,26 @@ class GetFileOutlineTool(ToolBase):
             outline_items = parse_markdown_outline(lines)
             outline_type = "markdown"
             table = OutlineFormatter.format_markdown_outline_table(outline_items)
+            self.report_success(
+                tr(
+                    "✅ Outlined {count} {item_word}",
+                    count=len(outline_items),
+                    item_word=pluralize("item", len(outline_items)),
+                ),
+                ReportAction.READ,
+            )
+            return (
+                tr(
+                    "Outline: {count} items ({outline_type})\n",
+                    count=len(outline_items),
+                    outline_type=outline_type,
+                )
+                + table
+            )
+        elif ext == ".java":
+            outline_items = parse_java_outline(lines)
+            outline_type = "java"
+            table = OutlineFormatter.format_outline_table(outline_items)
             self.report_success(
                 tr(
                     "✅ Outlined {count} {item_word}",
