@@ -11,6 +11,11 @@ authors = [
 ]
 readme = "README.md"
 requires-python = ">=3.7"
+dynamic = ["dependencies", "optional-dependencies.dev"]
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+optional-dependencies.dev = { file = ["requirements-dev.txt"] }
 
 [project.urls]
 Homepage = "https://github.com/janito-dev/janito"
