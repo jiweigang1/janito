@@ -34,57 +34,7 @@ class GetFileOutlineTool(ToolBase):
             ext = os.path.splitext(file_path)[1].lower()
             with open(file_path, "r", encoding="utf-8", errors="replace") as f:
                 lines = f.readlines()
-            if ext == ".py":
-                outline_items = parse_python_outline(lines)
-                outline_type = "python"
-                table = OutlineFormatter.format_outline_table(outline_items)
-                self.report_success(
-                    tr(
-                        "✅ Outlined {count} {item_word}",
-                        count=len(outline_items),
-                        item_word=pluralize("item", len(outline_items)),
-                    ),
-                    ReportAction.READ,
-                )
-                return (
-                    tr(
-                        "Outline: {count} items ({outline_type})\n",
-                        count=len(outline_items),
-                        outline_type=outline_type,
-                    )
-                    + table
-                )
-            elif ext == ".md":
-                outline_items = parse_markdown_outline(lines)
-                outline_type = "markdown"
-                table = OutlineFormatter.format_markdown_outline_table(outline_items)
-                self.report_success(
-                    tr(
-                        "✅ Outlined {count} {item_word}",
-                        count=len(outline_items),
-                        item_word=pluralize("item", len(outline_items)),
-                    ),
-                    ReportAction.READ,
-                )
-                return (
-                    tr(
-                        "Outline: {count} items ({outline_type})\n",
-                        count=len(outline_items),
-                        outline_type=outline_type,
-                    )
-                    + table
-                )
-            else:
-                outline_type = "default"
-                self.report_success(
-                    tr("✅ Outlined {count} items", count=len(lines)),
-                    ReportAction.READ,
-                )
-                return tr(
-                    "Outline: {count} lines ({outline_type})\nFile has {count} lines.",
-                    count=len(lines),
-                    outline_type=outline_type,
-                )
+            return self._outline_by_extension(ext, lines)
         except Exception as e:
             self.report_error(
                 tr("❌ Error reading file: {error}", error=e),
@@ -92,60 +42,55 @@ class GetFileOutlineTool(ToolBase):
             )
             return tr("Error reading file: {error}", error=e)
 
-            if ext == ".py":
-                outline_items = parse_python_outline(lines)
-                outline_type = "python"
-                table = OutlineFormatter.format_outline_table(outline_items)
-                self.report_success(
-                    tr(
-                        "✅ Outlined {count} {item_word}",
-                        count=len(outline_items),
-                        item_word=pluralize("item", len(outline_items)),
-                    ),
-                    ReportAction.READ,
-                )
-                return (
-                    tr(
-                        "Outline: {count} items ({outline_type})\n",
-                        count=len(outline_items),
-                        outline_type=outline_type,
-                    )
-                    + table
-                )
-            elif ext == ".md":
-                outline_items = parse_markdown_outline(lines)
-                outline_type = "markdown"
-                table = OutlineFormatter.format_markdown_outline_table(outline_items)
-                self.report_success(
-                    tr(
-                        "✅ Outlined {count} {item_word}",
-                        count=len(outline_items),
-                        item_word=pluralize("item", len(outline_items)),
-                    ),
-                    ReportAction.READ,
-                )
-                return (
-                    tr(
-                        "Outline: {count} items ({outline_type})\n",
-                        count=len(outline_items),
-                        outline_type=outline_type,
-                    )
-                    + table
-                )
-            else:
-                outline_type = "default"
-                self.report_success(
-                    tr("✅ Outlined {count} items", count=len(lines)),
-                    ReportAction.READ,
-                )
-                return tr(
-                    "Outline: {count} lines ({outline_type})\nFile has {count} lines.",
-                    count=len(lines),
-                    outline_type=outline_type,
-                )
-        except Exception as e:
-            self.report_error(
-                tr("❌ Error reading file: {error}", error=e),
+    def _outline_by_extension(self, ext, lines):
+        if ext == ".py":
+            outline_items = parse_python_outline(lines)
+            outline_type = "python"
+            table = OutlineFormatter.format_outline_table(outline_items)
+            self.report_success(
+                tr(
+                    "✅ Outlined {count} {item_word}",
+                    count=len(outline_items),
+                    item_word=pluralize("item", len(outline_items)),
+                ),
                 ReportAction.READ,
             )
-            return tr("Error reading file: {error}", error=e)
+            return (
+                tr(
+                    "Outline: {count} items ({outline_type})\n",
+                    count=len(outline_items),
+                    outline_type=outline_type,
+                )
+                + table
+            )
+        elif ext == ".md":
+            outline_items = parse_markdown_outline(lines)
+            outline_type = "markdown"
+            table = OutlineFormatter.format_markdown_outline_table(outline_items)
+            self.report_success(
+                tr(
+                    "✅ Outlined {count} {item_word}",
+                    count=len(outline_items),
+                    item_word=pluralize("item", len(outline_items)),
+                ),
+                ReportAction.READ,
+            )
+            return (
+                tr(
+                    "Outline: {count} items ({outline_type})\n",
+                    count=len(outline_items),
+                    outline_type=outline_type,
+                )
+                + table
+            )
+        else:
+            outline_type = "default"
+            self.report_success(
+                tr("✅ Outlined {count} items", count=len(lines)),
+                ReportAction.READ,
+            )
+            return tr(
+                "Outline: {count} lines ({outline_type})\nFile has {count} lines.",
+                count=len(lines),
+                outline_type=outline_type,
+            )
