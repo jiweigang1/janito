@@ -6,8 +6,8 @@ MODEL_SPECS = {
         "family": "deepseek",
         "default": True,
     },
-    "deepseek-coder": {
-        "description": "DeepSeek Coder Model (OpenAI-compatible)",
+    "deepseek-reasoner": {
+        "description": "DeepSeek Reasoner Model (OpenAI-compatible)",
         "context_window": 8192,
         "max_tokens": 4096,
         "family": "deepseek",
