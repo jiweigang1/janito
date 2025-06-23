@@ -21,12 +21,10 @@ class FindFilesTool(ToolBase):
             - If the pattern ends with '/' or '\', only matching directory names (with trailing slash) are returned, not the files within those directories. For example, pattern '*/' will return only directories at the specified depth.
         max_depth (int, optional): Maximum directory depth to search. If None, unlimited recursion. If 0, only the top-level directory. If 1, only the root directory (matches 'find . -maxdepth 1').
         include_gitignored (bool, optional): If True, includes files/directories ignored by .gitignore. Defaults to False.
-        max_results (int, optional): Maximum number of results to return. 0 means no limit (default).
     Returns:
         str: Newline-separated list of matching file paths. Example:
             "/path/to/file1.py\n/path/to/file2.py"
             "Warning: Empty file pattern provided. Operation skipped."
-            If max_results is reached, appends a note to the output.
     """
 
     tool_name = "find_files"
