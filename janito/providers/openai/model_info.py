@@ -111,17 +111,6 @@ MODEL_SPECS = {
         open="openai",
         driver="OpenAIModelDriver",
     ),
-    "o4-mini-high": LLMModelInfo(
-        name="o4-mini-high",
-        context=200000,
-        max_input=100000,
-        max_cot="N/A",
-        max_response=100000,
-        thinking_supported=True,
-        default_temp=0.2,
-        open="openai",
-        driver="OpenAIModelDriver",
-    ),
     # duplicated gpt-4-turbo with minimal properties for distinction
     "gpt-4-turbo-alt": LLMModelInfo(
         name="gpt-4-turbo",

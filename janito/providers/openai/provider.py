@@ -17,7 +17,7 @@ class OpenAIProvider(LLMProvider):
     maintainer = "João Pinto <lamego.pinto@gmail.com>"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = (
-        "gpt-4.1"  # Options: gpt-4.1, gpt-4o, o3-mini, o4-mini, o4-mini-high
+        "gpt-4.1"  # Options: gpt-4.1, gpt-4o, o3-mini, o4-mini, 
     )
 
     def __init__(
