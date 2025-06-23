@@ -7,7 +7,7 @@ from typing import List, Any, Dict
 class UserInputHistory:
     """
     Handles loading, saving, and appending of user input history for the shell.
-    Each day's history is stored in a line-delimited JSON file (.json.log) under .janito/input_history/.
+    Each day's history is stored in a line-delimited JSONL file (.jsonl) under .janito/input_history/.
     Each line is a JSON dict, e.g., {"input": ..., "ts": ...}
     """
 
@@ -17,7 +17,7 @@ class UserInputHistory:
 
     def _get_today_file(self):
         today_str = datetime.now().strftime("%y%m%d")
-        return os.path.join(self.history_dir, f"{today_str}.json.log")
+        return os.path.join(self.history_dir, f"{today_str}.jsonl")
 
     def load(self) -> List[Dict[str, Any]]:
         """Load today's input history as a list of dicts."""
