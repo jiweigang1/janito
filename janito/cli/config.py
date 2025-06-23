@@ -8,7 +8,6 @@ CONFIG_OPTIONS = {
     "role": "Role description for the Agent Profile (e.g., 'software engineer')",
     "temperature": "Sampling temperature (float, e.g., 0.0 - 2.0)",
     "max_tokens": "Maximum tokens for model response (int)",
-    "use_azure_openai": "Whether to use Azure OpenAI client (default: False)",
     "template": "Template context dictionary for Agent Profile prompt rendering (nested)",
     "profile": "Agent Profile name (only 'base' is supported)",
 }

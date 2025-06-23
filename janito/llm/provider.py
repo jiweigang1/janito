@@ -93,6 +93,15 @@ class LLMProvider(ABC):
     def driver(self) -> LLMDriver:
         pass
 
+    def is_model_available(self, model_name):
+        """
+        Returns True if the given model is available for this provider.
+        Default implementation checks MODEL_SPECS; override for dynamic providers.
+        """
+        if not hasattr(self, "MODEL_SPECS"):
+            return False
+        return model_name in self.MODEL_SPECS
+
     def get_model_info(self, model_name=None):
         """
         Return the info dict for a given model (driver, params, etc). If model_name is None, return all model info dicts.

@@ -28,9 +28,28 @@ class AzureOpenAIModelDriver(OpenAIModelDriver):
             raise ImportError(
                 f"AzureOpenAIModelDriver unavailable: {self.unavailable_reason}"
             )
-        super().__init__(tools_adapter=tools_adapter)
+        # Do NOT call super().__init__ if Azure SDK is not available
+        OpenAIModelDriver.__init__(self, tools_adapter=tools_adapter)
         self.azure_endpoint = None
         self.api_version = None
         self.api_key = None
 
-    # ... rest of the implementation ...
+    def _instantiate_openai_client(self, config):
+        try:
+            from openai import AzureOpenAI
+            api_key_display = str(config.api_key)
+            if api_key_display and len(api_key_display) > 8:
+                api_key_display = api_key_display[:4] + "..." + api_key_display[-4:]
+            client_kwargs = {
+                "api_key": config.api_key,
+                "azure_endpoint": getattr(config, "base_url", None),
+                "api_version": config.extra.get("api_version", "2023-05-15"),
+            }
+            client = AzureOpenAI(**client_kwargs)
+            return client
+        except Exception as e:
+            print(f"[ERROR] Exception during AzureOpenAI client instantiation: {e}", flush=True)
+            import traceback
+            print(traceback.format_exc(), flush=True)
+            raise
+

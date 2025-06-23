@@ -66,16 +66,18 @@ def prepare_llm_driver_config(args, modifiers):
         provider_instance = None
         try:
             provider_instance = ProviderRegistry().get_instance(provider)
-            available_models = [
-                m["name"]
-                for m in provider_instance.get_model_info().values()
-                if isinstance(m, dict) and "name" in m
-            ]
-            if model not in available_models:
+            if not provider_instance.is_model_available(model):
                 print(
                     f"Error: Model '{model}' is not available for provider '{provider}'."
                 )
-                print(f"Available models: {', '.join(available_models)}")
+                # Optionally, print available models if possible
+                if hasattr(provider_instance, 'get_model_info'):
+                    available_models = [
+                        m["name"]
+                        for m in provider_instance.get_model_info().values()
+                        if isinstance(m, dict) and "name" in m
+                    ]
+                    print(f"Available models: {', '.join(available_models)}")
                 return provider, None, None
         except Exception as e:
             print(f"Error validating model for provider '{provider}': {e}")

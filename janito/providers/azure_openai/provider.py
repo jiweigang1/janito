@@ -55,6 +55,12 @@ class AzureOpenAIProvider(LLMProvider):
     def unavailable_reason(self):
         return unavailable_reason
 
+    def is_model_available(self, model_name):
+        """
+        Returns True for any model name, since Azure deployments are user-defined and not enumerable in advance.
+        """
+        return True
+
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
         from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
