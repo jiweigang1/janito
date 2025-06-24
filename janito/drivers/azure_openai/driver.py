@@ -53,11 +53,3 @@ class AzureOpenAIModelDriver(OpenAIModelDriver):
             print(traceback.format_exc(), flush=True)
             raise
 
-    def _prepare_api_kwargs(self, config, conversation):
-        """
-        Prepares API kwargs for Azure OpenAI, using 'model' directly (no deployment_name remapping).
-        """
-        api_kwargs = super()._prepare_api_kwargs(config, conversation)
-        # Use 'model' as-is, matching OpenAI driver/provider behavior
-        return api_kwargs
-
