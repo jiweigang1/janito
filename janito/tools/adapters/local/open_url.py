@@ -8,9 +8,10 @@ from janito.i18n import tr
 @register_local_tool
 class OpenUrlTool(ToolBase):
     """
-    Open the supplied URL in the default web browser.
+    Open the supplied URL or local file in the default web browser.
+
     Args:
-        url (str): The URL to open.
+        url (str): The URL or local file path (as a file:// URL) to open. Supports both web URLs (http, https) and local files (file://).
     Returns:
         str: Status message indicating the result.
     """
