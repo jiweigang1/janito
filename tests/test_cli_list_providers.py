@@ -16,5 +16,7 @@ def test_cli_list_providers_runs_and_prints_table():
     # Should not error
     assert "error" not in result.stdout.lower()
     assert "traceback" not in result.stdout.lower()
-    # Optionally, check for at least one provider row (e.g., openai)
+    # Optionally, check for at least one provider row (e.g., openai, deepseek, azure)
     assert re.search(r"openai", result.stdout, re.IGNORECASE)
+    assert re.search(r"deepseek", result.stdout, re.IGNORECASE)
+    assert re.search(r"azure", result.stdout, re.IGNORECASE)
