@@ -22,7 +22,8 @@ def assemble_first_line(provider_name, model_name, role, agent=None):
 
 def assemble_bindings_line(width):
     return (
-        f" <key-label>F1</key-label>: Restart conversation | "
+        f" <key-label>CTRL-C</key-label>: Interrupt Request/Exit Shell | "
+        f"<key-label>F1</key-label>: Restart conversation | "
         f"<b>/help</b>: Help | "
         f"<key-label>F12</key-label>: Do It "
     )
