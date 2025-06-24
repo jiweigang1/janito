@@ -55,13 +55,9 @@ class AzureOpenAIModelDriver(OpenAIModelDriver):
 
     def _prepare_api_kwargs(self, config, conversation):
         """
-        Prepares API kwargs for Azure OpenAI, including deployment_name if provided.
+        Prepares API kwargs for Azure OpenAI, using 'model' directly (no deployment_name remapping).
         """
         api_kwargs = super()._prepare_api_kwargs(config, conversation)
-        # Azure OpenAI requires deployment_name instead of model
-        # For Azure OpenAI, use the model field as deployment_name
-        if getattr(config, "model", None):
-            api_kwargs["deployment_name"] = config.model
-            api_kwargs.pop("model", None)  # Remove model if present
+        # Use 'model' as-is, matching OpenAI driver/provider behavior
         return api_kwargs
 
