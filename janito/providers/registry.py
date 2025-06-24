@@ -18,7 +18,7 @@ class LLMProviderRegistry:
     @classmethod
     def get(cls, name: str) -> Type[LLMProvider]:
         if name not in cls._providers:
-            raise KeyError(f"Provider '{name}' is not registered.")
+            return None
         return cls._providers[name]
 
     @classmethod

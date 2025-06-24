@@ -64,8 +64,10 @@ def prepare_llm_driver_config(args, modifiers):
         from janito.provider_registry import ProviderRegistry
 
         provider_instance = None
+        provider_instance = ProviderRegistry().get_instance(provider)
+        if provider_instance is None:
+            return provider, None, None
         try:
-            provider_instance = ProviderRegistry().get_instance(provider)
             if not provider_instance.is_model_available(model):
                 print(
                     f"Error: Model '{model}' is not available for provider '{provider}'."
@@ -108,6 +110,8 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
         adapter = janito.tools.get_local_tools_adapter(workdir=getattr(args, "workdir", None))
 
     provider_instance = ProviderRegistry().get_instance(provider, llm_driver_config)
+    if provider_instance is None:
+        return
     mode = get_prompt_mode(args)
     if getattr(args, "verbose", False):
         print_verbose_info(

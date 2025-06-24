@@ -129,18 +129,24 @@ class ProviderRegistry:
         return (is_needs_maint, row[2] != "✅ Auth")
 
     def get_provider(self, provider_name):
-        """Return the provider class for the given provider name."""
+        """Return the provider class for the given provider name. Returns None if not found."""
         from janito.providers.registry import LLMProviderRegistry
 
         if not provider_name:
-            raise ValueError("Provider name must be specified.")
-        return LLMProviderRegistry.get(provider_name)
+            print("Error: Provider name must be specified.")
+            return None
+        provider_class = LLMProviderRegistry.get(provider_name)
+        if provider_class is None:
+            available = ', '.join(LLMProviderRegistry.list_providers())
+            print(f"Error: Provider '{provider_name}' is not recognized. Available providers: {available}.")
+            return None
+        return provider_class
 
     def get_instance(self, provider_name, config=None):
-        """Return an instance of the provider for the given provider name, optionally passing a config object."""
+        """Return an instance of the provider for the given provider name, optionally passing a config object. Returns None if not found."""
         provider_class = self.get_provider(provider_name)
         if provider_class is None:
-            raise ValueError(f"No provider class found for '{provider_name}'")
+            return None
         if config is not None:
             return provider_class(config=config)
         return provider_class()
