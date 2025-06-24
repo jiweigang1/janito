@@ -78,6 +78,11 @@ class AzureOpenAIProvider(LLMProvider):
         driver = AzureOpenAIModelDriver(tools_adapter=tools_adapter)
         return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
 
+    @property
+    def driver_config(self):
+        """Public, read-only access to the provider's LLMDriverConfig object."""
+        return self._driver_config
+
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
         # Use direct execution via adapter:
         self._tools_adapter.event_bus = event_bus
