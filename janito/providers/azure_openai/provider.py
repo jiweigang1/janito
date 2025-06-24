@@ -61,6 +61,15 @@ class AzureOpenAIProvider(LLMProvider):
         """
         return True
 
+    def create_driver(self):
+        """
+        Creates and returns a new AzureOpenAIModelDriver instance with the provider's configuration and tools adapter.
+        """
+        driver = AzureOpenAIModelDriver(tools_adapter=self._tools_adapter)
+        driver.config = self._driver_config
+        # NOTE: The caller is responsible for calling driver.start() if background processing is needed.
+        return driver
+
     def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
         from janito.llm.agent import LLMAgent
         from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
