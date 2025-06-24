@@ -3,7 +3,6 @@ from .edit import EditShellHandler
 from .history_view import ViewShellHandler
 from .lang import LangShellHandler
 from .livelogs import LivelogsShellHandler
-from .last import LastShellHandler
 from .prompt import PromptShellHandler, RoleShellHandler, ProfileShellHandler
 from .multi import MultiShellHandler
 from .role import RoleCommandShellHandler
@@ -25,7 +24,6 @@ COMMAND_HANDLERS = {
     "/view": ViewShellHandler,
     "/lang": LangShellHandler,
     "/livelogs": LivelogsShellHandler,
-    "/last": LastShellHandler,
     "/prompt": PromptShellHandler,
     "/role": RoleShellHandler,
     "/profile": ProfileShellHandler,
