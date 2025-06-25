@@ -1,6 +1,7 @@
 import uuid
 import traceback
 from rich import pretty
+import os
 from janito.llm.driver import LLMDriver
 from janito.llm.driver_input import DriverInput
 from janito.driver_events import RequestFinished, RequestStatus
@@ -145,6 +146,19 @@ class OpenAIModelDriver(LLMDriver):
             client_kwargs = {"api_key": config.api_key}
             if getattr(config, "base_url", None):
                 client_kwargs["base_url"] = config.base_url
+
+            # HTTP debug wrapper
+            if os.environ.get("OPENAI_DEBUG_HTTP", "0") == "1":
+                from http.client import HTTPConnection
+                HTTPConnection.debuglevel = 1
+                import logging
+                logging.basicConfig()
+                logging.getLogger().setLevel(logging.DEBUG)
+                requests_log = logging.getLogger("http.client")
+                requests_log.setLevel(logging.DEBUG)
+                requests_log.propagate = True
+                print("[OpenAIModelDriver] HTTP debug enabled via OPENAI_DEBUG_HTTP=1", flush=True)
+
             client = openai.OpenAI(**client_kwargs)
             return client
         except Exception as e:
