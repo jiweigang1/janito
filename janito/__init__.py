@@ -3,4 +3,4 @@ janito: A Python package for managing and interacting with Large Language Model 
 Provides a CLI for credential management and an extensible driver system for LLMs.
 """
 
-__version__ = "2.1.1"
+__version__ = "2.2.0"
