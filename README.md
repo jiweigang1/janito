@@ -24,15 +24,59 @@ Janito is a command-line interface (CLI) tool for managing and interacting with 
 
 ## Installation
 
-Janito is a Python package. Since this is a development version, install it directly from GitHub:
+Janito is a Python package. Since this is a development version, you can install it directly from GitHub:
 
 ```bash
 pip install git+https://github.com/janito-dev/janito.git
 ```
 
+### First launch and quick setup
+
+Janito integrates with external LLM providers (list below), and most of them require a subscription to get an API_KEY.
+
+> [!NOTE]
+> Today, on June the 26th 2025, Google has a free tier subscription for its Gemini-2.5-flash model. Despite the limitation of the model and of the rate limit of the free tier, it can be used for testing janito. The API_KEY for Gemini is available [here](https://aistudio.google.com/app/apikey).
+
+> [!NOTE]
+> [Here](https://github.com/cheahjs/free-llm-api-resources/blob/main/README.md) a list of various services that provide free access or credits towards API-based LLM usage. Note that not all of them are supported by Janito, yet.
+
+For a quick usage you can:
+
+1. once you get the API_KEY from your favourite LLM provider, setup the API_KEY in Janito
+
+```bash
+janito --set-api-key API_KEY -p PROVIDER
+```
+
+2. then run janito from command line with the specific LLM provider of your choice
+
+```bash
+janito -p PROVIDER "Hello, who are you? How can you help me in my tasks?"
+```
+
+3. or you can run janito in interactive mode without the trailing argument
+
+```bash
+janito -p PROVIDER
+```
+
+4. if you want to setup a specific provider for any further interactions you can use:
+
+```bash
+janito -set provider=PROVIDER
+```
+
+> [!WARNING]
+> Currently the supported providers are: `openai`, `google`, `azure_openai`. You can get more details with `janito --list-providers`.
+
+5. for more advanced setup, continue reading.
+
+
 ## Usage
 
 After installation, use the `janito` command in your terminal.
+
+Janito has configuration options, like `--set api-key API_KEY` and `--set provider=PROVIDER`, that create durable configurations and single shoot options, like `-p PROVIDER` and `-m MODEL`, that are active for the single run of the command or session.
 
 ### Basic Commands
 
@@ -45,7 +89,7 @@ After installation, use the `janito` command in your terminal.
   > janito --set-api-key sk-xxxxxxx -p openai
   > ```
 
-- **Set the Provider**
+- **Set the Provider (durable)**
   ```bash
   janito --set provider=provider_name
   ```
@@ -84,6 +128,7 @@ After installation, use the `janito` command in your terminal.
   ```bash
   janito -w
   ```
+
   This starts the lightweight web file viewer (termweb) in the background, allowing you to inspect files referenced in responses directly in your browser. Combine with interactive mode or prompts as needed.
   
   > **Tip:** Use with the interactive shell for the best experience with clickable file links.
@@ -143,7 +188,7 @@ After installation, use the `janito` command in your terminal.
 | `-v`, `--verbose`      | Print extra information before answering                                    |
 | `-R`, `--raw`          | Print raw JSON response from API                                            |
 | `-e`, `--event-log`    | Log events to console as they occur                                         |
-| `[user_prompt]...`     | Prompt to submit (if no other command is used) (e.g., `janito "What is the capital of France?"`) |
+| `"user_prompt"`        | Prompt to submit for the non interactive mode (e.g. `janito "What is the capital of France?"`) |
 
 ### 🧩 Extended Chat Mode Commands
 Once inside the interactive chat mode, you can use these slash commands:
@@ -189,8 +234,11 @@ Janito is built to be extensible. You can add new LLM providers or tools by impl
 ## Supported Providers
 
 - OpenAI
+- OpenAI over Azure
 - Google Gemini
 - DeepSeek
+
+See [docs/supported-providers-models.md](docs/supported-providers-models.md) for more details.
 
 ## Contributing
 
@@ -204,32 +252,8 @@ For more information, see the documentation in the `docs/` directory or run `jan
 
 ---
 
-## Gemini Model Example
-
-To use Google Gemini models, specify the provider as `google` and the model as `gemini-2.5-flash`:
-
-```bash
-janito -p google -m gemini-2.5-flash "Your prompt here"
-```
-
-See [docs/supported-providers-models.md](docs/supported-providers-models.md) for more details.
-
----
-
 ## 📖 Detailed Documentation
 
 Full and up-to-date documentation is available at: https://janito-dev.github.io/janito/
 
 ---
-
-## FAQ: Setting API Keys
-
-To set an API key for a provider, you **must** specify both the API key and the provider name:
-
-```bash
-janito --set-api-key YOUR_API_KEY -p PROVIDER_NAME
-```
-
-Replace `YOUR_API_KEY` with your actual key and `PROVIDER_NAME` with the provider (e.g., `openai`, `google`, etc.).
-
-If you omit the `-p PROVIDER_NAME` argument, Janito will show an error and not set the key.
