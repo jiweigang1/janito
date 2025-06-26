@@ -285,3 +285,19 @@ janito -p PROVIDER_2 "What provider do you use?"
 ```
 
 If you omit the `-p PROVIDER_NAME` argument, Janito will show an error and not set the key.
+
+### Use a specific model
+
+To use a specific model, you can use the `-m` option in the follwing way:
+
+```bash
+janito -m gpt-4.1-nano -p openai "What model do you use?"
+```
+
+Or you can use the durable `--set` option: 
+
+```bash
+janito --set provider=openai 
+janito --set model=gpt-4.1-nano
+janito "What model do you use?"
+```
