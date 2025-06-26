@@ -129,14 +129,12 @@ After installation, use the `janito` command in your terminal.
 | Option                  | Description                                                                 |
 |------------------------|-----------------------------------------------------------------------------|
 | `-w`, `--web`          | Enable the builtin lightweight web file viewer for clickable file links (termweb). |
-
-|------------------------|-----------------------------------------------------------------------------|
 | `--version`            | Show program version                                                        |
 | `--list-tools`         | List all registered tools                                                   |
 | `--list-providers`     | List all supported LLM providers                                            |
 | `-l`, `--list-models`  | List models for current/selected provider                                   |
 | `--set-api-key`        | Set API key for a provider. **Requires** `-p PROVIDER` to specify the provider. |
-| `--set provider=name` | Set the current LLM provider (e.g., `janito --set provider=openai`)                                                |
+| `--set provider=name`  | Set the current LLM provider (e.g., `janito --set provider=openai`)         |
 | `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set the default model for the current/selected provider, or globally. (e.g., `janito --set openai.model=gpt-3.5-turbo`) |
 | `-s`, `--system`       | Set a system prompt (e.g., `janito -s path/to/system_prompt.txt "Your prompt here"`) |
 | `-r`, `--role`         | Set the role for the agent (overrides config) (e.g., `janito -r "assistant" "Your prompt here"`) |
@@ -145,7 +143,7 @@ After installation, use the `janito` command in your terminal.
 | `-v`, `--verbose`      | Print extra information before answering                                    |
 | `-R`, `--raw`          | Print raw JSON response from API                                            |
 | `-e`, `--event-log`    | Log events to console as they occur                                         |
-| `["user_prompt"]...`     | Prompt to submit (if no other command is used) (e.g., `janito "What is the capital of France?"`) |
+| `[user_prompt]...`     | Prompt to submit (if no other command is used) (e.g., `janito "What is the capital of France?"`) |
 
 ### 🧩 Extended Chat Mode Commands
 Once inside the interactive chat mode, you can use these slash commands:
