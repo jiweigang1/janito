@@ -4,7 +4,7 @@ from rich import pretty
 import os
 from janito.llm.driver import LLMDriver
 from janito.llm.driver_input import DriverInput
-from janito.driver_events import RequestFinished, RequestStatus
+from janito.driver_events import RequestFinished, RequestStatus, RateLimitRetry
 
 # Safe import of openai SDK
 try:
@@ -80,6 +80,13 @@ class OpenAIModelDriver(LLMDriver):
         return api_kwargs
 
     def _call_api(self, driver_input: DriverInput):
+        """Call the OpenAI-compatible chat completion endpoint.
+
+        Implements automatic retry logic when the provider returns HTTP 429/
+        RESOURCE_EXHAUSTED errors that also contain a ``retryDelay`` field.
+        A ``RateLimitRetry`` driver event is emitted each time a retry is
+        scheduled so that user-interfaces can inform the user about the wait.
+        """
         cancel_event = getattr(driver_input, "cancel_event", None)
         config = driver_input.config
         conversation = self.convert_history_to_api_messages(
@@ -91,41 +98,151 @@ class OpenAIModelDriver(LLMDriver):
                 f"[verbose-api] OpenAI API call about to be sent. Model: {config.model}, max_tokens: {config.max_tokens}, tools_adapter: {type(self.tools_adapter).__name__ if self.tools_adapter else None}",
                 flush=True,
             )
-        try:
-            client = self._instantiate_openai_client(config)
-            api_kwargs = self._prepare_api_kwargs(config, conversation)
-            if config.verbose_api:
-                print(
-                    f"[OpenAI] API CALL: chat.completions.create(**{api_kwargs})",
-                    flush=True,
+        import time, re, json
+
+        client = self._instantiate_openai_client(config)
+        api_kwargs = self._prepare_api_kwargs(config, conversation)
+        max_retries = getattr(config, "max_retries", 3)
+        attempt = 1
+        while True:
+            try:
+                if config.verbose_api:
+                    print(
+                        f"[OpenAI] API CALL (attempt {attempt}/{max_retries}): chat.completions.create(**{api_kwargs})",
+                        flush=True,
+                    )
+                if self._check_cancel(cancel_event, request_id, before_call=True):
+                    return None
+                result = client.chat.completions.create(**api_kwargs)
+                if self._check_cancel(cancel_event, request_id, before_call=False):
+                    return None
+                # Success path
+                self._print_verbose_result(config, result)
+                usage_dict = self._extract_usage(result)
+                if config.verbose_api:
+                    print(
+                        f"[OpenAI][DEBUG] Attaching usage info to RequestFinished: {usage_dict}",
+                        flush=True,
+                    )
+                self.output_queue.put(
+                    RequestFinished(
+                        driver_name=self.__class__.__name__,
+                        request_id=request_id,
+                        response=result,
+                        status=RequestStatus.SUCCESS,
+                        usage=usage_dict,
+                    )
                 )
-            if self._check_cancel(cancel_event, request_id, before_call=True):
-                return None
-            result = client.chat.completions.create(**api_kwargs)
-            if self._check_cancel(cancel_event, request_id, before_call=False):
-                return None
-            self._print_verbose_result(config, result)
-            usage_dict = self._extract_usage(result)
-            if config.verbose_api:
-                print(
-                    f"[OpenAI][DEBUG] Attaching usage info to RequestFinished: {usage_dict}",
-                    flush=True,
+                if config.verbose_api:
+                    pretty.install()
+                    print("[OpenAI] API RESPONSE:", flush=True)
+                    pretty.pprint(result)
+                return result
+            except Exception as e:
+                # Check for rate-limit errors (HTTP 429 or RESOURCE_EXHAUSTED)
+                status_code = getattr(e, "status_code", None)
+                err_str = str(e)
+                is_rate_limit = (
+                    status_code == 429
+                    or "Error code: 429" in err_str
+                    or "RESOURCE_EXHAUSTED" in err_str
                 )
-            self.output_queue.put(
-                RequestFinished(
-                    driver_name=self.__class__.__name__,
-                    request_id=request_id,
-                    response=result,
-                    status=RequestStatus.SUCCESS,
-                    usage=usage_dict,
+                if not is_rate_limit or attempt > max_retries:
+                    # If it's not a rate-limit error or we've exhausted retries, handle as fatal
+                    self._handle_fatal_exception(e, config, api_kwargs)
+                # Parse retry delay from error message (default 1s)
+                retry_delay = self._extract_retry_delay_seconds(e)
+                if retry_delay is None:
+                    # simple exponential backoff if not provided
+                    retry_delay = min(2 ** (attempt - 1), 30)
+                # Emit RateLimitRetry event so UIs can show a spinner / message
+                self.output_queue.put(
+                    RateLimitRetry(
+                        driver_name=self.__class__.__name__,
+                        request_id=request_id,
+                        attempt=attempt,
+                        retry_delay=retry_delay,
+                        error=err_str,
+                        details={},
+                    )
                 )
+                if config.verbose_api:
+                    print(
+                        f"[OpenAI][RateLimit] Attempt {attempt}/{max_retries} failed with rate-limit. Waiting {retry_delay}s before retry.",
+                        flush=True,
+                    )
+                # Wait while still allowing cancellation
+                start_wait = time.time()
+                while time.time() - start_wait < retry_delay:
+                    if self._check_cancel(cancel_event, request_id, before_call=False):
+                        return None
+                    time.sleep(0.1)
+                attempt += 1
+                continue
+            # console with large JSON payloads when the service returns HTTP 429.
+            # We still surface the exception to the caller so that standard error
+            # handling (e.g. retries in higher-level code) continues to work.
+            status_code = getattr(e, "status_code", None)
+            err_str = str(e)
+            is_rate_limit = (
+                status_code == 429
+                or "Error code: 429" in err_str
+                or "RESOURCE_EXHAUSTED" in err_str
             )
-            if config.verbose_api:
-                pretty.install()
-                print("[OpenAI] API RESPONSE:", flush=True)
-                pretty.pprint(result)
-            return result
-        except Exception as e:
+            is_verbose = getattr(config, "verbose_api", False)
+
+            # Only print the full diagnostics if the user explicitly requested
+            # verbose output or if the problem is not a rate-limit situation.
+            if is_verbose or not is_rate_limit:
+                print(f"[ERROR] Exception during OpenAI API call: {e}", flush=True)
+                print(f"[ERROR] config: {config}", flush=True)
+                print(
+                    f"[ERROR] api_kwargs: {api_kwargs if 'api_kwargs' in locals() else 'N/A'}",
+                    flush=True,
+                )
+                import traceback
+
+                print("[ERROR] Full stack trace:", flush=True)
+                print(traceback.format_exc(), flush=True)
+            # Re-raise so that the calling logic can convert this into a
+            # RequestFinished event with status=ERROR.
+            raise
+
+    def _extract_retry_delay_seconds(self, exception) -> float | None:
+        """Extract the retry delay in seconds from the provider error response.
+
+        Handles both the Google Gemini style ``RetryInfo`` protobuf (where it's a
+        ``retryDelay: '41s'`` string in JSON) and any number found after the word
+        ``retryDelay``. Returns ``None`` if no delay could be parsed.
+        """
+        import re, json, math
+
+        try:
+            # Some SDKs expose the raw response JSON on e.args[0]
+            if hasattr(exception, "response") and hasattr(exception.response, "text"):
+                payload = exception.response.text
+            else:
+                payload = str(exception)
+            # Look for 'retryDelay': '41s' or similar
+            m = re.search(r"retryDelay['\"]?\s*[:=]\s*['\"]?(\d+(?:\.\d+)?)(s)?", payload)
+            if m:
+                return float(m.group(1))
+            # Fallback: generic number of seconds in the message
+            m2 = re.search(r"(\d+(?:\.\d+)?)\s*s(?:econds)?", payload)
+            if m2:
+                return float(m2.group(1))
+        except Exception:
+            pass
+        return None
+
+    def _handle_fatal_exception(self, e, config, api_kwargs):
+        """Common path for unrecoverable exceptions.
+
+        Prints diagnostics (respecting ``verbose_api``) then re-raises the
+        exception so standard error handling in ``LLMDriver`` continues.
+        """
+        is_verbose = getattr(config, "verbose_api", False)
+        if is_verbose:
             print(f"[ERROR] Exception during OpenAI API call: {e}", flush=True)
             print(f"[ERROR] config: {config}", flush=True)
             print(
@@ -133,10 +250,9 @@ class OpenAIModelDriver(LLMDriver):
                 flush=True,
             )
             import traceback
-
             print("[ERROR] Full stack trace:", flush=True)
             print(traceback.format_exc(), flush=True)
-            raise
+        raise
 
     def _instantiate_openai_client(self, config):
         try:

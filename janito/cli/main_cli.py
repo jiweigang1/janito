@@ -92,6 +92,14 @@ definition = [
         {"type": float, "default": None, "help": "Set the temperature"},
     ),
     (
+        ["--reasoning-effort"],
+        {
+            "choices": ["low", "medium", "high", "none"],
+            "default": None,
+            "help": "Set the reasoning effort for models that support it (low, medium, high, none)",
+        },
+    ),
+    (
         ["-v", "--verbose"],
         {"action": "store_true", "help": "Print extra information before answering"},
     ),
@@ -118,6 +126,13 @@ definition = [
             "help": "Port for the termweb server (default: 8088)",
         },
     ),
+    (["--effort"],
+        {
+            "choices": ["low", "medium", "high", "none"],
+            "default": None,
+            "help": "Set the reasoning effort for models that support it (low, medium, high, none)",
+        },
+    ),
     (["user_prompt"], {"nargs": argparse.REMAINDER, "help": "Prompt to submit"}),
     (
         ["-e", "--event-log"],
@@ -138,6 +153,7 @@ MODIFIER_KEYS = [
     "role",
     "system",
     "temperature",
+    "reasoning_effort",
     "verbose",
     "raw",
     "web",

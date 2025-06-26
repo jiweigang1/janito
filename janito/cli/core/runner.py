@@ -28,6 +28,10 @@ def _populate_driver_config_data(args, modifiers, provider, model):
     driver_config_data = {"model": model}
     if getattr(args, "verbose_api", None) is not None:
         driver_config_data["verbose_api"] = args.verbose_api
+
+    # Add reasoning_effort from --effort CLI argument
+    if getattr(args, "effort", None) is not None:
+        driver_config_data["reasoning_effort"] = args.effort
     for field in LLMDriverConfig.__dataclass_fields__:
         if field in CONFIG_LOOKUP_KEYS:
             if field in modifiers and modifiers[field] is not None:

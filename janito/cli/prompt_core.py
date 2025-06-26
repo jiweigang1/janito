@@ -8,7 +8,7 @@ from janito.performance_collector import PerformanceCollector
 from rich.status import Status
 from rich.console import Console
 from typing import Any, Optional, Callable
-from janito.driver_events import RequestStarted, RequestFinished, RequestStatus
+from janito.driver_events import RequestStarted, RequestFinished, RequestStatus, RateLimitRetry
 from janito.tools.tool_events import ToolCallError
 import threading
 from janito.cli.verbose_output import print_verbose_header
@@ -59,13 +59,16 @@ class PromptHandler:
             else:
                 self.console.print(inner_event.result)
             return None
+        if isinstance(inner_event, RateLimitRetry):
+            status.update(f"[yellow]Rate limited. Waiting {inner_event.retry_delay:.0f}s before retry (attempt {inner_event.attempt}).[yellow]")
+            return None
         if isinstance(inner_event, RequestFinished):
             status.update("[bold green]Received response![bold green]")
             return "break"
         elif (
             isinstance(inner_event, RequestFinished)
             and getattr(inner_event, "status", None) == "error"
-        ):
+        ):  # noqa
             error_msg = (
                 inner_event.error if hasattr(inner_event, "error") else "Unknown error"
             )

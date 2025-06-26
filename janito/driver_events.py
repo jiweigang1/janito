@@ -91,6 +91,20 @@ class ToolCallFinished(DriverEvent):
 
 
 @attr.s(auto_attribs=True, kw_only=True)
+@attr.s(auto_attribs=True, kw_only=True)
+class RateLimitRetry(DriverEvent):
+    """Emitted by a driver when it encounters a provider rate-limit (HTTP 429) and
+    decides to retry the request after a delay. This allows UIs or logging layers
+    to give feedback to the user while the driver automatically waits.
+    """
+
+    attempt: int = 0  # Retry attempt number (starting at 1)
+    retry_delay: float = 0  # Delay in seconds before the next attempt
+    error: str = None  # The original error message
+    details: dict = None  # Additional details extracted from the provider response
+
+
+@attr.s(auto_attribs=True, kw_only=True)
 class ResponseReceived(DriverEvent):
     parts: list = None
     tool_results: list = None  # each as dict or custom ToolResult dataclass
