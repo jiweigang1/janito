@@ -252,6 +252,9 @@ For more information, see the documentation in the `docs/` directory or run `jan
 
 ---
 
+# Support
+
+
 ## 📖 Detailed Documentation
 
 Full and up-to-date documentation is available at: https://janito-dev.github.io/janito/
@@ -320,3 +323,25 @@ janito -p google --list-models
 janito -p azure_openai --list-models
 janito -p deepseek --list-models
 ```
+
+
+## Ask Me Anything
+![A.M.A.](docs/imgs/ama.png)
+
+When the FAQ are not enough, you can contact the contributors of the project by direct questions
+
+| Click below |
+|:------------:|
+| [Ask a question](../../issues/new) - [Read questions](../../issues?q=is%3Aissue+is%3Aclosed) |
+
+
+#### Guidelines
+
+- :mag: Ensure your question hasn't already been answered.
+- :memo: Use a succinct title and description.
+- :bug: Bugs & feature requests should be opened on the relevant issue tracker.
+- :signal_strength: Support questions are better asked on Stack Overflow.
+- :blush: Be nice, civil and polite.
+- :heart_eyes: If you include at least one emoji in your question, the feedback will probably come faster.
+- [Read more AMAs](https://github.com/sindresorhus/amas)
+- [What's an AMA?](https://en.wikipedia.org/wiki/R/IAmA)
