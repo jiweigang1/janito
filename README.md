@@ -264,7 +264,13 @@ Full and up-to-date documentation is available at: https://janito-dev.github.io/
 
 ## FAQ: Setting API Keys
 
+- [Multiple API_KEY setup](#faq-multiple-api-key)
+- [Use a specific model](#faq-use-specific-model)
+- [Fetch the availale LLM providers](#faq-fetch-providers)
+- [Fetch the availale models](#faq-fetch-models)
 
+
+<a id="faq-multiple-api-key"></a>
 ### Multiple API_KEY setup
 
 To set an API key for a provider, you **must** specify both the API key and the provider name:
@@ -289,6 +295,7 @@ janito -p PROVIDER_2 "What provider do you use?"
 
 If you omit the `-p PROVIDER_NAME` argument, Janito will show an error and not set the key.
 
+<a id="faq-use-specific-model"></a>
 ### Use a specific model
 
 To use a specific model, you can use the `-m` option in the follwing way:
@@ -305,6 +312,7 @@ janito --set model=gpt-4.1-nano
 janito "What model do you use?"
 ```
 
+<a id="faq-fetch-providers"></a>
 ### Fetch the availale LLM providers
 
 You can list all the LLM providers available using:
@@ -313,6 +321,7 @@ You can list all the LLM providers available using:
 janito --list-providers
 ```
 
+<a id="faq-fetch-models"></a>
 ### Fetch the availale models
 
 Each LLM provider has its own models, the best way to check what are the available models is usign the following commands:
