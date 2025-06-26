@@ -345,7 +345,11 @@ janito -p deepseek --list-models
 When the FAQ are not enough, you can contact the contributors of the project by direct questions
 
 <p align="center">
+<<<<<<< HEAD
   <kbd><a href="../../issues/new?labels[]=label2">Ask a question</a></kbd> <kbd><a href="../../issues?q=is%3Aissue+is%3Aclosed+label%3Aquestion">Read questions</a></kbd>
+=======
+  <kbd><a href="../../issues/new?labels=question">Ask a question</a></kbd> <kbd><a href="../../issues?q=is%3Aissue+is%3Aclosed+label%3Aquestion">Read questions</a></kbd>
+>>>>>>> eb44cc0 (improved the docs for AMA, the Ask a question link prepares the proper label)
 </p>
 
 #### Guidelines
