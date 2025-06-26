@@ -32,17 +32,25 @@ class RichTerminalReporter(EventHandlerBase):
         self._waiting_printed = False
 
     def on_RequestStarted(self, event):
-        # Print waiting message with provider name
+        # Print waiting message with provider and model name
         provider = None
+        model = None
         if hasattr(event, "payload") and isinstance(event.payload, dict):
             provider = event.payload.get("provider_name")
+            model = event.payload.get("model") or event.payload.get("model_name")
         if not provider:
             provider = getattr(event, "provider_name", None)
         if not provider:
             provider = getattr(event, "driver_name", None)
         if not provider:
             provider = "LLM"
-        self.console.print(f"[bold cyan]Waiting for {provider}...[/bold cyan]", end="")
+        if not model:
+            model = getattr(event, "model", None)
+        if not model:
+            model = getattr(event, "model_name", None)
+        if not model:
+            model = "?"
+        self.console.print(f"[bold cyan]Waiting for {provider} (model: {model})...[/bold cyan]", end="")
 
     def on_ResponseReceived(self, event):
         parts = event.parts if hasattr(event, "parts") else None

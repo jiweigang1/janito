@@ -122,11 +122,17 @@ class LLMDriver(ABC):
         if not self.available:
             self.handle_driver_unavailable(request_id)
             return
+        # Prepare payload for RequestStarted event
+        payload = {"provider_name": self.provider_name}
+        if hasattr(config, "model") and getattr(config, "model", None):
+            payload["model"] = getattr(config, "model")
+        elif hasattr(config, "model_name") and getattr(config, "model_name", None):
+            payload["model"] = getattr(config, "model_name")
         self.output_queue.put(
             RequestStarted(
                 driver_name=self.__class__.__name__,
                 request_id=request_id,
-                payload={"provider_name": self.provider_name},
+                payload=payload,
             )
         )
         # Check for cancel_event before starting
