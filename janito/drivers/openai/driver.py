@@ -303,7 +303,7 @@ class OpenAIModelDriver(LLMDriver):
                 except Exception:
                     tool_calls = []
                 api_messages.append(
-                    {"role": "assistant", "content": None, "tool_calls": tool_calls}
+                    {"role": "assistant", "content": "", "tool_calls": tool_calls}
                 )
             else:
                 # Special handling for 'function' role: extract 'name' from metadata if present
@@ -321,6 +321,10 @@ class OpenAIModelDriver(LLMDriver):
                     )
                 else:
                     api_messages.append(msg)
+        # Post-processing: Google Gemini API (OpenAI-compatible) rejects null content. Replace None with empty string.
+        for m in api_messages:
+            if m.get("content", None) is None:
+                m["content"] = ""
         return api_messages
 
     def _convert_completion_message_to_parts(self, message):
