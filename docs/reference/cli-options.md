@@ -43,6 +43,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 
 ```sh
 janito -p openai -m gpt-3.5-turbo "Your prompt here"
+janito -p google -m gemini-2.5-flash "Your prompt here"
 janito --list-tools
 janito -w  # Enable clickable file links via web viewer (termweb)
 

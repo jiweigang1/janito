@@ -8,14 +8,12 @@ from typing import Dict, Type
 # --- Import driver classes ---
 from janito.drivers.anthropic.driver import AnthropicModelDriver
 from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
-from janito.drivers.google_genai.driver import GoogleGenaiModelDriver
 from janito.drivers.mistralai.driver import MistralAIModelDriver
 from janito.drivers.openai.driver import OpenAIModelDriver
 
 _DRIVER_REGISTRY: Dict[str, Type] = {
     "AnthropicModelDriver": AnthropicModelDriver,
     "AzureOpenAIModelDriver": AzureOpenAIModelDriver,
-    "GoogleGenaiModelDriver": GoogleGenaiModelDriver,
     "MistralAIModelDriver": MistralAIModelDriver,
     "OpenAIModelDriver": OpenAIModelDriver,
 }

@@ -5,7 +5,7 @@ Janito is a command-line interface (CLI) tool for managing and interacting with 
 ## Features
 
 - 🔑 Manage API keys and provider configurations
-- 🤖 Interact with multiple LLM providers (OpenAI, Google, Mistral, , and more)
+- 🤖 Interact with multiple LLM providers (OpenAI, Google Gemini, Mistral, DeepSeek, and more)
 - 🛠️ List and use a variety of registered tools
 - 📝 Submit prompts and receive responses directly from the CLI
 - 📋 List available models for each provider
@@ -106,6 +106,7 @@ After installation, use the `janito` command in your terminal.
 - **Select Model and Provider Temporarily**
   ```bash
   janito -p openai -m gpt-3.5-turbo "Your prompt here"
+  janito -p google -m gemini-2.5-flash "Your prompt here"
   ```
 
 - **Set Provider-Specific Config (for the selected provider)**
@@ -190,6 +191,7 @@ Janito is built to be extensible. You can add new LLM providers or tools by impl
 ## Supported Providers
 
 - OpenAI
+- Google Gemini
 - DeepSeek
 
 ## Contributing
@@ -201,6 +203,18 @@ Contributions are welcome! Please see the `CONTRIBUTING.md` (if available) or op
 This project is licensed under the terms of the MIT license.
 
 For more information, see the documentation in the `docs/` directory or run `janito --help`.
+
+---
+
+## Gemini Model Example
+
+To use Google Gemini models, specify the provider as `google` and the model as `gemini-2.5-flash`:
+
+```bash
+janito -p google -m gemini-2.5-flash "Your prompt here"
+```
+
+See [docs/supported-providers-models.md](docs/supported-providers-models.md) for more details.
 
 ---
 

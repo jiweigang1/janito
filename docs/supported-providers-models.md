@@ -10,6 +10,7 @@ Janito is compatible with most OpenAI-compatible chat models, including but not 
 
 - `gpt-4.1` (default)
 - Azure-hosted OpenAI models (with correct deployment name)
+- Google Gemini models (e.g., `gemini-2.5-flash`)
 
 ## 🛠️ How to Select a Model
 
@@ -34,6 +35,7 @@ Janito is compatible with most OpenAI-compatible chat models, including but not 
 | o3-mini         | Supported | 200000      | 100000     | N/A     | 100000       | 📖       | OpenAI   | [source](../janito/providers/openai/model_info.py) |
 | o3              | Supported | 200000      | 100000     | N/A     | 100000       | 📖       | OpenAI   | [source](../janito/providers/openai/model_info.py) |
 | o4-mini         | Supported | 200000      | 100000     | N/A     | 100000       | 📖       | OpenAI   | [source](../janito/providers/openai/model_info.py) |
+| gemini-2.5-flash | Supported | N/A         | N/A        | 24576   | 8192         | ✔️        | Google   | [source](../janito/providers/google/model_info.py) |
 
 **Context window:** 200 k tokens  
 **Max input:** 100 k tokens  
@@ -46,4 +48,4 @@ Janito is compatible with most OpenAI-compatible chat models, including but not 
 
 - Some advanced features (like tool calling) require models that support OpenAI function calling.
 - Model availability and pricing depend on your provider and API key.
-- For the latest list of supported models, see your provider’s documentation or the [OpenAI models page](https://platform.openai.com/docs/models).
+- For the latest list of supported models, see your provider’s documentation or the [OpenAI models page](https://platform.openai.com/docs/models) and [Google Gemini documentation](https://ai.google.dev/gemini-api/docs/model-versions).

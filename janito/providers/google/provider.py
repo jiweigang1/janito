@@ -2,64 +2,75 @@ from janito.llm.provider import LLMProvider
 from janito.llm.model import LLMModelInfo
 from janito.llm.auth import LLMAuthManager
 from janito.llm.driver_config import LLMDriverConfig
-from janito.drivers.google_genai.driver import GoogleGenaiModelDriver
-from janito.tools.adapters.local.adapter import LocalToolsAdapter
+from janito.drivers.openai.driver import OpenAIModelDriver
+from janito.tools import get_local_tools_adapter
 from janito.providers.registry import LLMProviderRegistry
+from queue import Queue
 
-from .model_info import MODEL_SPECS
-
-from janito.drivers.google_genai.driver import GoogleGenaiModelDriver
-
-available = GoogleGenaiModelDriver.available
-unavailable_reason = GoogleGenaiModelDriver.unavailable_reason
-maintainer = "Needs maintainer"
-
+# Import Google Gemini model specs (to be created or imported as needed)
+try:
+    from .model_info import MODEL_SPECS
+except ImportError:
+    MODEL_SPECS = {}
 
 class GoogleProvider(LLMProvider):
-    MODEL_SPECS = MODEL_SPECS
-    maintainer = "Needs maintainer"
-    """
-    Provider for Google LLMs via google-google.
-    Default model: 'gemini-2.5-pro-preview-05-06'.
-    """
     name = "google"
-    DEFAULT_MODEL = "gemini-2.5-flash-preview-04-17"
+    maintainer = "Your Name <your.email@example.com>"
+    MODEL_SPECS = MODEL_SPECS
+    DEFAULT_MODEL = "gemini-2.5-flash"  # Default Gemini model
 
-    def __init__(self, config: LLMDriverConfig = None):
+    def __init__(
+        self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
+    ):
         if not self.available:
             self._driver = None
-            return
-        self._auth_manager = LLMAuthManager()
-        self._api_key = self._auth_manager.get_credentials(type(self).name)
-        self._tools_adapter = LocalToolsAdapter()
-        self._info = config or LLMDriverConfig(model=None)
-        if not self._info.model:
-            self._info.model = self.DEFAULT_MODEL
-        if not self._info.api_key:
-            self._info.api_key = self._api_key
-        self.fill_missing_device_info(self._info)
-        self._driver = GoogleGenaiModelDriver(tools_adapter=self._tools_adapter)
+        else:
+            self.auth_manager = auth_manager or LLMAuthManager()
+            self._api_key = self.auth_manager.get_credentials(type(self).name)
+            self._tools_adapter = get_local_tools_adapter()
+            self._driver_config = config or LLMDriverConfig(model=None)
+            # Only set default if model is not set by CLI/config
+            if not getattr(self._driver_config, 'model', None):
+                self._driver_config.model = self.DEFAULT_MODEL
+            if not self._driver_config.api_key:
+                self._driver_config.api_key = self._api_key
+            # Set the Gemini API endpoint for OpenAI compatibility
+            self._driver_config.base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+            self.fill_missing_device_info(self._driver_config)
+            self._driver = None  # to be provided by factory/agent
 
     @property
-    def driver(self) -> GoogleGenaiModelDriver:
+    def driver(self) -> OpenAIModelDriver:
         if not self.available:
-            raise ImportError(f"GoogleProvider unavailable: {self.unavailable_reason}")
+            raise ImportError(f"GoogleOpenAIProvider unavailable: {self.unavailable_reason}")
         return self._driver
 
     @property
     def available(self):
-        return available
+        return OpenAIModelDriver.available
 
     @property
     def unavailable_reason(self):
-        return unavailable_reason
+        return OpenAIModelDriver.unavailable_reason
 
-    def create_agent(self, tools_adapter=None, agent_name: str = None, **kwargs):
-        from janito.llm.agent import LLMAgent
+    def create_driver(self):
+        """
+        Creates and returns a new OpenAIModelDriver instance configured for Gemini API.
+        """
+        driver = OpenAIModelDriver(
+            tools_adapter=self._tools_adapter, provider_name=self.name
+        )
+        driver.config = self._driver_config
+        return driver
 
-        # Always create a new driver with the passed-in tools_adapter
-        driver = GoogleGenaiModelDriver(tools_adapter=tools_adapter)
-        return LLMAgent(self, tools_adapter, agent_name=agent_name, **kwargs)
+    @property
+    def model_name(self):
+        return self._driver_config.model
+
+    @property
+    def driver_config(self):
+        """Public, read-only access to the provider's LLMDriverConfig object."""
+        return self._driver_config
 
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
         self._tools_adapter.event_bus = event_bus

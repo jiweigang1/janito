@@ -1,40 +1,14 @@
 from janito.llm.model import LLMModelInfo
 
 MODEL_SPECS = {
-    "gemini-2.5-pro-preview-05-06": LLMModelInfo(
-        name="gemini-2.5-pro-preview-05-06",
-        context=131072,
-        max_input=131072,
-        max_cot="N/A",
-        max_response=32768,
-        thinking_supported=True,
-        default_temp=0.2,
+    "gemini-2.5-flash": LLMModelInfo(
+        name="gemini-2.5-flash",
+        other={"description": "Google Gemini 2.5 Flash (OpenAI-compatible endpoint)"},
         open="google",
-        driver="GoogleGenaiModelDriver",
-        other={"preview": True},
-    ),
-    "gemini-2.5-flash-preview-05-20": LLMModelInfo(
-        name="gemini-2.5-flash-preview-05-20",
-        context=1000000,
-        max_input=1000000,
-        max_cot="N/A",
-        max_response=65536,
+        driver="OpenAIModelDriver",
+        max_response=8192,
+        max_cot=24576,
         thinking_supported=True,
-        default_temp=0.2,
-        open="google",
-        driver="GoogleGenaiModelDriver",
-        other={"preview": True, "flash": True},
     ),
-    "gemini-2.5-flash-preview-04-17": LLMModelInfo(
-        name="gemini-2.5-flash-preview-04-17",
-        context=1000000,
-        max_input=1000000,
-        max_cot="N/A",
-        max_response=65536,
-        thinking_supported=True,
-        default_temp=0.2,
-        open="google",
-        driver="GoogleGenaiModelDriver",
-        other={"preview": True, "flash": True},
-    ),
+    # Add more Gemini models as needed
 }
