@@ -257,3 +257,31 @@ For more information, see the documentation in the `docs/` directory or run `jan
 Full and up-to-date documentation is available at: https://janito-dev.github.io/janito/
 
 ---
+
+
+## FAQ: Setting API Keys
+
+
+### Multiple API_KEY setup
+
+To set an API key for a provider, you **must** specify both the API key and the provider name:
+
+```bash
+janito --set-api-key YOUR_API_KEY -p PROVIDER_NAME
+```
+
+You can have an API_KEY for each LLM provider 
+
+```bash
+janito --set-api-key API_KEY_1 -p PROVIDER_1
+janito --set-api-key API_KEY_2 -p PROVIDER_2
+```
+
+Then you can easily use one provider or the other without changing the API_KEY
+
+```bash
+janito -p PROVIDER_1 "What provider do you use?"
+janito -p PROVIDER_2 "What provider do you use?"
+```
+
+If you omit the `-p PROVIDER_NAME` argument, Janito will show an error and not set the key.
