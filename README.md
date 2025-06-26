@@ -301,3 +301,22 @@ janito --set provider=openai
 janito --set model=gpt-4.1-nano
 janito "What model do you use?"
 ```
+
+### Fetch the availale LLM providers
+
+You can list all the LLM providers available using:
+
+```bash
+janito --list-providers
+```
+
+### Fetch the availale models
+
+Each LLM provider has its own models, the best way to check what are the available models is usign the following commands:
+
+```bash
+janito -p openai --list-models
+janito -p google --list-models
+janito -p azure_openai --list-models
+janito -p deepseek --list-models
+```
