@@ -34,8 +34,19 @@ def _print_models_table(models, provider_name):
         row = [str(m.get("name", ""))]
         row.extend(_build_model_row(m, headers, num_fields))
         table.add_row(*row)
-    console = Console()
-    console.print(table)
+    import sys
+    if sys.stdout.isatty():
+        from rich.console import Console
+        Console().print(table)
+    else:
+        # ASCII-friendly fallback table when output is redirected
+        print(f"Supported models for provider '{provider_name}'")
+        headers_fallback = [h for h in display_headers]
+        print(' | '.join(headers_fallback))
+        for m in models:
+            row = [str(m.get('name', ''))]
+            row.extend(_build_model_row(m, headers, num_fields))
+            print(' | '.join(row))
 
 
 def _add_table_columns(table, display_headers):

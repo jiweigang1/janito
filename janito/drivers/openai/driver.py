@@ -71,6 +71,7 @@ class OpenAIModelDriver(LLMDriver):
             "presence_penalty",
             "frequency_penalty",
             "stop",
+            "reasoning_effort",
         ):
             v = getattr(config, p, None)
             if v is not None:
@@ -82,10 +83,18 @@ class OpenAIModelDriver(LLMDriver):
     def _call_api(self, driver_input: DriverInput):
         """Call the OpenAI-compatible chat completion endpoint.
 
-        Implements automatic retry logic when the provider returns HTTP 429/
-        RESOURCE_EXHAUSTED errors that also contain a ``retryDelay`` field.
-        A ``RateLimitRetry`` driver event is emitted each time a retry is
-        scheduled so that user-interfaces can inform the user about the wait.
+        Implements automatic retry logic when the provider returns a *retriable*
+        HTTP 429 or ``RESOURCE_EXHAUSTED`` error **that is not caused by quota
+        exhaustion**. A ``RateLimitRetry`` driver event is emitted each time a
+        retry is scheduled so that user-interfaces can inform the user about
+        the wait.
+
+        OpenAI uses the 429 status code both for temporary rate-limit errors *and*
+        for permanent quota-exceeded errors (``insufficient_quota``).  Retrying
+        the latter is pointless, so we inspect the error payload for
+        ``insufficient_quota`` or common quota-exceeded wording and treat those
+        as fatal, bubbling them up as a regular RequestFinished/ERROR instead of
+        emitting a RateLimitRetry.
         """
         cancel_event = getattr(driver_input, "cancel_event", None)
         config = driver_input.config
@@ -142,10 +151,20 @@ class OpenAIModelDriver(LLMDriver):
                 # Check for rate-limit errors (HTTP 429 or RESOURCE_EXHAUSTED)
                 status_code = getattr(e, "status_code", None)
                 err_str = str(e)
+                # Determine if this is a retriable rate-limit error (HTTP 429) or a non-retriable
+                # quota exhaustion error. OpenAI returns the same 429 status code for both, so we
+                # additionally check for the ``insufficient_quota`` code or typical quota-related
+                # strings in the error message. If the error is quota-related we treat it as fatal
+                # so that the caller can surface a proper error message instead of silently
+                # retrying forever.
+                lower_err = err_str.lower()
+                is_insufficient_quota = (
+                    "insufficient_quota" in lower_err
+                    or "exceeded your current quota" in lower_err
+                )
                 is_rate_limit = (
-                    status_code == 429
-                    or "Error code: 429" in err_str
-                    or "RESOURCE_EXHAUSTED" in err_str
+                    (status_code == 429 or "error code: 429" in lower_err or "resource_exhausted" in lower_err)
+                    and not is_insufficient_quota
                 )
                 if not is_rate_limit or attempt > max_retries:
                     # If it's not a rate-limit error or we've exhausted retries, handle as fatal

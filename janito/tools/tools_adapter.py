@@ -84,12 +84,82 @@ class ToolsAdapterBase:
 
         return result
 
+    def _get_tool_callable(self, tool):
+        """Helper to retrieve the primary callable of a tool instance."""
+        if callable(tool):
+            return tool
+        if hasattr(tool, "execute") and callable(getattr(tool, "execute")):
+            return getattr(tool, "execute")
+        if hasattr(tool, "run") and callable(getattr(tool, "run")):
+            return getattr(tool, "run")
+        raise ValueError("Provided tool is not executable.")
+
+    def _validate_arguments_against_signature(self, func, arguments: dict):
+        """Validate provided arguments against a callable signature.
+
+        Returns an error string if validation fails, otherwise ``None``.
+        """
+        import inspect
+
+        if arguments is None:
+            arguments = {}
+        # Ensure the input is a dict to avoid breaking the inspect-based logic
+        if not isinstance(arguments, dict):
+            return "Tool arguments should be provided as an object / mapping"
+
+        sig = inspect.signature(func)
+        params = sig.parameters
+
+        # Check for unexpected arguments (unless **kwargs is accepted)
+        accepts_kwargs = any(
+            p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values()
+        )
+        if not accepts_kwargs:
+            unexpected = [k for k in arguments.keys() if k not in params]
+            if unexpected:
+                return (
+                    "Unexpected argument(s): " + ", ".join(sorted(unexpected))
+                )
+
+        # Check for missing required arguments (ignoring *args / **kwargs / self)
+        required_params = [
+            name
+            for name, p in params.items()
+            if p.kind in (
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.KEYWORD_ONLY,
+            )
+            and p.default is inspect._empty
+            and name != "self"
+        ]
+        missing = [name for name in required_params if name not in arguments]
+        if missing:
+            return "Missing required argument(s): " + ", ".join(sorted(missing))
+
+        return None
+
     def execute_by_name(
         self, tool_name: str, *args, request_id=None, arguments=None, **kwargs
     ):
         self._check_tool_permissions(tool_name, request_id, arguments)
         tool = self.get_tool(tool_name)
         self._ensure_tool_exists(tool, tool_name, request_id, arguments)
+        func = self._get_tool_callable(tool)
+        # First, validate arguments against the callable signature to catch unexpected / missing params
+        sig_error = self._validate_arguments_against_signature(func, arguments)
+        if sig_error:
+            if self._event_bus:
+                self._event_bus.publish(
+                    ToolCallError(
+                        tool_name=tool_name,
+                        request_id=request_id,
+                        error=sig_error,
+                        arguments=arguments,
+                    )
+                )
+            return sig_error
+
+        # Optionally validate against JSON schema if available
         schema = getattr(tool, "schema", None)
         if schema and arguments is not None:
             validation_error = self._validate_arguments_against_schema(

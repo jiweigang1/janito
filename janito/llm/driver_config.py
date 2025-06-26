@@ -23,6 +23,7 @@ class LLMDriverConfig:
     presence_penalty: Optional[float] = None
     frequency_penalty: Optional[float] = None
     stop: Optional[Any] = None  # list or string, depending on backend
+    reasoning_effort: Optional[str] = None
     extra: dict = field(
         default_factory=dict
     )  # for provider-specific miscellaneous config fields

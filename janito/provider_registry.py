@@ -48,6 +48,24 @@ class ProviderRegistry:
                 table.add_section()
 
     def _print_table(self, table):
+        """Print the table using rich when running in a terminal; otherwise fall back to a plain ASCII listing.
+        This avoids UnicodeDecodeError when the parent process captures the output with a non-UTF8 encoding.
+        """
+        import sys
+
+        if sys.stdout.isatty():
+            # Safe to use rich's unicode output when attached to an interactive terminal.
+            shared_console.print(table)
+            return
+
+        # Fallback: plain ASCII output
+        print("Supported LLM Providers")
+        print("Provider | Maintainer | Model Names")
+        for row in table.rows:
+            # row is a rich.table.Row -> row.cells is a list of Text objects
+            cells_text = [str(cell) for cell in row.cells]
+            ascii_row = " | ".join(cells_text).encode("ascii", "ignore").decode("ascii")
+            print(ascii_row)
         shared_console.print(table)
 
     def _get_provider_info(self, provider_name):
