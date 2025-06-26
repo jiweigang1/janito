@@ -35,6 +35,7 @@ class LLMAuthManager:
         os.makedirs(os.path.dirname(self._auth_file), exist_ok=True)
         with open(self._auth_file, "w") as f:
             json.dump(self._credentials, f, indent=2)
+            f.write("\n")
 
     def set_credentials(self, provider_name: str, credentials: str) -> None:
         """

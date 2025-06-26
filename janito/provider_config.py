@@ -36,6 +36,7 @@ def set_provider_config(provider, key, value):
     config.file_config["providers"] = cfg
     with open(config.config_path, "w", encoding="utf-8") as f:
         json.dump(config.file_config, f, indent=2)
+        f.write("\n")
 
 
 def set_provider_model_config(provider, model, key, value):
@@ -51,6 +52,7 @@ def set_provider_model_config(provider, model, key, value):
     config.file_config["providers"] = cfg
     with open(config.config_path, "w", encoding="utf-8") as f:
         json.dump(config.file_config, f, indent=2)
+        f.write("\n")
 
 
 def get_provider_model_config(provider, model):

@@ -46,6 +46,7 @@ class ConfigManager:
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.config_path, "w", encoding="utf-8") as f:
             json.dump(self.file_config, f, indent=2)
+            f.write("\n")
 
     def get(self, key, default=None):
         # Precedence: runtime_overrides > file_config > defaults
@@ -63,6 +64,7 @@ class ConfigManager:
         self.file_config[key] = value
         with open(self.config_path, "w", encoding="utf-8") as f:
             json.dump(self.file_config, f, indent=2)
+            f.write("\n")
 
     def all(self, layered=False):
         merged = dict(self.defaults)

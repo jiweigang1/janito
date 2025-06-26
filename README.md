@@ -24,15 +24,59 @@ Janito is a command-line interface (CLI) tool for managing and interacting with 
 
 ## Installation
 
-Janito is a Python package. Since this is a development version, install it directly from GitHub:
+Janito is a Python package. Since this is a development version, you can install it directly from GitHub:
 
 ```bash
 pip install git+https://github.com/janito-dev/janito.git
 ```
 
+### First launch and quick setup
+
+Janito integrates with external LLM providers (list below), and most of them require a subscription to get an API_KEY.
+
+> [!NOTE]
+> Today, on June the 26th 2025, Google has a free tier subscription for its Gemini-2.5-flash model. Despite the limitation of the model and of the rate limit of the free tier, it can be used for testing janito. The API_KEY for Gemini is available [here](https://aistudio.google.com/app/apikey).
+
+> [!NOTE]
+> [Here](https://github.com/cheahjs/free-llm-api-resources/blob/main/README.md) a list of various services that provide free access or credits towards API-based LLM usage. Note that not all of them are supported by Janito, yet.
+
+For a quick usage you can:
+
+1. once you get the API_KEY from your favourite LLM provider, setup the API_KEY in Janito
+
+```bash
+janito --set-api-key API_KEY -p PROVIDER
+```
+
+2. then run janito from command line with the specific LLM provider of your choice
+
+```bash
+janito -p PROVIDER "Hello, who are you? How can you help me in my tasks?"
+```
+
+3. or you can run janito in interactive mode without the trailing argument
+
+```bash
+janito -p PROVIDER
+```
+
+4. if you want to setup a specific provider for any further interactions you can use:
+
+```bash
+janito -set provider=PROVIDER
+```
+
+> [!WARNING]
+> Currently the supported providers are: `openai`, `google`, `azure_openai`. You can get more details with `janito --list-providers`.
+
+5. for more advanced setup, continue reading.
+
+
 ## Usage
 
 After installation, use the `janito` command in your terminal.
+
+Janito has configuration options, like `--set api-key API_KEY` and `--set provider=PROVIDER`, that create durable configurations and single shoot options, like `-p PROVIDER` and `-m MODEL`, that are active for the single run of the command or session.
 
 ### Basic Commands
 
@@ -45,7 +89,7 @@ After installation, use the `janito` command in your terminal.
   > janito --set-api-key sk-xxxxxxx -p openai
   > ```
 
-- **Set the Provider**
+- **Set the Provider (durable)**
   ```bash
   janito --set provider=provider_name
   ```
@@ -84,6 +128,7 @@ After installation, use the `janito` command in your terminal.
   ```bash
   janito -w
   ```
+
   This starts the lightweight web file viewer (termweb) in the background, allowing you to inspect files referenced in responses directly in your browser. Combine with interactive mode or prompts as needed.
   
   > **Tip:** Use with the interactive shell for the best experience with clickable file links.
@@ -129,14 +174,12 @@ After installation, use the `janito` command in your terminal.
 | Option                  | Description                                                                 |
 |------------------------|-----------------------------------------------------------------------------|
 | `-w`, `--web`          | Enable the builtin lightweight web file viewer for clickable file links (termweb). |
-
-|------------------------|-----------------------------------------------------------------------------|
 | `--version`            | Show program version                                                        |
 | `--list-tools`         | List all registered tools                                                   |
 | `--list-providers`     | List all supported LLM providers                                            |
 | `-l`, `--list-models`  | List models for current/selected provider                                   |
 | `--set-api-key`        | Set API key for a provider. **Requires** `-p PROVIDER` to specify the provider. |
-| `--set provider=name` | Set the current LLM provider (e.g., `janito --set provider=openai`)                                                |
+| `--set provider=name`  | Set the current LLM provider (e.g., `janito --set provider=openai`)         |
 | `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set the default model for the current/selected provider, or globally. (e.g., `janito --set openai.model=gpt-3.5-turbo`) |
 | `-s`, `--system`       | Set a system prompt (e.g., `janito -s path/to/system_prompt.txt "Your prompt here"`) |
 | `-r`, `--role`         | Set the role for the agent (overrides config) (e.g., `janito -r "assistant" "Your prompt here"`) |
@@ -145,7 +188,7 @@ After installation, use the `janito` command in your terminal.
 | `-v`, `--verbose`      | Print extra information before answering                                    |
 | `-R`, `--raw`          | Print raw JSON response from API                                            |
 | `-e`, `--event-log`    | Log events to console as they occur                                         |
-| `["user_prompt"]...`     | Prompt to submit (if no other command is used) (e.g., `janito "What is the capital of France?"`) |
+| `"user_prompt"`        | Prompt to submit for the non interactive mode (e.g. `janito "What is the capital of France?"`) |
 
 ### 🧩 Extended Chat Mode Commands
 Once inside the interactive chat mode, you can use these slash commands:
@@ -164,7 +207,7 @@ Once inside the interactive chat mode, you can use these slash commands:
 #### 💬 Conversation Management
 | Command             | Description                                  |
 |---------------------|----------------------------------------------|
-| `/restart` or `/start` | Start a new conversation (reset context)   |
+| `/restart`          | Start a new conversation (reset context)   |
 | `/prompt`           | Show the current system prompt               |
 | `/role <description>` | Change the system role                     |
 | `/lang [code]`      | Change interface language (e.g., `/lang en`) |
@@ -191,8 +234,11 @@ Janito is built to be extensible. You can add new LLM providers or tools by impl
 ## Supported Providers
 
 - OpenAI
+- OpenAI over Azure
 - Google Gemini
 - DeepSeek
+
+See [docs/supported-providers-models.md](docs/supported-providers-models.md) for more details.
 
 ## Contributing
 
@@ -206,17 +252,8 @@ For more information, see the documentation in the `docs/` directory or run `jan
 
 ---
 
-## Gemini Model Example
+# Support
 
-To use Google Gemini models, specify the provider as `google` and the model as `gemini-2.5-flash`:
-
-```bash
-janito -p google -m gemini-2.5-flash "Your prompt here"
-```
-
-See [docs/supported-providers-models.md](docs/supported-providers-models.md) for more details.
-
----
 
 ## 📖 Detailed Documentation
 
@@ -224,7 +261,17 @@ Full and up-to-date documentation is available at: https://janito-dev.github.io/
 
 ---
 
+
 ## FAQ: Setting API Keys
+
+- [Multiple API_KEY setup](#faq-multiple-api-key)
+- [Use a specific model](#faq-use-specific-model)
+- [Fetch the availale LLM providers](#faq-fetch-providers)
+- [Fetch the availale models](#faq-fetch-models)
+
+
+<a id="faq-multiple-api-key"></a>
+### Multiple API_KEY setup
 
 To set an API key for a provider, you **must** specify both the API key and the provider name:
 
@@ -232,6 +279,82 @@ To set an API key for a provider, you **must** specify both the API key and the 
 janito --set-api-key YOUR_API_KEY -p PROVIDER_NAME
 ```
 
-Replace `YOUR_API_KEY` with your actual key and `PROVIDER_NAME` with the provider (e.g., `openai`, `google`, etc.).
+You can have an API_KEY for each LLM provider 
+
+```bash
+janito --set-api-key API_KEY_1 -p PROVIDER_1
+janito --set-api-key API_KEY_2 -p PROVIDER_2
+```
+
+Then you can easily use one provider or the other without changing the API_KEY
+
+```bash
+janito -p PROVIDER_1 "What provider do you use?"
+janito -p PROVIDER_2 "What provider do you use?"
+```
 
 If you omit the `-p PROVIDER_NAME` argument, Janito will show an error and not set the key.
+
+<a id="faq-use-specific-model"></a>
+### Use a specific model
+
+To use a specific model, you can use the `-m` option in the follwing way:
+
+```bash
+janito -m gpt-4.1-nano -p openai "What model do you use?"
+```
+
+Or you can use the durable `--set` option: 
+
+```bash
+janito --set provider=openai 
+janito --set model=gpt-4.1-nano
+janito "What model do you use?"
+```
+
+<a id="faq-fetch-providers"></a>
+### Fetch the availale LLM providers
+
+You can list all the LLM providers available using:
+
+```bash
+janito --list-providers
+```
+
+<a id="faq-fetch-models"></a>
+### Fetch the availale models
+
+Each LLM provider has its own models, the best way to check what are the available models is usign the following commands:
+
+```bash
+janito -p openai --list-models
+janito -p google --list-models
+janito -p azure_openai --list-models
+janito -p deepseek --list-models
+```
+
+
+## Ask Me Anything
+
+<div align="center">
+  <a href="https://github.com/janito-dev/janito" title="Ask Me Anything">
+    <img width="250" src="docs/imgs/ama.png" alt="Ask Me Anything">
+  </a>
+</div
+
+When the FAQ are not enough, you can contact the contributors of the project by direct questions
+
+<p align="center">
+  <kbd><a href="../../issues/new?labels=question">Ask a question</a></kbd> <kbd><a href="../../issues?q=is%3Aissue+is%3Aclosed+label%3Aquestion">Read questions</a></kbd>
+</p>
+
+#### Guidelines
+
+- :mag: Ensure your question hasn't already been answered.
+- :memo: Use a succinct title and description.
+- :bug: Bugs & feature requests should be opened on the relevant issue tracker.
+- :signal_strength: Support questions are better asked on Stack Overflow.
+- :blush: Be nice, civil and polite.
+- :heart_eyes: If you include at least one emoji in your question, the feedback will probably come faster.
+- [Read more AMAs](https://github.com/sindresorhus/amas)
+- [What's an AMA?](https://en.wikipedia.org/wiki/R/IAmA)

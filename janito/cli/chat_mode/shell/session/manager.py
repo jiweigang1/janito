@@ -95,6 +95,7 @@ def save_conversation(messages, prompts, usage_info=None, path=None):
 
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, default=usage_serializer)
+        f.write("\n")
 
 
 def last_conversation_exists(path=".janito/last_conversation.json"):
