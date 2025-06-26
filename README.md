@@ -207,7 +207,7 @@ Once inside the interactive chat mode, you can use these slash commands:
 #### 💬 Conversation Management
 | Command             | Description                                  |
 |---------------------|----------------------------------------------|
-| `/restart` or `/start` | Start a new conversation (reset context)   |
+| `/restart`          | Start a new conversation (reset context)   |
 | `/prompt`           | Show the current system prompt               |
 | `/role <description>` | Change the system role                     |
 | `/lang [code]`      | Change interface language (e.g., `/lang en`) |
