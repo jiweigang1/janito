@@ -15,19 +15,22 @@ from janito.cli.console import shared_console
 
 
 class PromptHandler:
-    def __init__(self, args, provider_instance, llm_driver_config, role=None):
+    def __init__(self, args, provider_instance, llm_driver_config, role=None, exec_enabled=False):
         self.args = args
         self.provider_instance = provider_instance
         self.llm_driver_config = llm_driver_config
         self.role = role
+        self.exec_enabled = exec_enabled
         from janito.agent.setup_agent import create_configured_agent
 
+        # DEBUG: Print exec_enabled propagation
         self.agent = create_configured_agent(
             provider_instance=provider_instance,
             llm_driver_config=llm_driver_config,
             role=role,
             verbose_tools=getattr(args, "verbose_tools", False),
             verbose_agent=getattr(args, "verbose_agent", False),
+            exec_enabled=exec_enabled,
         )
         # Setup conversation/history if needed
         self.generic_handler = GenericPromptHandler(

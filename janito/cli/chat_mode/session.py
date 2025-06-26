@@ -52,6 +52,7 @@ class ChatSession:
         args=None,
         verbose_tools=False,
         verbose_agent=False,
+        exec_enabled=False,
     ):
         from janito.cli.prompt_core import PromptHandler as GenericPromptHandler
 
@@ -82,6 +83,7 @@ class ChatSession:
             role=role,
             verbose_tools=verbose_tools,
             verbose_agent=verbose_agent,
+            exec_enabled=exec_enabled,
         )
         from janito.conversation_history import LLMConversationHistory
 

@@ -20,6 +20,7 @@ def setup_agent(
     output_queue=None,
     verbose_tools=False,
     verbose_agent=False,
+    exec_enabled=False,
 ):
     """
     Creates an agent using a rendered system prompt template, passing an explicit role.
@@ -62,17 +63,23 @@ def setup_agent(
                 f"Template file not found in either {template_path} or package resource."
             )
 
+    import time
     template = Template(template_content)
     # Prepare context for Jinja2 rendering from llm_driver_config
     # Compose context for Jinja2 rendering without using to_dict or temperature
     context = {}
     context["role"] = role or "software developer"
-    # Inject current platform environment information
-    pd = PlatformDiscovery()
-    context["platform"] = pd.get_platform_name()
-    context["python_version"] = pd.get_python_version()
-    context["shell_info"] = pd.detect_shell()
+    # Inject current platform environment information only if exec_enabled
+    context["exec_enabled"] = bool(exec_enabled)
+    if exec_enabled:
+        pd = PlatformDiscovery()
+        context["platform"] = pd.get_platform_name()
+        context["python_version"] = pd.get_python_version()
+        context["shell_info"] = pd.detect_shell()
+    start_render = time.time()
     rendered_prompt = template.render(**context)
+    end_render = time.time()
+    
     # Create the agent as before, now passing the explicit role
     # Do NOT pass temperature; do not depend on to_dict
     agent = LLMAgent(
@@ -97,6 +104,7 @@ def create_configured_agent(
     verbose_agent=False,
     templates_dir=None,
     zero_mode=False,
+    exec_enabled=False,
 ):
     """
     Normalizes agent setup for all CLI modes.
@@ -133,6 +141,7 @@ def create_configured_agent(
         output_queue=output_queue,
         verbose_tools=verbose_tools,
         verbose_agent=verbose_agent,
+        exec_enabled=exec_enabled,
     )
     if driver is not None:
         agent.driver = driver  # Attach driver to agent for thread management

@@ -123,8 +123,10 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
             PromptHandler as SingleShotPromptHandler,
         )
 
+        # DEBUG: Print exec_enabled propagation at runner
+        
         handler = SingleShotPromptHandler(
-            args, provider_instance, llm_driver_config, role=agent_role
+            args, provider_instance, llm_driver_config, role=agent_role, exec_enabled=exec_enabled
         )
         handler.handle()
     else:
@@ -140,6 +142,7 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
             args=args,
             verbose_tools=verbose_tools,
             verbose_agent=getattr(args, "verbose_agent", False),
+            exec_enabled=exec_enabled,
         )
         session.run()
 

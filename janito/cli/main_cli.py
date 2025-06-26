@@ -251,6 +251,8 @@ class JanitoCLI:
         self._maybe_print_verbose_llm_config(llm_driver_config, run_mode)
         if run_mode == RunMode.RUN:
             self._maybe_print_verbose_run_mode()
+            # DEBUG: Print exec_enabled propagation at main_cli
+            
             handle_runner(
                 self.args,
                 provider,

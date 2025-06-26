@@ -24,7 +24,7 @@ def match_line(line, pattern, regex, use_regex, case_sensitive):
     if use_regex:
         return regex and regex.search(line)
     if not case_sensitive:
-        return pattern in line.lower()
+        return pattern.lower() in line.lower()
     return pattern in line
 
 
