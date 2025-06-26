@@ -335,14 +335,18 @@ janito -p deepseek --list-models
 
 
 ## Ask Me Anything
-![A.M.A.](docs/imgs/ama.png)
+
+<div align="center">
+  <a href="https://github.com/janito-dev/janito" title="Ask Me Anything">
+    <img width="250" src="docs/imgs/ama.png" alt="Ask Me Anything">
+  </a>
+</div
 
 When the FAQ are not enough, you can contact the contributors of the project by direct questions
 
-| Click below |
-|:------------:|
-| [Ask a question](../../issues/new) - [Read questions](../../issues?q=is%3Aissue+is%3Aclosed) |
-
+<p align="center">
+  <kbd><a href="../../issues/new">Ask a question</a></kbd> <kbd><a href="../../issues?q=is%3Aissue+is%3Aclosed">Read questions</a></kbd>
+</p>
 
 #### Guidelines
 
