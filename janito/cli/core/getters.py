@@ -1,4 +1,5 @@
 """Handlers for get-type CLI commands (show_config, list_providers, models, tools)."""
+import sys
 
 from janito.cli.cli_commands.list_providers import handle_list_providers
 from janito.cli.cli_commands.list_models import handle_list_models
@@ -15,10 +16,11 @@ def handle_getter(args, config_mgr=None):
     if getattr(args, "list_models", False):
         provider = getattr(args, "provider", None)
         if not provider:
+            import sys
             print(
                 "Error: No provider selected. Please set a provider using '-p PROVIDER', '--set provider=name', or configure a provider."
             )
-            return
+            sys.exit(1)
         provider_instance = ProviderRegistry().get_instance(provider)
     GETTER_DISPATCH = {
         "list_providers": partial(handle_list_providers, args),

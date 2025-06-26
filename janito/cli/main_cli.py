@@ -1,4 +1,5 @@
 import argparse
+import sys
 import enum
 from janito.cli.core.setters import handle_api_key_set, handle_set
 from janito.cli.core.getters import handle_getter
@@ -254,7 +255,7 @@ class JanitoCLI:
             print(
                 "Error: No provider selected and no provider found in config. Please set a provider using '-p PROVIDER', '--set provider=name', or configure a provider."
             )
-            return
+            sys.exit(1)
         modifiers = self.collect_modifiers()
         self._maybe_print_verbose_modifiers(modifiers)
         setup_event_logger_if_needed(self.args)
