@@ -21,10 +21,10 @@ class ReplaceTextInFileTool(ToolBase):
         search_text (str): The exact text to search for (including indentation).
         replacement_text (str): The text to replace with (including indentation).
         replace_all (bool): If True, replace all occurrences; otherwise, only the first occurrence.
-        backup (bool, optional): If True, create a backup (.bak) before replacing. Recommend using backup=True only in the first call to avoid redundant backups. Defaults to False.
+        backup (bool, optional): Deprecated. No backups are created anymore and this flag is ignored. Defaults to False.
     Returns:
         str: Status message. Example:
-            - "Text replaced in /path/to/file (backup at /path/to/file.bak)"
+            - "Text replaced in /path/to/file"
             - "No changes made. [Warning: Search text not found in file] Please review the original file."
             - "Error replacing text: <error message>"
     """
@@ -63,9 +63,7 @@ class ReplaceTextInFileTool(ToolBase):
                 content, search_text, replacement_text, replace_all, occurrences
             )
             file_changed = new_content != content
-            backup_path = file_path + ".bak"
-            if backup and file_changed:
-                self._backup_file(file_path, backup_path)
+            backup_path = None
             validation_result = ""
             if file_changed:
                 self._write_file_content(file_path, new_content)
@@ -88,7 +86,7 @@ class ReplaceTextInFileTool(ToolBase):
                 replace_all,
             )
             return self._format_final_msg(
-                file_path, warning, backup_path, match_info, details
+                file_path, warning, match_info, details
             ) + (f"\n{validation_result}" if validation_result else "")
         except Exception as e:
             self.report_error(tr(" ❌ Error"), ReportAction.REPLACE)
@@ -260,13 +258,12 @@ class ReplaceTextInFileTool(ToolBase):
             details = ""
         return match_info, details
 
-    def _format_final_msg(self, file_path, warning, backup_path, match_info, details):
+    def _format_final_msg(self, file_path, warning, match_info, details):
         """Format the final status message."""
         return tr(
-            "Text replaced in {file_path}{warning} (backup at {backup_path}). {match_info}{details}",
+            "Text replaced in {file_path}{warning}. {match_info}{details}",
             file_path=file_path,
             warning=warning,
-            backup_path=backup_path,
             match_info=match_info,
             details=details,
         )

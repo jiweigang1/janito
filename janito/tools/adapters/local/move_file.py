@@ -16,7 +16,7 @@ class MoveFileTool(ToolBase):
         src_path (str): Source file or directory path.
         dest_path (str): Destination file or directory path.
         overwrite (bool, optional): Whether to overwrite if the destination exists. Defaults to False.
-        backup (bool, optional): If True, create a backup (.bak for files, .bak.zip for directories) of the destination before moving if it exists. Recommend using backup=True only in the first call to avoid redundant backups. Defaults to False.
+        backup (bool, optional): Deprecated. No backups are created anymore. This flag is ignored. Defaults to False.
     Returns:
         str: Status message indicating the result.
     """
@@ -60,11 +60,7 @@ class MoveFileTool(ToolBase):
             shutil.move(src, dest)
             self.report_success(tr("✅ Move complete."))
             msg = tr("✅ Move complete.")
-            if backup_path:
-                msg += tr(
-                    " (backup at {backup_disp})",
-                    backup_disp=display_path(backup_path),
-                )
+
             return msg
         except Exception as e:
             self.report_error(tr("❌ Error moving: {error}", error=e))
@@ -116,13 +112,7 @@ class MoveFileTool(ToolBase):
                     "❗ Destination '{disp_dest}' already exists and overwrite is False.",
                     disp_dest=disp_dest,
                 )
-            if backup:
-                if os.path.isfile(dest):
-                    backup_path = dest + ".bak"
-                    shutil.copy2(dest, backup_path)
-                elif os.path.isdir(dest):
-                    backup_path = dest.rstrip("/\\") + ".bak.zip"
-                    shutil.make_archive(dest.rstrip("/\\") + ".bak", "zip", dest)
+
             try:
                 if os.path.isfile(dest):
                     os.remove(dest)

@@ -30,20 +30,10 @@ class RemoveDirectoryTool(ToolBase):
             tr("🗃️ Remove directory '{disp_path}' ...", disp_path=disp_path),
             ReportAction.DELETE,
         )
-        backup_zip = None
+
         try:
             if recursive:
-                # Backup before recursive removal
-                if os.path.exists(file_path) and os.path.isdir(file_path):
-                    backup_zip = file_path.rstrip("/\\") + ".bak.zip"
-                    with zipfile.ZipFile(backup_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
-                        for root, dirs, files in os.walk(file_path):
-                            for file in files:
-                                abs_path = os.path.join(root, file)
-                                rel_path = os.path.relpath(
-                                    abs_path, os.path.dirname(file_path)
-                                )
-                                zipf.write(abs_path, rel_path)
+
                 shutil.rmtree(file_path)
             else:
                 os.rmdir(file_path)
@@ -52,8 +42,7 @@ class RemoveDirectoryTool(ToolBase):
                 ReportAction.DELETE,
             )
             msg = tr("Directory removed: {disp_path}", disp_path=disp_path)
-            if backup_zip:
-                msg += tr(" (backup at {backup_zip})", backup_zip=backup_zip)
+
             return msg
         except Exception as e:
             self.report_error(

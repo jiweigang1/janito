@@ -15,7 +15,7 @@ class RemoveFileTool(ToolBase):
 
     Args:
         file_path (str): Path to the file to remove.
-        backup (bool, optional): If True, create a backup (.bak) before removing. Recommend using backup=True only in the first call to avoid redundant backups. Defaults to False.
+        backup (bool, optional): Deprecated. Backups are no longer created. Flag ignored.
     Returns:
         str: Status message indicating the result. Example:
             - "			 Successfully removed the file at ..."
@@ -28,7 +28,7 @@ class RemoveFileTool(ToolBase):
         original_path = file_path
         path = file_path  # Using file_path as is
         disp_path = display_path(original_path)
-        backup_path = None
+
         # Report initial info about what is going to be removed
         self.report_action(
             tr("🗑️ Remove file '{disp_path}' ...", disp_path=disp_path),
@@ -41,20 +41,14 @@ class RemoveFileTool(ToolBase):
             self.report_error(tr("❌ Path is not a file."), ReportAction.DELETE)
             return tr("❌ Path is not a file.")
         try:
-            if backup:
-                backup_path = path + ".bak"
-                shutil.copy2(path, backup_path)
+
             os.remove(path)
             self.report_success(tr("✅ File removed"), ReportAction.DELETE)
             msg = tr(
                 "✅ Successfully removed the file at '{disp_path}'.",
                 disp_path=disp_path,
             )
-            if backup_path:
-                msg += tr(
-                    " (backup at {backup_disp})",
-                    backup_disp=display_path(original_path + ".bak"),
-                )
+
             return msg
         except Exception as e:
             self.report_error(

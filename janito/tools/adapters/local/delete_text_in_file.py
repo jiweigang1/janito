@@ -15,7 +15,7 @@ class DeleteTextInFileTool(ToolBase):
         file_path (str): Path to the file to modify.
         start_marker (str): The starting delimiter string.
         end_marker (str): The ending delimiter string.
-        backup (bool, optional): If True, create a backup (.bak) before deleting. Defaults to False.
+
     Returns:
         str: Status message indicating the result.
     """
@@ -52,9 +52,7 @@ class DeleteTextInFileTool(ToolBase):
                     "No blocks found between markers in {file_path}.",
                     file_path=file_path,
                 )
-            backup_path = file_path + ".bak"
-            if backup:
-                self._backup_file(file_path, backup_path)
+
             new_content, deleted_blocks = self._delete_blocks(
                 content, start_marker, end_marker
             )
@@ -62,10 +60,9 @@ class DeleteTextInFileTool(ToolBase):
             validation_result = validate_file_syntax(file_path)
             self._report_success(match_lines)
             return tr(
-                "Deleted {count} block(s) between markers in {file_path}. (backup at {backup_path})",
+                "Deleted {count} block(s) between markers in {file_path}. ",
                 count=deleted_blocks,
-                file_path=file_path,
-                backup_path=backup_path if backup else "N/A",
+                file_path=file_path
             ) + (f"\n{validation_result}" if validation_result else "")
         except Exception as e:
             self.report_error(tr(" ❌ Error: {error}", error=e), ReportAction.REPLACE)
