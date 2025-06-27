@@ -61,6 +61,29 @@ class AzureOpenAIProvider(LLMProvider):
         """
         return True
 
+    def get_model_info(self, model_name=None):
+        """
+        For Azure OpenAI, accept any deployment name as a valid model name.
+        If the model_name is not in MODEL_SPECS, return a generic info dict.
+        """
+        if model_name is None:
+            # Return all known specs, but note: only static ones are listed
+            return {name: model_info.to_dict() for name, model_info in self.MODEL_SPECS.items()}
+        if model_name in self.MODEL_SPECS:
+            return self.MODEL_SPECS[model_name].to_dict()
+        # Accept any deployment name as a valid model
+        return {
+            "name": model_name,
+            "context": "N/A",
+            "max_input": "N/A",
+            "max_cot": "N/A",
+            "max_response": "N/A",
+            "thinking_supported": False,
+            "default_temp": 0.2,
+            "open": "azure_openai",
+            "driver": "AzureOpenAIModelDriver",
+        }
+
     def create_driver(self):
         """
         Creates and returns a new AzureOpenAIModelDriver instance with the provider's configuration and tools adapter.
