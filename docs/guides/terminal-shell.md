@@ -18,21 +18,27 @@ The interactive shell lets you have a continuous conversation with Janito, just 
 
 You can use these commands at any time (prefix with `/` or just type the name):
 
+> **Tip:** Use `/exec on` to enable code/shell execution tools at runtime. Use `/tools` to see which tools are currently enabled or disabled.
+
 | Command                | Description                                                      |
 |--- --- --- --- --- --- --- --- |--- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- |
 | `/exit`, `exit`        | Exit chat mode                                                   |
 | `/restart`             | Restart the CLI                                                  |
 | `/help`                | Show help message with available commands                        |
-| `/restart`             | Reset conversation history / start new task                      |
 | `/continue`            | Restore last saved conversation                                  |
-| `/restart`             | Reset conversation history                                       |
-| `/history [N]`         | Show last N messages (default: 5)                                |
+| `/history [N]`         | Show input history for this session (default: last 5 entries)    |
 | `/prompt`              | Show the current system prompt                                   |
 | `/role <description>`  | Change the system role (e.g., "You are a code reviewer")        |
 | `/lang <code>`         | Change the interface language (e.g., `/lang pt`, `/lang en`)      |
 | `/clear`               | Clear the terminal screen                                        |
 | `/multi`               | Enter multiline input mode (write multi-line text, Esc+Enter)    |
 | `/config`              | Show or set configuration (see: `/config show`, `/config set local|global key=value`) |
+| `/edit <filename>`     | Open a file in the browser-based editor                          |
+| `/view`                | Print the current LLM conversation history                       |
+| `/profile`             | Show the current and available Agent Profile                     |
+| `/termweb-logs [N]`    | Show the last N lines of the latest termweb logs (default: 20)   |
+| `/exec [on|off]`       | Enable or disable code/shell execution tools at runtime          |
+| `/tools`               | List all registered tools and show which are enabled/disabled     |
 
 ## 🖱️ Clickable File Links
 
@@ -46,6 +52,23 @@ When Janito references files in its responses, the file names may appear as clic
 This feature enhances productivity by bridging the terminal and browser, making it easy to inspect and act on files referenced in your conversations.
 
 ## 💻 Usage Example
+
+### Enabling Execution Tools
+
+By default, tools that can execute code or shell commands are **disabled** for safety. To enable these tools (such as code execution, shell commands, etc.), use the `/exec on` command at any time in the shell:
+
+```sh
+/exec on
+```
+
+To disable execution tools again, use:
+
+```sh
+/exec off
+```
+
+Use `/tools` to see which tools are currently enabled or disabled.
+
 
 ```sh
 janito
