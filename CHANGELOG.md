@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.3.1] - 2025-06-25
+### Changed
+- Bumped version to 2.3.1 in `version.py`, `pyproject.toml`, and `__init__.py`.
+
 ## [2.3.0] - 2025-06-25
 ### Added
 - requirements-dev.txt with development dependencies (pytest, pre-commit, ruff, detect-secrets, codespell, black) for code quality and testing
