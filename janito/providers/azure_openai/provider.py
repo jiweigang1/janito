@@ -23,6 +23,9 @@ class AzureOpenAIProvider(LLMProvider):
     def __init__(
         self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
     ):
+        # Always create a tools adapter so that provider.execute_tool() works even when
+        # the underlying driver is not available (e.g. OpenAI SDK not installed).
+        self._tools_adapter = get_local_tools_adapter()
         if not self.available:
             self._driver = None
             return

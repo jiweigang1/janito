@@ -24,6 +24,10 @@ class OpenAIProvider(LLMProvider):
         self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
     ):
         if not self.available:
+            # Even when the OpenAI driver is unavailable we still need a tools adapter
+            # so that any generic logic that expects `execute_tool()` to work does not
+            # crash with an AttributeError when it tries to access `self._tools_adapter`.
+            self._tools_adapter = get_local_tools_adapter()
             self._driver = None
         else:
             self.auth_manager = auth_manager or LLMAuthManager()

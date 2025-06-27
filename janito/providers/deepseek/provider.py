@@ -21,6 +21,9 @@ class DeepseekProvider(LLMProvider):
     def __init__(
         self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
     ):
+        # Always set a tools adapter so that even if the driver is unavailable,
+        # generic code paths that expect provider.execute_tool() continue to work.
+        self._tools_adapter = get_local_tools_adapter()
         if not self.available:
             self._driver = None
         else:

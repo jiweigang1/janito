@@ -24,6 +24,9 @@ class MistralAIProvider(LLMProvider):
     def __init__(
         self, config: LLMDriverConfig = None, auth_manager: LLMAuthManager = None
     ):
+        # Always instantiate a tools adapter so that provider.execute_tool() remains functional
+        # even when the driver cannot be constructed due to missing dependencies.
+        self._tools_adapter = get_local_tools_adapter()
         if not self.available:
             self._driver = None
             return

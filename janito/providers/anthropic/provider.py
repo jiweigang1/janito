@@ -23,6 +23,8 @@ class AnthropicProvider(LLMProvider):
     def __init__(
         self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
     ):
+        # Ensure we always have a tools adapter, even if the driver itself is unavailable.
+        self._tools_adapter = get_local_tools_adapter()
         if not self.available:
             self._driver = None
             return

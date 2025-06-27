@@ -22,6 +22,9 @@ class GoogleProvider(LLMProvider):
     def __init__(
         self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
     ):
+        # Always have a tools adapter available to avoid AttributeError downstream when
+        # the driver is missing but other logic still relies on tools execution.
+        self._tools_adapter = get_local_tools_adapter()
         if not self.available:
             self._driver = None
         else:
