@@ -13,11 +13,11 @@ class ToolsAdapterBase:
     """
 
     def __init__(
-        self, tools=None, event_bus=None, allowed_tools: Optional[list] = None
+        self, tools=None, event_bus=None, enabled_tools: Optional[list] = None
     ):
         self._tools = tools or []
         self._event_bus = event_bus  # event bus can be set on all adapters
-        self._allowed_tools = set(allowed_tools) if allowed_tools is not None else None
+        self._enabled_tools = set(enabled_tools) if enabled_tools is not None else None
         self.verbose_tools = False
 
     def set_verbose_tools(self, value: bool):
@@ -32,8 +32,10 @@ class ToolsAdapterBase:
         self._event_bus = bus
 
     def get_tools(self):
-        """Return the list of tools managed by this provider."""
-        return self._tools
+        """Return the list of enabled tools managed by this provider."""
+        if self._enabled_tools is None:
+            return self._tools
+        return [tool for tool in self._tools if getattr(tool, 'tool_name', None) in self._enabled_tools]
 
     def add_tool(self, tool):
         self._tools.append(tool)
@@ -229,8 +231,8 @@ class ToolsAdapterBase:
         )
 
     def _check_tool_permissions(self, tool_name, request_id, arguments):
-        if self._allowed_tools is not None and tool_name not in self._allowed_tools:
-            error_msg = f"Tool '{tool_name}' is not permitted by adapter allow-list."
+        if self._enabled_tools is not None and tool_name not in self._enabled_tools:
+            error_msg = f"Tool '{tool_name}' is not enabled in this adapter."
             if self._event_bus:
                 self._event_bus.publish(
                     ToolCallError(

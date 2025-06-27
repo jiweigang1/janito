@@ -24,6 +24,7 @@ def assemble_bindings_line(width):
     return (
         f" <key-label>CTRL-C</key-label>: Interrupt Request/Exit Shell | "
         f"<key-label>F1</key-label>: Restart conversation | "
+        f"<key-label>F2</key-label>: Exec | "
         f"<b>/help</b>: Help | "
         f"<key-label>F12</key-label>: Do It "
     )

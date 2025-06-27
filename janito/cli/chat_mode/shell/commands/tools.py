@@ -6,18 +6,29 @@ class ToolsShellHandler(ShellCmdHandler):
 
     def run(self):
         try:
+            # Initialize allow_execution before use
+            allow_execution = False
+            if hasattr(self, 'shell_state') and self.shell_state is not None:
+                allow_execution = getattr(self.shell_state, 'allow_execution', False)
+
             import janito.tools  # Ensure all tools are registered
             registry = janito.tools.get_local_tools_adapter()
             tools = registry.list_tools()
             shared_console.print("Registered tools:" if tools else "No tools registered.")
+            # Get tool instances for annotation
+            tool_instances = {t.tool_name: t for t in registry.get_tools()}
             for tool in tools:
-                shared_console.print(f"- {tool}")
+                inst = tool_instances.get(tool, None)
+                is_exec = getattr(inst, 'provides_execution', False) if inst else False
+                if is_exec and not allow_execution:
+                    shared_console.print(f"- {tool} (disabled)")
+                else:
+                    shared_console.print(f"- {tool}")
 
-            # Check for execution tools
-            # We assume shell_state.allow_execution is set if -x is used
-            allow_execution = False
-            if hasattr(self, 'shell_state') and self.shell_state is not None:
-                allow_execution = getattr(self.shell_state, 'allow_execution', False)
+            if allow_execution:
+                shared_console.print("[green]Execution tools are ENABLED.[/green]")
+            else:
+                shared_console.print("[yellow]Execution tools are DISABLED. Use /exec on to enable them.[/yellow]")
 
             # Find all possible execution tools (by convention: provides_execution = True)
             exec_tools = []

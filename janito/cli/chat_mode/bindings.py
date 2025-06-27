@@ -28,6 +28,12 @@ class KeyBindingsFactory:
             buf.text = "/restart"
             buf.validate_and_handle()
 
+        @bindings.add("f2")
+        def _(event):
+            buf = event.app.current_buffer
+            buf.text = "/exec on"
+            buf.validate_and_handle()
+
         @bindings.add("f12")
         def _(event):
             buf = event.app.current_buffer

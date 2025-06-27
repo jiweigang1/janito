@@ -33,6 +33,13 @@ class PromptHandler:
             exec_enabled=exec_enabled,
         )
         # Setup conversation/history if needed
+        # Dynamically enable/disable execution tools in the registry
+        try:
+            registry = __import__('janito.tools', fromlist=['get_local_tools_adapter']).get_local_tools_adapter()
+            if hasattr(registry, 'set_execution_tools_enabled'):
+                registry.set_execution_tools_enabled(exec_enabled)
+        except Exception as e:
+            shared_console.print(f"[yellow]Warning: Could not update execution tools dynamically in single-shot mode: {e}[/yellow]")
         self.generic_handler = GenericPromptHandler(
             args, [], provider_instance=provider_instance
         )

@@ -104,14 +104,24 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
     from janito.provider_registry import ProviderRegistry
 
     # Patch: disable execution/run tools if not enabled
+    import janito.tools
+    adapter = janito.tools.get_local_tools_adapter(workdir=getattr(args, "workdir", None))
     if not exec_enabled:
-        import janito.tools
-        adapter = janito.tools.get_local_tools_adapter(workdir=getattr(args, "workdir", None))
         if hasattr(adapter, "disable_execution_tools"):
             adapter.disable_execution_tools()
     else:
-        import janito.tools
-        adapter = janito.tools.get_local_tools_adapter(workdir=getattr(args, "workdir", None))
+        # Try to re-register execution tools if possible (print warning if not supported)
+        if hasattr(adapter, "register_tool"):
+            # This is a no-op if already registered, but we can attempt to re-register known execution tools
+            try:
+                from janito.tools.adapters.local import PythonCodeRunTool, PythonCommandRunTool, PythonFileRunTool, RunBashCommandTool, RunPowershellCommandTool
+                for tool_cls in [PythonCodeRunTool, PythonCommandRunTool, PythonFileRunTool, RunBashCommandTool, RunPowershellCommandTool]:
+                    try:
+                        adapter.register_tool(tool_cls)
+                    except Exception:
+                        pass  # Already registered or error
+            except Exception:
+                pass
 
     provider_instance = ProviderRegistry().get_instance(provider, llm_driver_config)
     if provider_instance is None:

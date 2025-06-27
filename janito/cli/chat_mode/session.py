@@ -20,6 +20,7 @@ from janito.cli.chat_mode.shell.autocomplete import ShellCommandCompleter
 
 class ChatShellState:
     def __init__(self, mem_history, conversation_history):
+        self.allow_execution = False  # Controls whether execution tools are enabled
         self.mem_history = mem_history
         self.conversation_history = conversation_history
         self.paste_mode = False
@@ -52,8 +53,13 @@ class ChatSession:
         args=None,
         verbose_tools=False,
         verbose_agent=False,
-        exec_enabled=False,
+        exec_enabled=False
     ):
+        # Set allow_execution from exec_enabled or args
+        if args is not None and hasattr(args, "exec"):
+            allow_execution = bool(getattr(args, "exec", False))
+        else:
+            allow_execution = exec_enabled
         from janito.cli.prompt_core import PromptHandler as GenericPromptHandler
 
         self._prompt_handler = GenericPromptHandler(
@@ -83,13 +89,21 @@ class ChatSession:
             role=role,
             verbose_tools=verbose_tools,
             verbose_agent=verbose_agent,
-            exec_enabled=exec_enabled,
+            exec_enabled=allow_execution
         )
         from janito.conversation_history import LLMConversationHistory
 
         self.shell_state = ChatShellState(self.mem_history, LLMConversationHistory())
         self.shell_state.agent = agent
+        self.shell_state.allow_execution = allow_execution
         self.agent = agent
+        # Filter execution tools at startup
+        try:
+            registry = getattr(__import__('janito.tools', fromlist=['get_local_tools_adapter']), 'get_local_tools_adapter')()
+            if hasattr(registry, 'set_execution_tools_enabled'):
+                registry.set_execution_tools_enabled(allow_execution)
+        except Exception as e:
+            self.console.print(f"[yellow]Warning: Could not filter execution tools at startup: {e}[/yellow]")
         from janito.perf_singleton import performance_collector
 
         self.performance_collector = performance_collector

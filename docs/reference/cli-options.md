@@ -36,6 +36,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 | `-w`, `--web` | Enable the builtin lightweight web file viewer for terminal links (disabled by default) |
 
 | `--termweb-port TERMWEB_PORT` | Port for the termweb server (default: 8088) |
+| `--effort {low, medium, high, none}` | Set the reasoning effort for models that support it (low, medium, high, none) |
 | `-e`, `--event-log` | Enable event logging to the system bus |
 | `--event-debug` | Print debug info on event subscribe/submit methods |
 
@@ -59,3 +60,15 @@ janito -x "Run this code: print('Hello, world!')"
 > **Warning:** Enabling execution tools allows running arbitrary code or shell commands. Only use `--exec` if you trust your prompt and environment.
 
 _This page is generated from the output of `janito --help`._
+
+## 🧠 About `--effort`
+
+The `--effort` option allows you to set the reasoning effort for models that support it. This can influence how much computational or logical effort the model applies to your prompt. The available values are:
+
+- `low`: Minimal reasoning effort (faster, less detailed)
+- `medium`: Moderate reasoning effort (default for some models)
+- `high`: Maximum reasoning effort (slower, more detailed)
+- `none`: Disables special reasoning effort (model default)
+
+> **Note:** Not all models or providers support this option. If unsupported, the option may be ignored.
+

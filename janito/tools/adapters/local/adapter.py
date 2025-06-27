@@ -3,20 +3,35 @@ from janito.tools.tools_adapter import ToolsAdapterBase as ToolsAdapter
 
 
 class LocalToolsAdapter(ToolsAdapter):
-    def disable_execution_tools(self):
-        """Unregister all tools with provides_execution = True."""
-        to_remove = [name for name, entry in self._tools.items()
-                     if getattr(entry["instance"], "provides_execution", False)]
-        for name in to_remove:
-            self.unregister_tool(name)
+    def set_execution_tools_enabled(self, enabled: bool):
+        """
+        Dynamically include or exclude execution tools from the enabled_tools set.
+        If enabled_tools is None, all tools are enabled (default). If set, restricts enabled tools.
+        """
+        all_tool_names = set(self._tools.keys())
+        exec_tool_names = {
+            name for name, entry in self._tools.items()
+            if getattr(entry["instance"], "provides_execution", False)
+        }
+        if self._enabled_tools is None:
+            # If not restricted, create a new enabled-tools set excluding execution tools if disabling
+            if enabled:
+                self._enabled_tools = None  # all tools enabled
+            else:
+                self._enabled_tools = all_tool_names - exec_tool_names
+        else:
+            if enabled:
+                self._enabled_tools |= exec_tool_names
+            else:
+                self._enabled_tools -= exec_tool_names
 
     """
     Adapter for local, statically registered tools in the agent/tools system.
     Handles registration, lookup, enabling/disabling, listing, and now, tool execution (merged from executor).
     """
 
-    def __init__(self, tools=None, event_bus=None, allowed_tools=None, workdir=None):
-        super().__init__(tools=tools, event_bus=event_bus, allowed_tools=allowed_tools)
+    def __init__(self, tools=None, event_bus=None, enabled_tools=None, workdir=None):
+        super().__init__(tools=tools, event_bus=event_bus, enabled_tools=enabled_tools)
         self._tools: Dict[str, Dict[str, Any]] = {}
         self.workdir = workdir
         if self.workdir:
@@ -56,13 +71,19 @@ class LocalToolsAdapter(ToolsAdapter):
         return self._tools[name]["instance"] if name in self._tools else None
 
     def list_tools(self):
-        return list(self._tools.keys())
+        if self._enabled_tools is None:
+            return list(self._tools.keys())
+        return [name for name in self._tools.keys() if name in self._enabled_tools]
 
     def get_tool_classes(self):
-        return [entry["class"] for entry in self._tools.values()]
+        if self._enabled_tools is None:
+            return [entry["class"] for entry in self._tools.values()]
+        return [entry["class"] for name, entry in self._tools.items() if name in self._enabled_tools]
 
     def get_tools(self):
-        return [entry["instance"] for entry in self._tools.values()]
+        if self._enabled_tools is None:
+            return [entry["instance"] for entry in self._tools.values()]
+        return [entry["instance"] for name, entry in self._tools.items() if name in self._enabled_tools]
 
 
     def add_tool(self, tool):
@@ -94,3 +115,4 @@ def register_local_tool(tool=None):
     if tool is None:
         return decorator
     return decorator(tool)
+

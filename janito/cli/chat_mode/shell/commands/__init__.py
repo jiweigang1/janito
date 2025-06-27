@@ -13,6 +13,9 @@ from .help import HelpShellHandler
 from janito.cli.console import shared_console
 
 COMMAND_HANDLERS = {
+    "/exec": __import__(
+        "janito.cli.chat_mode.shell.commands.exec", fromlist=["ExecShellHandler"]
+    ).ExecShellHandler,
     "/clear": __import__(
         "janito.cli.chat_mode.shell.commands.clear", fromlist=["ClearShellHandler"]
     ).ClearShellHandler,
