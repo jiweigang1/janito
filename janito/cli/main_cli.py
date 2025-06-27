@@ -93,14 +93,6 @@ definition = [
         {"type": float, "default": None, "help": "Set the temperature"},
     ),
     (
-        ["--reasoning-effort"],
-        {
-            "choices": ["low", "medium", "high", "none"],
-            "default": None,
-            "help": "Set the reasoning effort for models that support it (low, medium, high, none)",
-        },
-    ),
-    (
         ["-v", "--verbose"],
         {"action": "store_true", "help": "Print extra information before answering"},
     ),
@@ -154,7 +146,7 @@ MODIFIER_KEYS = [
     "role",
     "system",
     "temperature",
-    "reasoning_effort",
+
     "verbose",
     "raw",
     "web",
