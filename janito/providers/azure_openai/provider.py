@@ -36,6 +36,11 @@ class AzureOpenAIProvider(LLMProvider):
             self._driver_config.api_key = self._api_key
         if not self._driver_config.extra.get("api_version"):
             self._driver_config.extra["api_version"] = "2023-05-15"
+        # Inject azure_deployment_name from config if present
+        from janito.config import config as global_config
+        deployment_name = global_config.get("azure_deployment_name")
+        if deployment_name:
+            self._driver_config.extra["azure_deployment_name"] = deployment_name
         self.fill_missing_device_info(self._driver_config)
         self._driver = AzureOpenAIModelDriver(tools_adapter=self._tools_adapter)
 

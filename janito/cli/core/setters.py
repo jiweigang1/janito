@@ -37,10 +37,14 @@ def handle_set(args, config_mgr=None):
             return _handle_set_max_tokens(value)
         if key == "base_url":
             return _handle_set_base_url(value)
+        if key in ["azure_deployment_name", "azure-deployment-name"]:
+            global_config.file_set("azure_deployment_name", value)
+            print(f"Azure deployment name set to '{value}'.")
+            return True
         if ".max_tokens" in key or ".base_url" in key:
             return _handle_set_provider_level_setting(key, value)
         print(
-            f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url"
+            f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, azure_deployment_name, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url"
         )
         return True
     except Exception as e:

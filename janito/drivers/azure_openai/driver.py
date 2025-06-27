@@ -14,6 +14,18 @@ from janito.llm.driver_config import LLMDriverConfig
 
 
 class AzureOpenAIModelDriver(OpenAIModelDriver):
+    def start(self, *args, **kwargs):
+        # Ensure azure_deployment_name is set before starting
+        config = getattr(self, 'config', None)
+        deployment_name = None
+        if config and hasattr(config, 'extra'):
+            deployment_name = config.extra.get('azure_deployment_name')
+        if not deployment_name:
+            raise RuntimeError("AzureOpenAIModelDriver requires 'azure_deployment_name' to be set in config.extra['azure_deployment_name'] before starting.")
+        # Call parent start if exists
+        if hasattr(super(), 'start'):
+            return super().start(*args, **kwargs)
+
     available = DRIVER_AVAILABLE
     unavailable_reason = DRIVER_UNAVAILABLE_REASON
 
@@ -34,6 +46,16 @@ class AzureOpenAIModelDriver(OpenAIModelDriver):
         self.api_version = None
         self.api_key = None
 
+    def _prepare_api_kwargs(self, config, conversation):
+        """
+        Prepares API kwargs for Azure OpenAI, using the deployment name as the model parameter.
+        """
+        api_kwargs = super()._prepare_api_kwargs(config, conversation)
+        deployment_name = config.extra.get("azure_deployment_name") if hasattr(config, "extra") else None
+        if deployment_name:
+            api_kwargs["model"] = deployment_name
+        return api_kwargs
+
     def _instantiate_openai_client(self, config):
         try:
             from openai import AzureOpenAI
@@ -45,6 +67,7 @@ class AzureOpenAIModelDriver(OpenAIModelDriver):
                 "azure_endpoint": getattr(config, "base_url", None),
                 "api_version": config.extra.get("api_version", "2023-05-15"),
             }
+            # Do NOT pass azure_deployment; deployment name is used as the 'model' param in API calls
             client = AzureOpenAI(**client_kwargs)
             return client
         except Exception as e:

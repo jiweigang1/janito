@@ -1,7 +1,0 @@
-{
-  "providers": {
-    "openai": {
-      "max-tokens": "100000"
-    }
-  }
-}
