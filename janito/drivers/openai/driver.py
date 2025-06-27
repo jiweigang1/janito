@@ -103,8 +103,15 @@ class OpenAIModelDriver(LLMDriver):
         )
         request_id = getattr(config, "request_id", None)
         if config.verbose_api:
+            tool_adapter_name = type(self.tools_adapter).__name__ if self.tools_adapter else None
+            tool_names = []
+            if self.tools_adapter and hasattr(self.tools_adapter, "list_tools"):
+                try:
+                    tool_names = self.tools_adapter.list_tools()
+                except Exception:
+                    tool_names = ["<error retrieving tools>"]
             print(
-                f"[verbose-api] OpenAI API call about to be sent. Model: {config.model}, max_tokens: {config.max_tokens}, tools_adapter: {type(self.tools_adapter).__name__ if self.tools_adapter else None}",
+                f"[verbose-api] OpenAI API call about to be sent. Model: {config.model}, max_tokens: {config.max_tokens}, tools_adapter: {tool_adapter_name}, tool_names: {tool_names}",
                 flush=True,
             )
         import time, re, json

@@ -19,7 +19,7 @@ def print_verbose_header(agent, args):
         parts = [
             f"Janito {VERSION}",
             f"Provider: {agent.llm_provider.__class__.__name__}",
-            f"Model: {agent.llm_provider.model_name}{role_part}",
+            (f"Model: {agent.llm_provider.driver_config.extra.get('azure_deployment_name', agent.llm_provider.driver_config.model)}{role_part}" if agent.llm_provider.__class__.__name__ == 'AzureOpenAIProvider' else f"Model: {getattr(agent.llm_provider.driver_config, 'model', '-')}{role_part}"),
             f"Driver: {agent.llm_provider.__class__.__module__.split('.')[-2] if len(agent.llm_provider.__class__.__module__.split('.')) > 1 else agent.llm_provider.__class__.__name__}",
         ]
         if hasattr(args, "think") and args.think:
