@@ -2,7 +2,7 @@ from janito.llm.provider import LLMProvider
 from janito.llm.model import LLMModelInfo
 from janito.llm.auth import LLMAuthManager
 from janito.llm.driver_config import LLMDriverConfig
-from janito.tools.adapters.local.adapter import LocalToolsAdapter
+from janito.tools import get_local_tools_adapter
 from janito.providers.registry import LLMProviderRegistry
 
 from .model_info import MODEL_SPECS
@@ -28,7 +28,7 @@ class AzureOpenAIProvider(LLMProvider):
             return
         self._auth_manager = auth_manager or LLMAuthManager()
         self._api_key = self._auth_manager.get_credentials(type(self).name)
-        self._tools_adapter = LocalToolsAdapter()
+        self._tools_adapter = get_local_tools_adapter()
         self._driver_config = config or LLMDriverConfig(model=None)
         if not self._driver_config.model:
             self._driver_config.model = self.DEFAULT_MODEL

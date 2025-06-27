@@ -35,13 +35,13 @@ class AzureOpenAIModelDriver(OpenAIModelDriver):
 
     required_config = {"base_url"}  # Update key as used in your config logic
 
-    def __init__(self, tools_adapter=None):
+    def __init__(self, tools_adapter=None, provider_name=None):
         if not self.available:
             raise ImportError(
                 f"AzureOpenAIModelDriver unavailable: {self.unavailable_reason}"
             )
-        # Do NOT call super().__init__ if Azure SDK is not available
-        OpenAIModelDriver.__init__(self, tools_adapter=tools_adapter)
+        # Ensure proper parent initialization
+        super().__init__(tools_adapter=tools_adapter, provider_name=provider_name)
         self.azure_endpoint = None
         self.api_version = None
         self.api_key = None
@@ -49,11 +49,23 @@ class AzureOpenAIModelDriver(OpenAIModelDriver):
     def _prepare_api_kwargs(self, config, conversation):
         """
         Prepares API kwargs for Azure OpenAI, using the deployment name as the model parameter.
+        Also ensures tool schemas are included if tools_adapter is present.
         """
         api_kwargs = super()._prepare_api_kwargs(config, conversation)
         deployment_name = config.extra.get("azure_deployment_name") if hasattr(config, "extra") else None
         if deployment_name:
             api_kwargs["model"] = deployment_name
+        # Patch: Ensure tools are included for Azure as for OpenAI
+        if self.tools_adapter:
+            try:
+                from janito.providers.openai.schema_generator import generate_tool_schemas
+                tool_classes = self.tools_adapter.get_tool_classes()
+                tool_schemas = generate_tool_schemas(tool_classes)
+                api_kwargs["tools"] = tool_schemas
+            except Exception as e:
+                api_kwargs["tools"] = []
+                if hasattr(config, "verbose_api") and config.verbose_api:
+                    print(f"[AzureOpenAIModelDriver] Tool schema generation failed: {e}")
         return api_kwargs
 
     def _instantiate_openai_client(self, config):

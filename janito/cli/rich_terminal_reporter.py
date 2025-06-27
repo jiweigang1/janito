@@ -66,7 +66,18 @@ class RichTerminalReporter(EventHandlerBase):
     def on_RequestFinished(self, event):
         self.console.print("")  # Print end of line after waiting message
         self._waiting_printed = False
-        response = event.response if hasattr(event, "response") else None
+        response = getattr(event, "response", None)
+        error = getattr(event, "error", None)
+        exception = getattr(event, "exception", None)
+
+        # Print error and exception if present
+        if error:
+            self.console.print(f"[bold red]Error:[/] {error}")
+            self.console.file.flush()
+        if exception:
+            self.console.print(f"[red]Exception:[/] {exception}")
+            self.console.file.flush()
+
         if response is not None:
             if self.raw_mode:
                 self.console.print(Pretty(response, expand_all=True))
