@@ -43,8 +43,17 @@ def handle_set(args, config_mgr=None):
             return True
         if ".max_tokens" in key or ".base_url" in key:
             return _handle_set_provider_level_setting(key, value)
+        # Tool permissions support: janito set tool_permissions=rwx
+        if key == "tool_permissions":
+            from janito.tools.permissions_parse import parse_permissions_string
+            from janito.tools.permissions import set_global_allowed_permissions
+            perms = parse_permissions_string(value)
+            global_config.file_set("tool_permissions", value)
+            set_global_allowed_permissions(perms)
+            print(f"Tool permissions set to '{value}' (parsed: {perms})")
+            return True
         print(
-            f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, azure_deployment_name, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url"
+            f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, azure_deployment_name, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url, tool_permissions"
         )
         return True
     except Exception as e:

@@ -27,7 +27,7 @@ class AskUserTool(ToolBase):
             - "No"
             - "Some detailed answer..."
     """
-    permissions = ToolPermissions(execute=True)
+    permissions = ToolPermissions(read=True)
     tool_name = "ask_user"
 
     def run(self, question: str) -> str:

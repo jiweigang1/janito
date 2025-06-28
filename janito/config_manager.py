@@ -31,6 +31,19 @@ class ConfigManager:
         self.file_config = {}
         self.runtime_overrides = dict(runtime_overrides) if runtime_overrides else {}
         self._load_file_config()
+        self._apply_tool_permissions_on_startup()
+
+    def _apply_tool_permissions_on_startup(self):
+        # On startup, read tool_permissions from config and set global permissions
+        perm_str = self.file_config.get("tool_permissions")
+        if perm_str:
+            try:
+                from janito.tools.permissions_parse import parse_permissions_string
+                from janito.tools.permissions import set_global_allowed_permissions
+                perms = parse_permissions_string(perm_str)
+                set_global_allowed_permissions(perms)
+            except Exception as e:
+                print(f"Warning: Failed to apply tool_permissions from config: {e}")
 
     def _load_file_config(self):
         if self.config_path.exists():

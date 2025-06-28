@@ -12,6 +12,9 @@ def handle_list_tools(args=None):
     read = getattr(args, "read", False) if args else False
     write = getattr(args, "write", False) if args else False
     execute = getattr(args, "exec", False) if args else False
+    # If no permissions are specified, assume user wants to list all tools
+    if not (read or write or execute):
+        read = write = execute = True
     from janito.tools.permissions import set_global_allowed_permissions
     set_global_allowed_permissions(ToolPermissions(read=read, write=write, execute=execute))
     registry = janito.tools.get_local_tools_adapter()
@@ -22,7 +25,9 @@ def handle_list_tools(args=None):
         console = Console()
         # Get tool instances to check provides_execution and get info
         tool_instances = {t.tool_name: t for t in registry.get_tools()}
-        normal_tools = []
+        read_only_tools = []
+        write_only_tools = []
+        read_write_tools = []
         exec_tools = []
         for tool in tools:
             inst = tool_instances.get(tool, None)
@@ -39,16 +44,36 @@ def handle_list_tools(args=None):
             perms = getattr(inst, "permissions", None)
             if perms and perms.execute:
                 exec_tools.append(info)
-            else:
-                normal_tools.append(info)
-        table = Table(title="Registered tools", show_header=True, header_style="bold", show_lines=False, box=None)
-        table.add_column("Name", style="cyan", no_wrap=True)
-        table.add_column("Parameters", style="yellow")
-        for info in normal_tools:
-            table.add_row(info["name"], info["params"] or "-")
-        console.print(table)
+            elif perms and perms.read and perms.write:
+                read_write_tools.append(info)
+            elif perms and perms.read:
+                read_only_tools.append(info)
+            elif perms and perms.write:
+                write_only_tools.append(info)
+        # Print each group if not empty
+        if read_only_tools:
+            table = Table(title="Read-only tools (-r)", show_header=True, header_style="bold", show_lines=False, box=None)
+            table.add_column("Name", style="cyan", no_wrap=True)
+            table.add_column("Parameters", style="yellow")
+            for info in read_only_tools:
+                table.add_row(info["name"], info["params"] or "-")
+            console.print(table)
+        if write_only_tools:
+            table = Table(title="Write-only tools (-w)", show_header=True, header_style="bold", show_lines=False, box=None)
+            table.add_column("Name", style="cyan", no_wrap=True)
+            table.add_column("Parameters", style="yellow")
+            for info in write_only_tools:
+                table.add_row(info["name"], info["params"] or "-")
+            console.print(table)
+        if read_write_tools:
+            table = Table(title="Read-Write tools (-rw)", show_header=True, header_style="bold", show_lines=False, box=None)
+            table.add_column("Name", style="cyan", no_wrap=True)
+            table.add_column("Parameters", style="yellow")
+            for info in read_write_tools:
+                table.add_row(info["name"], info["params"] or "-")
+            console.print(table)
         if exec_tools:
-            exec_table = Table(title="Execution tools (only available with -x)", show_header=True, header_style="bold", show_lines=False, box=None)
+            exec_table = Table(title="Execution tools (-x)", show_header=True, header_style="bold", show_lines=False, box=None)
             exec_table.add_column("Name", style="cyan", no_wrap=True)
             exec_table.add_column("Parameters", style="yellow")
             for info in exec_tools:
