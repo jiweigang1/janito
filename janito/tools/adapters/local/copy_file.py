@@ -2,7 +2,7 @@ import os
 import shutil
 from typing import List, Union
 from janito.tools.adapters.local.adapter import register_local_tool
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.tools.tool_utils import display_path
 from janito.report_events import ReportAction
 from janito.i18n import tr
@@ -21,7 +21,7 @@ class CopyFileTool(ToolBase):
     Returns:
         str: Status string for each copy operation.
     """
-
+    permissions = ToolPermissions(read=True, write=True)
     tool_name = "copy_file"
 
     def run(self, sources: str, target: str, overwrite: bool = False) -> str:

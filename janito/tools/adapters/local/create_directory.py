@@ -1,7 +1,7 @@
 from janito.tools.adapters.local.adapter import register_local_tool
 
 from janito.tools.tool_utils import display_path
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.i18n import tr
 import os
@@ -18,7 +18,7 @@ class CreateDirectoryTool(ToolBase):
             - "5c5 Successfully created the directory at ..."
             - "5d7 Cannot create directory: ..."
     """
-
+    permissions = ToolPermissions(write=True)
     tool_name = "create_directory"
 
     def run(self, file_path: str) -> str:

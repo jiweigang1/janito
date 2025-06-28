@@ -1,4 +1,4 @@
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.tools.adapters.local.adapter import register_local_tool
 
 from rich import print as rich_print
@@ -20,15 +20,14 @@ class AskUserTool(ToolBase):
     Prompts the user for clarification or input with a question.
 
     Args:
-        question (str): The question to ask the user.
-
+        question (str): The question to ask the user. This parameter is required and should be a string containing the prompt or question to display to the user.
     Returns:
         str: The user's response as a string. Example:
             - "Yes"
             - "No"
             - "Some detailed answer..."
     """
-
+    permissions = ToolPermissions(execute=True)
     tool_name = "ask_user"
 
     def run(self, question: str) -> str:

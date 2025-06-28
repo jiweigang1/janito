@@ -1,4 +1,4 @@
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 
 
@@ -11,7 +11,7 @@ class SearchOutlineTool(ToolBase):
     Returns:
         str: Outline search result or status message.
     """
-
+    permissions = ToolPermissions(read=True)
     tool_name = "search_outline"
 
     def run(self, file_path: str) -> str:

@@ -1,4 +1,4 @@
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.i18n import tr
@@ -28,7 +28,7 @@ class ReplaceTextInFileTool(ToolBase):
             - "No changes made. [Warning: Search text not found in file] Please review the original file."
             - "Error replacing text: <error message>"
     """
-
+    permissions = ToolPermissions(read=True, write=True)
     tool_name = "replace_text_in_file"
 
     def run(

@@ -123,10 +123,10 @@ Janito has configuration options, like `--set api-key API_KEY` and `--set provid
 
 - **Enable Inline Web File Viewer for Clickable Links**
   
-  By default, Janito can open referenced files in a browser-based viewer when you click on file links in supported terminals. To enable this feature for your session, use the `-w` or `--web` flag:
+  By default, Janito can open referenced files in a browser-based viewer when you click on file links in supported terminals. To enable this feature for your session, use the `--web` flag:
   
   ```bash
-  janito -w
+  janito --web
   ```
 
   This starts the lightweight web file viewer (termweb) in the background, allowing you to inspect files referenced in responses directly in your browser. Combine with interactive mode or prompts as needed.
@@ -173,7 +173,7 @@ Janito has configuration options, like `--set api-key API_KEY` and `--set provid
 ### Core CLI Options
 | Option                  | Description                                                                 |
 |------------------------|-----------------------------------------------------------------------------|
-| `-w`, `--web`          | Enable the builtin lightweight web file viewer for clickable file links (termweb). |
+| `--web`          | Enable the builtin lightweight web file viewer for clickable file links (termweb). |
 | `--version`            | Show program version                                                        |
 | `--list-tools`         | List all registered tools                                                   |
 | `--list-providers`     | List all supported LLM providers                                            |
@@ -182,7 +182,7 @@ Janito has configuration options, like `--set api-key API_KEY` and `--set provid
 | `--set provider=name`  | Set the current LLM provider (e.g., `janito --set provider=openai`)         |
 | `--set PROVIDER.model=MODEL` or `--set model=MODEL` | Set the default model for the current/selected provider, or globally. (e.g., `janito --set openai.model=gpt-3.5-turbo`) |
 | `-s`, `--system`       | Set a system prompt (e.g., `janito -s path/to/system_prompt.txt "Your prompt here"`) |
-| `-r`, `--role`         | Set the role for the agent (overrides config) (e.g., `janito -r "assistant" "Your prompt here"`) |
+
 | `-p`, `--provider`     | Select LLM provider (overrides config) (e.g., `janito -p openai "Your prompt here"`) |
 | `-m`, `--model`        | Select model for the provider (e.g., `janito -m gpt-3.5-turbo "Your prompt here"`) |
 | `-v`, `--verbose`      | Print extra information before answering                                    |

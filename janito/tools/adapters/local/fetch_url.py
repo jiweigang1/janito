@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from janito.tools.adapters.local.adapter import register_local_tool
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.i18n import tr
 from janito.tools.tool_utils import pluralize
@@ -21,7 +21,7 @@ class FetchUrlTool(ToolBase):
             - "No lines found for the provided search strings."
             - "Warning: Empty URL provided. Operation skipped."
     """
-
+    permissions = ToolPermissions(read=True)
     tool_name = "fetch_url"
 
     def run(self, url: str, search_strings: list[str] = None) -> str:

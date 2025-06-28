@@ -27,13 +27,13 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 | `--set [PROVIDER_NAME.]KEY=VALUE` | Set a config key |
 | `-s SYSTEM_PROMPT`, `--system SYSTEM_PROMPT` | Set a system prompt |
 | `-S`, `--show-system` | Show the resolved system prompt for the main agent |
-| `-r ROLE`, `--role ROLE` | Set the role for the agent |
+
 | `-p PROVIDER`, `--provider PROVIDER` | Select the provider |
 | `-m MODEL`, `--model MODEL` | Select the model |
 | `-t TEMPERATURE`, `--temperature TEMPERATURE` | Set the temperature |
 | `-v`, `--verbose` | Print extra information before answering |
 | `-R`, `--raw` | Print the raw JSON response from the OpenAI API (if applicable) |
-| `-w`, `--web` | Enable the builtin lightweight web file viewer for terminal links (disabled by default) |
+| `--web` | Enable the builtin lightweight web file viewer for terminal links (disabled by default) |
 
 | `--termweb-port TERMWEB_PORT` | Port for the termweb server (default: 8088) |
 | `--effort {low, medium, high, none}` | Set the reasoning effort for models that support it (low, medium, high, none) |
@@ -46,7 +46,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 janito -p openai -m gpt-3.5-turbo "Your prompt here"
 janito -p google -m gemini-2.5-flash "Your prompt here"
 janito --list-tools
-janito -w  # Enable clickable file links via web viewer (termweb)
+janito --web  # Enable clickable file links via web viewer (termweb)
 
 ```
 

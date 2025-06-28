@@ -1,8 +1,7 @@
 from janito.tools.tool_base import ToolBase
 from janito.tools.tool_events import ToolCallStarted, ToolCallFinished, ToolCallError
 from janito.exceptions import ToolCallException
-from typing import Optional
-
+from janito.tools.tool_base import ToolPermissions
 
 class ToolsAdapterBase:
     """
@@ -13,11 +12,11 @@ class ToolsAdapterBase:
     """
 
     def __init__(
-        self, tools=None, event_bus=None, enabled_tools: Optional[list] = None
+        self, allowed_permissions, tools=None, event_bus=None
     ):
         self._tools = tools or []
         self._event_bus = event_bus  # event bus can be set on all adapters
-        self._enabled_tools = set(enabled_tools) if enabled_tools is not None else None
+        self._allowed_permissions = allowed_permissions  # ToolPermissions instance
         self.verbose_tools = False
 
     def set_verbose_tools(self, value: bool):
@@ -31,11 +30,28 @@ class ToolsAdapterBase:
     def event_bus(self, bus):
         self._event_bus = bus
 
+    def is_tool_allowed(self, tool):
+        """Check if a tool is allowed based on current allowed_permissions."""
+        perms = tool.permissions  # permissions are mandatory and type-checked
+        # If all permissions are False, block all tools
+        if not (self._allowed_permissions.read or self._allowed_permissions.write or self._allowed_permissions.execute):
+            return False
+        for perm in ['read', 'write', 'execute']:
+            if getattr(perms, perm) and not getattr(self._allowed_permissions, perm):
+                return False
+        return True
+
     def get_tools(self):
-        """Return the list of enabled tools managed by this provider."""
-        if self._enabled_tools is None:
-            return self._tools
-        return [tool for tool in self._tools if getattr(tool, 'tool_name', None) in self._enabled_tools]
+        """Return the list of enabled tools managed by this provider, filtered by allowed permissions if set."""
+        tools = [tool for tool in self._tools if self.is_tool_allowed(tool)]
+        return tools
+
+    def set_allowed_permissions(self, allowed_permissions):
+        """Set the allowed permissions at runtime. allowed_permissions must be a ToolPermissions instance."""
+        from janito.tools.tool_base import ToolPermissions
+        if allowed_permissions is not None and not isinstance(allowed_permissions, ToolPermissions):
+            raise ValueError("allowed_permissions must be a ToolPermissions instance or None")
+        self._allowed_permissions = allowed_permissions if allowed_permissions is not None else ToolPermissions()
 
     def add_tool(self, tool):
         self._tools.append(tool)
@@ -231,18 +247,8 @@ class ToolsAdapterBase:
         )
 
     def _check_tool_permissions(self, tool_name, request_id, arguments):
-        if self._enabled_tools is not None and tool_name not in self._enabled_tools:
-            error_msg = f"Tool '{tool_name}' is not enabled in this adapter."
-            if self._event_bus:
-                self._event_bus.publish(
-                    ToolCallError(
-                        tool_name=tool_name,
-                        request_id=request_id,
-                        error=error_msg,
-                        arguments=arguments,
-                    )
-                )
-            raise ToolCallException(tool_name, error_msg, arguments=arguments)
+        # No enabled_tools check anymore; permission checks are handled by is_tool_allowed
+        pass
 
     def _ensure_tool_exists(self, tool, tool_name, request_id, arguments):
         if tool is None:

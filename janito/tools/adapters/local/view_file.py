@@ -1,4 +1,4 @@
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_utils import pluralize
@@ -25,6 +25,7 @@ class ViewFileTool(ToolBase):
             - "❗ not found"
     """
 
+    permissions = ToolPermissions(read=True)
     tool_name = "view_file"
 
     def run(self, file_path: str, from_line: int = None, to_line: int = None) -> str:

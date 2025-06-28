@@ -57,6 +57,20 @@ definition = [
             "help": "Enable execution/run tools (allows running code or shell tools from the CLI)",
         },
     ),
+    (
+        ["-r", "--read"],
+        {
+            "action": "store_true",
+            "help": "Enable tools that require read permissions",
+        },
+    ),
+    (
+        ["-w", "--write"],
+        {
+            "action": "store_true",
+            "help": "Enable tools that require write permissions",
+        },
+    ),
     (["--unset"], {"metavar": "KEY", "help": "Unset (remove) a config key"}),
     (["--version"], {"action": "version", "version": None}),
     (["--list-tools"], {"action": "store_true", "help": "List all registered tools"}),
@@ -85,7 +99,6 @@ definition = [
             "help": "Show the resolved system prompt for the main agent",
         },
     ),
-    (["-r", "--role"], {"metavar": "ROLE", "help": "Set the role for the agent"}),
     (["-p", "--provider"], {"metavar": "PROVIDER", "help": "Select the provider"}),
     (["-m", "--model"], {"metavar": "MODEL", "help": "Select the model"}),
     (
@@ -104,7 +117,7 @@ definition = [
         },
     ),
     (
-        ["-w", "--web"],
+        ["--web"],
         {
             "action": "store_true",
             "default": False,
@@ -154,6 +167,8 @@ MODIFIER_KEYS = [
     "verbose_api",
     "verbose_tools",
     "exec",
+    "read",
+    "write",
 ]
 SETTER_KEYS = ["set", "set_provider", "set_api_key", "unset"]
 GETTER_KEYS = ["show_config", "list_providers", "list_models", "list_tools"]

@@ -53,7 +53,8 @@ class ChatSession:
         args=None,
         verbose_tools=False,
         verbose_agent=False,
-        exec_enabled=False
+        exec_enabled=False,
+        allowed_permissions=None,
     ):
         # Set allow_execution from exec_enabled or args
         if args is not None and hasattr(args, "exec"):
@@ -99,9 +100,13 @@ class ChatSession:
         self.agent = agent
         # Filter execution tools at startup
         try:
-            registry = getattr(__import__('janito.tools', fromlist=['get_local_tools_adapter']), 'get_local_tools_adapter')()
-            if hasattr(registry, 'set_execution_tools_enabled'):
-                registry.set_execution_tools_enabled(allow_execution)
+            from janito.tools.tool_base import ToolPermissions
+            registry = getattr(__import__('janito.tools', fromlist=['get_local_tools_adapter']), 'get_local_tools_adapter')(allowed_permissions=allowed_permissions)
+            # Always set permissions explicitly
+            if hasattr(registry, 'set_allowed_permissions') and allowed_permissions is not None:
+                registry.set_allowed_permissions(allowed_permissions)
+            elif hasattr(registry, 'set_allowed_permissions'):
+                registry.set_allowed_permissions(ToolPermissions(read=True, write=True, execute=allow_execution))
         except Exception as e:
             self.console.print(f"[yellow]Warning: Could not filter execution tools at startup: {e}[/yellow]")
         from janito.perf_singleton import performance_collector

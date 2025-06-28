@@ -21,24 +21,30 @@ def setup_agent(
     verbose_tools=False,
     verbose_agent=False,
     exec_enabled=False,
+    allowed_permissions=None,
+    use_system_prompt=False,
 ):
     """
-    Creates an agent using a rendered system prompt template, passing an explicit role.
+    Creates an agent. By default, does NOT set a system prompt unless use_system_prompt=True.
     """
     tools_provider = get_local_tools_adapter()
     tools_provider.set_verbose_tools(verbose_tools)
 
-    if zero_mode:
+    if zero_mode or not use_system_prompt:
         # Pass provider to agent, let agent create driver
         agent = LLMAgent(
             provider_instance,
             tools_provider,
             agent_name=role or "software developer",
             system_prompt=None,
+            input_queue=input_queue,
+            output_queue=output_queue,
             verbose_agent=verbose_agent,
         )
+        if role:
+            agent.template_vars["role"] = role
         return agent
-    # Normal flow
+    # Normal flow (use_system_prompt is True)
     if templates_dir is None:
         # Set default template directory
         templates_dir = Path(__file__).parent / "templates" / "profiles"
@@ -105,6 +111,8 @@ def create_configured_agent(
     templates_dir=None,
     zero_mode=False,
     exec_enabled=False,
+    allowed_permissions=None,
+    use_system_prompt=False,
 ):
     """
     Normalizes agent setup for all CLI modes.
@@ -142,6 +150,7 @@ def create_configured_agent(
         verbose_tools=verbose_tools,
         verbose_agent=verbose_agent,
         exec_enabled=exec_enabled,
+        use_system_prompt=use_system_prompt,
     )
     if driver is not None:
         agent.driver = driver  # Attach driver to agent for thread management

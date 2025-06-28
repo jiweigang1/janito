@@ -1,4 +1,4 @@
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.i18n import tr
@@ -17,7 +17,7 @@ class RunPowershellCommandTool(ToolBase):
     $OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8;
     For file output, it is recommended to use -Encoding utf8 in your PowerShell commands (e.g., Out-File -Encoding utf8) to ensure correct file encoding.
 
-    Parameters:
+    Args:
         command (str): The PowerShell command to execute. This string is passed directly to PowerShell using the --Command argument (not as a script file).
         timeout (int): Timeout in seconds for the command. Defaults to 60.
         require_confirmation (bool): If True, require user confirmation before running. Defaults to False.
@@ -26,7 +26,7 @@ class RunPowershellCommandTool(ToolBase):
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
-    provides_execution = True
+    permissions = ToolPermissions(execute=True)
     tool_name = "run_powershell_command"
 
     def _confirm_and_warn(self, command, require_confirmation, requires_user_input):

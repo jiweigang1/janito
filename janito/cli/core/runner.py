@@ -105,23 +105,23 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
 
     # Patch: disable execution/run tools if not enabled
     import janito.tools
+    from janito.tools.tool_base import ToolPermissions
+    read = getattr(args, "read", False)
+    write = getattr(args, "write", False)
+    execute = exec_enabled
+    from janito.tools.permissions import set_global_allowed_permissions
+    from janito.tools.tool_base import ToolPermissions
+    allowed_permissions = ToolPermissions(read=read, write=write, execute=execute)
+    set_global_allowed_permissions(allowed_permissions)
     adapter = janito.tools.get_local_tools_adapter(workdir=getattr(args, "workdir", None))
-    if not exec_enabled:
-        if hasattr(adapter, "disable_execution_tools"):
-            adapter.disable_execution_tools()
-    else:
-        # Try to re-register execution tools if possible (print warning if not supported)
-        if hasattr(adapter, "register_tool"):
-            # This is a no-op if already registered, but we can attempt to re-register known execution tools
-            try:
-                from janito.tools.adapters.local import PythonCodeRunTool, PythonCommandRunTool, PythonFileRunTool, RunBashCommandTool, RunPowershellCommandTool
-                for tool_cls in [PythonCodeRunTool, PythonCommandRunTool, PythonFileRunTool, RunBashCommandTool, RunPowershellCommandTool]:
-                    try:
-                        adapter.register_tool(tool_cls)
-                    except Exception:
-                        pass  # Already registered or error
-            except Exception:
-                pass
+
+    # Print allowed permissions in verbose mode
+    if getattr(args, "verbose", False):
+        print_verbose_info(
+            "Allowed Tool Permissions",
+            f"read={read}, write={write}, execute={execute}",
+            style="yellow"
+        )
 
     provider_instance = ProviderRegistry().get_instance(provider, llm_driver_config)
     if provider_instance is None:
@@ -157,6 +157,7 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
             verbose_tools=verbose_tools,
             verbose_agent=getattr(args, "verbose_agent", False),
             exec_enabled=exec_enabled,
+            allowed_permissions=allowed_permissions,
         )
         session.run()
 

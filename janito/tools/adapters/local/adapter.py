@@ -3,35 +3,25 @@ from janito.tools.tools_adapter import ToolsAdapterBase as ToolsAdapter
 
 
 class LocalToolsAdapter(ToolsAdapter):
-    def set_execution_tools_enabled(self, enabled: bool):
-        """
-        Dynamically include or exclude execution tools from the enabled_tools set.
-        If enabled_tools is None, all tools are enabled (default). If set, restricts enabled tools.
-        """
-        all_tool_names = set(self._tools.keys())
-        exec_tool_names = {
-            name for name, entry in self._tools.items()
-            if getattr(entry["instance"], "provides_execution", False)
-        }
-        if self._enabled_tools is None:
-            # If not restricted, create a new enabled-tools set excluding execution tools if disabling
-            if enabled:
-                self._enabled_tools = None  # all tools enabled
-            else:
-                self._enabled_tools = all_tool_names - exec_tool_names
-        else:
-            if enabled:
-                self._enabled_tools |= exec_tool_names
-            else:
-                self._enabled_tools -= exec_tool_names
+    """Local, in-process implementation of :class:`ToolsAdapterBase`.
 
-    """
-    Adapter for local, statically registered tools in the agent/tools system.
-    Handles registration, lookup, enabling/disabling, listing, and now, tool execution (merged from executor).
+    This adapter keeps an **in-memory registry** of tool classes and manages
+    permission filtering (read/write/execute) as required by the janito CLI.
+
+    The legacy ``set_execution_tools_enabled()`` helper has been removed – use
+    ``janito.tools.permissions.set_global_allowed_permissions`` or
+    :py:meth:`LocalToolsAdapter.set_allowed_permissions` to adjust the
+    permission mask at runtime.
+
+    Apart from registration/lookup helpers the class derives all execution
+    logic from :class:`janito.tools.tools_adapter.ToolsAdapterBase`.
     """
 
-    def __init__(self, tools=None, event_bus=None, enabled_tools=None, workdir=None):
-        super().__init__(tools=tools, event_bus=event_bus, enabled_tools=enabled_tools)
+    def __init__(self, allowed_permissions, tools=None, event_bus=None, workdir=None):
+        from janito.tools.tool_base import ToolPermissions
+        if not isinstance(allowed_permissions, ToolPermissions):
+            raise ValueError("allowed_permissions must be a ToolPermissions instance")
+        super().__init__(allowed_permissions=allowed_permissions, tools=tools, event_bus=event_bus)
         self._tools: Dict[str, Dict[str, Any]] = {}
         self.workdir = workdir
         if self.workdir:
@@ -71,19 +61,13 @@ class LocalToolsAdapter(ToolsAdapter):
         return self._tools[name]["instance"] if name in self._tools else None
 
     def list_tools(self):
-        if self._enabled_tools is None:
-            return list(self._tools.keys())
-        return [name for name in self._tools.keys() if name in self._enabled_tools]
+        return [name for name, entry in self._tools.items() if self.is_tool_allowed(entry["instance"])]
 
     def get_tool_classes(self):
-        if self._enabled_tools is None:
-            return [entry["class"] for entry in self._tools.values()]
-        return [entry["class"] for name, entry in self._tools.items() if name in self._enabled_tools]
+        return [entry["class"] for entry in self._tools.values() if self.is_tool_allowed(entry["instance"])]
 
     def get_tools(self):
-        if self._enabled_tools is None:
-            return [entry["instance"] for entry in self._tools.values()]
-        return [entry["instance"] for name, entry in self._tools.items() if name in self._enabled_tools]
+        return [entry["instance"] for entry in self._tools.values() if self.is_tool_allowed(entry["instance"])]
 
 
     def add_tool(self, tool):
@@ -109,7 +93,8 @@ class LocalToolsAdapter(ToolsAdapter):
 
 def register_local_tool(tool=None):
     def decorator(cls):
-        LocalToolsAdapter().register_tool(cls)
+        from janito.tools.tool_base import ToolPermissions
+        LocalToolsAdapter(allowed_permissions=ToolPermissions()).register_tool(cls)
         return cls
 
     if tool is None:

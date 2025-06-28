@@ -1,4 +1,4 @@
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_utils import pluralize, display_path
@@ -21,7 +21,7 @@ class RemoveDirectoryTool(ToolBase):
             - "Directory removed: /path/to/dir"
             - "Error removing directory: <error message>"
     """
-
+    permissions = ToolPermissions(write=True)
     tool_name = "remove_directory"
 
     def run(self, file_path: str, recursive: bool = False) -> str:

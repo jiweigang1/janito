@@ -16,9 +16,10 @@ class ExecShellHandler(ShellCmdHandler):
         self.shell_state.allow_execution = enable
         # Dynamically enable/disable execution tools in the registry
         try:
+            from janito.tools.permissions import set_global_allowed_permissions
+            from janito.tools.tool_base import ToolPermissions
+            set_global_allowed_permissions(ToolPermissions(read=True, write=True, execute=enable))
             registry = __import__('janito.tools', fromlist=['get_local_tools_adapter']).get_local_tools_adapter()
-            if hasattr(registry, 'set_execution_tools_enabled'):
-                registry.set_execution_tools_enabled(enable)
         except Exception as e:
             shared_console.print(f"[yellow]Warning: Could not update execution tools dynamically: {e}[/yellow]")
         if enable:

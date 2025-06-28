@@ -7,6 +7,13 @@ def handle_list_tools(args=None):
     from janito.tools.adapters.local.adapter import LocalToolsAdapter
     import janito.tools  # Ensure all tools are registered
 
+    # Determine permissions from args (default: all False)
+    from janito.tools.tool_base import ToolPermissions
+    read = getattr(args, "read", False) if args else False
+    write = getattr(args, "write", False) if args else False
+    execute = getattr(args, "exec", False) if args else False
+    from janito.tools.permissions import set_global_allowed_permissions
+    set_global_allowed_permissions(ToolPermissions(read=read, write=write, execute=execute))
     registry = janito.tools.get_local_tools_adapter()
     tools = registry.list_tools()
     if tools:
@@ -29,7 +36,8 @@ def handle_list_tools(args=None):
                 "name": tool,
                 "params": ", ".join(param_names),
             }
-            if getattr(inst, "provides_execution", False):
+            perms = getattr(inst, "permissions", None)
+            if perms and perms.execute:
                 exec_tools.append(info)
             else:
                 normal_tools.append(info)

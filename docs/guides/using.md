@@ -18,7 +18,7 @@ janito
 
 Or, to enable clickable file links in your browser during the session:
 ```bash
-janito -w
+janito --web
 ```
 
 ### Launch the Web Terminal Interface

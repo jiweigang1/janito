@@ -2,7 +2,7 @@ import os
 import shutil
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_utils import display_path
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.i18n import tr
 
@@ -20,7 +20,7 @@ class MoveFileTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
-
+    permissions = ToolPermissions(read=True, write=True)
     tool_name = "move_file"
 
     def run(

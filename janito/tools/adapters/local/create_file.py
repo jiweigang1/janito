@@ -2,7 +2,7 @@ import os
 from janito.tools.adapters.local.adapter import register_local_tool
 
 from janito.tools.tool_utils import display_path
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.i18n import tr
 
@@ -25,7 +25,7 @@ class CreateFileTool(ToolBase):
 
     Note: Syntax validation is automatically performed after this operation.
     """
-
+    permissions = ToolPermissions(write=True)
     tool_name = "create_file"
 
     def run(self, file_path: str, content: str, overwrite: bool = False) -> str:

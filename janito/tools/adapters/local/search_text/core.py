@@ -1,4 +1,4 @@
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_utils import pluralize, display_path
@@ -29,7 +29,7 @@ class SearchTextTool(ToolBase):
              If count_only is True, returns per-file and total match counts.
         If max_results is reached, appends a note to the output.
     """
-
+    permissions = ToolPermissions(read=True)
     tool_name = "search_text"
 
     def _handle_file(

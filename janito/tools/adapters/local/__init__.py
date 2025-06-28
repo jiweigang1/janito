@@ -24,12 +24,16 @@ from .search_text.core import SearchTextTool
 from .validate_file_syntax.core import ValidateFileSyntaxTool
 
 # Singleton tools adapter with all standard tools registered
+from janito.tools.tool_base import ToolPermissions
 import os
-local_tools_adapter = LocalToolsAdapter(workdir=os.getcwd())
+local_tools_adapter = LocalToolsAdapter(allowed_permissions=ToolPermissions(read=False, write=False, execute=False), workdir=os.getcwd())
+
+from janito.tools.permissions import get_global_allowed_permissions
 
 def get_local_tools_adapter(workdir=None):
     import os
-    return LocalToolsAdapter(workdir=workdir or os.getcwd())
+    allowed_permissions = get_global_allowed_permissions()
+    return LocalToolsAdapter(allowed_permissions=allowed_permissions, workdir=workdir or os.getcwd())
 
 # Register tools
 for tool_class in [

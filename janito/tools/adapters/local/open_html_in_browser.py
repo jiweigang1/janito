@@ -1,7 +1,7 @@
 import os
 import webbrowser
 from janito.tools.adapters.local.adapter import register_local_tool
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.i18n import tr
 
@@ -15,6 +15,7 @@ class OpenHtmlInBrowserTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
+    permissions = ToolPermissions(read=True)
     tool_name = "open_html_in_browser"
 
     def run(self, file_path: str) -> str:

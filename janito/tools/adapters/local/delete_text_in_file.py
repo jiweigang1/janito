@@ -1,4 +1,4 @@
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.i18n import tr
@@ -19,7 +19,7 @@ class DeleteTextInFileTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
-
+    permissions = ToolPermissions(read=True, write=True)
     tool_name = "delete_text_in_file"
 
     def run(

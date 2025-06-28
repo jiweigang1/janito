@@ -3,7 +3,7 @@ import shutil
 from janito.tools.adapters.local.adapter import register_local_tool
 
 from janito.tools.tool_utils import display_path
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.i18n import tr
 
@@ -21,7 +21,7 @@ class RemoveFileTool(ToolBase):
             - "			 Successfully removed the file at ..."
             - "			 Cannot remove file: ..."
     """
-
+    permissions = ToolPermissions(write=True)
     tool_name = "remove_file"
 
     def run(self, file_path: str, backup: bool = False) -> str:

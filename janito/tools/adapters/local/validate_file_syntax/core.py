@@ -1,6 +1,6 @@
 import os
 from janito.i18n import tr
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_utils import display_path
@@ -82,7 +82,7 @@ class ValidateFileSyntaxTool(ToolBase):
             - "⚠️ Warning: Syntax error: <error message>"
             - "⚠️ Warning: Unsupported file extension: <ext>"
     """
-
+    permissions = ToolPermissions(read=True)
     tool_name = "validate_file_syntax"
 
     def run(self, file_path: str) -> str:

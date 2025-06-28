@@ -4,7 +4,7 @@ from .markdown_outline import parse_markdown_outline
 from janito.formatting import OutlineFormatter
 from .java_outline import parse_java_outline
 import os
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.tools.tool_utils import display_path, pluralize
 from janito.i18n import tr
@@ -20,7 +20,7 @@ class GetFileOutlineTool(ToolBase):
     Args:
         file_path (str): Path to the file to outline.
     """
-
+    permissions = ToolPermissions(read=True)
     tool_name = "get_file_outline"
 
     def run(self, file_path: str) -> str:

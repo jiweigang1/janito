@@ -1,4 +1,4 @@
-from janito.tools.tool_base import ToolBase
+from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.i18n import tr
@@ -15,7 +15,7 @@ class RunBashCommandTool(ToolBase):
     Execute a non-interactive command using the bash shell and capture live output.
     This tool explicitly invokes the 'bash' shell (not just the system default shell), so it requires bash to be installed and available in the system PATH. On Windows, this will only work if bash is available (e.g., via WSL, Git Bash, or similar).
 
-    Parameters:
+    Args:
         command (str): The bash command to execute.
         timeout (int): Timeout in seconds for the command. Defaults to 60.
         require_confirmation (bool): If True, require user confirmation before running. Defaults to False.
@@ -24,7 +24,7 @@ class RunBashCommandTool(ToolBase):
     Returns:
         str: File paths and line counts for stdout and stderr.
     """
-    provides_execution = True
+    permissions = ToolPermissions(execute=True)
     tool_name = "run_bash_command"
 
     def _stream_output(self, stream, file_obj, report_func, count_func, counter):
