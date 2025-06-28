@@ -17,11 +17,8 @@ class LocalToolsAdapter(ToolsAdapter):
     logic from :class:`janito.tools.tools_adapter.ToolsAdapterBase`.
     """
 
-    def __init__(self, allowed_permissions, tools=None, event_bus=None, workdir=None):
-        from janito.tools.tool_base import ToolPermissions
-        if not isinstance(allowed_permissions, ToolPermissions):
-            raise ValueError("allowed_permissions must be a ToolPermissions instance")
-        super().__init__(allowed_permissions=allowed_permissions, tools=tools, event_bus=event_bus)
+    def __init__(self, tools=None, event_bus=None, workdir=None):
+        super().__init__(tools=tools, event_bus=event_bus)
         self._tools: Dict[str, Dict[str, Any]] = {}
         self.workdir = workdir
         if self.workdir:
@@ -94,7 +91,8 @@ class LocalToolsAdapter(ToolsAdapter):
 def register_local_tool(tool=None):
     def decorator(cls):
         from janito.tools.tool_base import ToolPermissions
-        LocalToolsAdapter(allowed_permissions=ToolPermissions()).register_tool(cls)
+        from janito.tools.permissions import get_global_allowed_permissions
+        LocalToolsAdapter().register_tool(cls)
         return cls
 
     if tool is None:

@@ -37,7 +37,7 @@ You can use these commands at any time (prefix with `/` or just type the name):
 | `/view`                | Print the current LLM conversation history                       |
 | `/profile`             | Show the current and available Agent Profile                     |
 | `/termweb-logs [N]`    | Show the last N lines of the latest termweb logs (default: 20)   |
-| `/exec [on|off]`       | Enable or disable code/shell execution tools at runtime          |
+| `/execute [on|off] | /read [on|off] | /write [on|off]`       | Enable or disable code/shell execution tools at runtime          |
 | `/tools`               | List all registered tools and show which are enabled/disabled     |
 
 ## 🖱️ Clickable File Links
@@ -55,17 +55,24 @@ This feature enhances productivity by bridging the terminal and browser, making 
 
 ### Enabling Execution Tools
 
-By default, tools that can execute code or shell commands are **disabled** for safety. To enable these tools (such as code execution, shell commands, etc.), use the `/exec on` command at any time in the shell:
+By default, tools that can execute code or shell commands are **disabled** for safety. To enable these tools (such as code execution, shell commands, etc.), use the `/execute on` command at any time in the shell:
 
 ```sh
-/exec on
+/execute on
 ```
 
 To disable execution tools again, use:
 
 ```sh
-/exec off
+/execute off
 ```
+
+You can also control read and write permissions for tools:
+
+- To enable reading: `/read on`
+- To disable reading: `/read off`
+- To enable writing: `/write on`
+- To disable writing: `/write off`
 
 Use `/tools` to see which tools are currently enabled or disabled.
 

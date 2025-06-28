@@ -100,13 +100,8 @@ class ChatSession:
         self.agent = agent
         # Filter execution tools at startup
         try:
-            from janito.tools.tool_base import ToolPermissions
-            registry = getattr(__import__('janito.tools', fromlist=['get_local_tools_adapter']), 'get_local_tools_adapter')(allowed_permissions=allowed_permissions)
-            # Always set permissions explicitly
-            if hasattr(registry, 'set_allowed_permissions') and allowed_permissions is not None:
-                registry.set_allowed_permissions(allowed_permissions)
-            elif hasattr(registry, 'set_allowed_permissions'):
-                registry.set_allowed_permissions(ToolPermissions(read=True, write=True, execute=allow_execution))
+            # Permissions are now managed globally; registry filtering is automatic
+            getattr(__import__('janito.tools', fromlist=['get_local_tools_adapter']), 'get_local_tools_adapter')()
         except Exception as e:
             self.console.print(f"[yellow]Warning: Could not filter execution tools at startup: {e}[/yellow]")
         from janito.perf_singleton import performance_collector

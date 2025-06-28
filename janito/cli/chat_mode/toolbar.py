@@ -20,11 +20,22 @@ def assemble_first_line(provider_name, model_name, role, agent=None):
     return f" Janito {VERSION} | Provider: <provider>{provider_name}</provider> | Model: <model>{model_name}</model> | Role: <role>{role}</role>"
 
 
-def assemble_bindings_line(width):
+def assemble_bindings_line(width, permissions=None):
+    # permissions: ToolPermissions or None
+    def color_state(state):
+        if state == "on":
+            return 'on '
+        else:
+            return 'off'
+    read_state = color_state("on" if getattr(permissions, "read", False) else "off")
+    write_state = color_state("on" if getattr(permissions, "write", False) else "off")
+    execute_state = color_state("on" if getattr(permissions, "execute", False) else "off")
     return (
-        f" <key-label>CTRL-C</key-label>: Interrupt Request/Exit Shell | "
-        f"<key-label>F1</key-label>: Restart conversation | "
-        f"<key-label>F2</key-label>: Exec | "
+        f" <key-label>CTRL-C</key-label>: Interrupt/Exit | "
+        f"<key-label>F1</key-label>: /restart | "
+                f"<key-label>F2</key-label>: <key-toggle-{('on' if not getattr(permissions, 'read', False) else 'off')}>/read {'on ' if not getattr(permissions, 'read', False) else 'off'}</key-toggle-{('on' if not getattr(permissions, 'read', False) else 'off')}> | "
+                f"<key-label>F3</key-label>: <key-toggle-{('on' if not getattr(permissions, 'write', False) else 'off')}>/write {'on ' if not getattr(permissions, 'write', False) else 'off'}</key-toggle-{('on' if not getattr(permissions, 'write', False) else 'off')}> | "
+                f"<key-label>F4</key-label>: <key-toggle-{('on' if not getattr(permissions, 'execute', False) else 'off')}>/execute {'on ' if not getattr(permissions, 'execute', False) else 'off'}</key-toggle-{('on' if not getattr(permissions, 'execute', False) else 'off')}> | "
         f"<b>/help</b>: Help | "
         f"<key-label>F12</key-label>: Do It "
     )
@@ -78,7 +89,13 @@ def get_toolbar_func(perf: PerformanceCollector, msg_count: int, shell_state):
         usage = perf.get_last_request_usage()
         first_line = assemble_first_line(provider_name, model_name, role, agent=agent)
 
-        bindings_line = assemble_bindings_line(width)
+        # Get current permissions for toolbar state
+        try:
+            from janito.tools.permissions import get_global_allowed_permissions
+            permissions = get_global_allowed_permissions()
+        except Exception:
+            permissions = None
+        bindings_line = assemble_bindings_line(width, permissions)
         toolbar_text = first_line + "\n" + bindings_line
         # Add termweb status if available, after the F12 line
         if this_termweb_status == "online" and termweb_port:

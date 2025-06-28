@@ -13,9 +13,15 @@ from .help import HelpShellHandler
 from janito.cli.console import shared_console
 
 COMMAND_HANDLERS = {
-    "/exec": __import__(
-        "janito.cli.chat_mode.shell.commands.exec", fromlist=["ExecShellHandler"]
-    ).ExecShellHandler,
+    "/execute": __import__(
+        "janito.cli.chat_mode.shell.commands.execute", fromlist=["ExecuteShellHandler"]
+    ).ExecuteShellHandler,
+    "/read": __import__(
+        "janito.cli.chat_mode.shell.commands.read", fromlist=["ReadShellHandler"]
+    ).ReadShellHandler,
+    "/write": __import__(
+        "janito.cli.chat_mode.shell.commands.write", fromlist=["WriteShellHandler"]
+    ).WriteShellHandler,
     "/clear": __import__(
         "janito.cli.chat_mode.shell.commands.clear", fromlist=["ClearShellHandler"]
     ).ClearShellHandler,

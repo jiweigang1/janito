@@ -1,0 +1,37 @@
+from janito.cli.console import shared_console
+from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
+
+class ExecuteShellHandler(ShellCmdHandler):
+    help_text = "/execute on|off: Enable or disable code and command execution tools. Usage: /execute on or /execute off."
+
+    def run(self):
+        if not self.shell_state:
+            shared_console.print("[red]Shell state unavailable.[/red]")
+            return
+        arg = (self.after_cmd_line or "").strip().lower()
+        if arg not in ("on", "off"):
+            shared_console.print("[yellow]Usage: /execute on|off[/yellow]")
+            return
+        enable = arg == "on"
+        self.shell_state.allow_execution = enable
+        # Dynamically enable/disable execution tools in the registry
+        try:
+            from janito.tools.permissions import set_global_allowed_permissions, get_global_allowed_permissions
+            from janito.tools.tool_base import ToolPermissions
+            current_perms = get_global_allowed_permissions()
+            new_perms = ToolPermissions(
+                read=getattr(current_perms, 'read', False),
+                write=getattr(current_perms, 'write', False),
+                execute=enable
+            )
+            set_global_allowed_permissions(new_perms)
+            # Also update the singleton tools registry permissions
+            import janito.tools
+            janito.tools.local_tools_adapter.set_allowed_permissions(new_perms)
+
+        except Exception as e:
+            shared_console.print(f"[yellow]Warning: Could not update execution tools dynamically: {e}[/yellow]")
+        if enable:
+            shared_console.print("[green]Execution tools ENABLED. You can now use code and command execution tools.[/green]")
+        else:
+            shared_console.print("[yellow]Execution tools DISABLED. Code and command execution tools are now blocked.[/yellow]")

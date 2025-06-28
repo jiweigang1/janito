@@ -63,6 +63,17 @@ def handle_restart(shell_state=None):
             f"[bold yellow]Warning: Failed to reset PerformanceCollector token info:[/bold yellow] {e}"
         )
 
+    # Set all tool permissions to False on restart
+    try:
+        from janito.tools.permissions import set_global_allowed_permissions
+        from janito.tools.tool_base import ToolPermissions
+        import janito.tools
+        set_global_allowed_permissions(ToolPermissions(read=False, write=False, execute=False))
+        janito.tools.local_tools_adapter.set_allowed_permissions(ToolPermissions(read=False, write=False, execute=False))
+        shared_console.print("[green]All tool permissions have been set to OFF (read, write, execute = False).[/green]")
+    except Exception as e:
+        shared_console.print(f"[yellow]Warning: Failed to set tool permissions to OFF: {e}[/yellow]")
+
     shared_console.print(
         "[bold green]Conversation history has been started (context reset).[/bold green]"
     )
