@@ -34,4 +34,4 @@ class ExecuteShellHandler(ShellCmdHandler):
         if enable:
             shared_console.print("[green]Execution tools ENABLED. You can now use code and command execution tools.[/green]")
         else:
-            shared_console.print("[yellow]Execution tools DISABLED. Code and command execution tools are now blocked.[/yellow]")
+            shared_console.print("[yellow]Execution tools DISABLED. Tools cannot run code or commands.[/yellow]")
