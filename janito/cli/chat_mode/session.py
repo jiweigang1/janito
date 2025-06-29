@@ -3,6 +3,8 @@ Session management for Janito Chat CLI.
 Defines ChatSession and ChatShellState classes.
 """
 
+from __future__ import annotations
+
 import types
 from rich.console import Console
 from rich.rule import Rule
@@ -16,6 +18,9 @@ from janito.cli.chat_mode.prompt_style import chat_shell_style
 from janito.cli.chat_mode.bindings import KeyBindingsFactory
 from janito.cli.chat_mode.shell.commands import handle_command
 from janito.cli.chat_mode.shell.autocomplete import ShellCommandCompleter
+
+# Shared prompt/agent factory
+from janito.cli.prompt_setup import setup_agent_and_prompt_handler
 
 
 class ChatShellState:
@@ -61,18 +66,7 @@ class ChatSession:
             allow_execution = bool(getattr(args, "exec", False))
         else:
             allow_execution = exec_enabled
-        from janito.cli.prompt_core import PromptHandler as GenericPromptHandler
 
-        self._prompt_handler = GenericPromptHandler(
-            args=None,
-            conversation_history=(
-                None
-                if not hasattr(self, "shell_state")
-                else self.shell_state.conversation_history
-            ),
-            provider_instance=provider_instance,
-        )
-        self._prompt_handler.agent = None  # Will be set below if agent exists
         self.console = console
         self.user_input_history = UserInputHistory()
         self.input_dicts = self.user_input_history.load()
@@ -82,59 +76,54 @@ class ChatSession:
                 self.mem_history.append_string(item["input"])
         self.provider_instance = provider_instance
         self.llm_driver_config = llm_driver_config
-        from janito.agent.setup_agent import create_configured_agent
 
+        # --- Profile selection (interactive) ---------------------------------
         profile = getattr(args, "profile", None) if args is not None else None
         profile_system_prompt = None
-        # If in chat mode and profile is not set, prompt user to select one
         if profile is None:
             try:
                 from janito.cli.chat_mode.session_profile_select import select_profile
+
                 result = select_profile()
-                if isinstance(result, dict) and result.get("profile") is None and result.get("profile_system_prompt"):
-                    profile = None
+                if (
+                    isinstance(result, dict)
+                    and result.get("profile") is None
+                    and result.get("profile_system_prompt")
+                ):
                     profile_system_prompt = result["profile_system_prompt"]
                 elif isinstance(result, str) and result.startswith("role:"):
-                    role = result[len("role:"):].strip()
+                    role = result[len("role:") :].strip()
                     profile = "developer"
                 else:
-                    if result == "software developer":
-                        profile = "developer"
-                    else:
-                        profile = result
+                    profile = (
+                        "developer" if result == "software developer" else result
+                    )
             except ImportError:
                 profile = "helpful assistant"
-                # If profile is 'developer' and a custom role is set, use the developer profile with the custom role
-        if profile == "developer" and role:
-            agent = create_configured_agent(
-                provider_instance=provider_instance,
-                llm_driver_config=llm_driver_config,
-                role=role,
-                verbose_tools=verbose_tools,
-                verbose_agent=verbose_agent,
-                exec_enabled=allow_execution,
-                allowed_permissions=allowed_permissions,
-                profile="developer",
-                profile_system_prompt=None,
-            )
-        else:
-            agent = create_configured_agent(
-                provider_instance=provider_instance,
-                llm_driver_config=llm_driver_config,
-                role=role,
-                verbose_tools=verbose_tools,
-                verbose_agent=verbose_agent,
-                exec_enabled=allow_execution,
-                allowed_permissions=allowed_permissions,
-                profile=profile,
-                profile_system_prompt=profile_system_prompt,
-            )
+
+        # ---------------------------------------------------------------------
         from janito.conversation_history import LLMConversationHistory
 
-        self.shell_state = ChatShellState(self.mem_history, LLMConversationHistory())
-        self.shell_state.agent = agent
+        conversation_history = LLMConversationHistory()
+
+        # Build agent and core prompt handler via the shared helper
+        self.agent, self._prompt_handler = setup_agent_and_prompt_handler(
+            args=args,
+            provider_instance=provider_instance,
+            llm_driver_config=llm_driver_config,
+            role=role,
+            verbose_tools=verbose_tools,
+            verbose_agent=verbose_agent,
+            exec_enabled=allow_execution,
+            allowed_permissions=allowed_permissions,
+            profile=profile,
+            profile_system_prompt=profile_system_prompt,
+            conversation_history=conversation_history,
+        )
+
+        self.shell_state = ChatShellState(self.mem_history, conversation_history)
+        self.shell_state.agent = self.agent
         self.shell_state.allow_execution = allow_execution
-        self.agent = agent
         # Filter execution tools at startup
         try:
             # Permissions are now managed globally; registry filtering is automatic

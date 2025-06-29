@@ -2,14 +2,9 @@
 PromptHandler: Handles prompt submission and response formatting for janito CLI (one-shot prompt execution).
 """
 
-import time
-from janito.version import __version__ as VERSION
-from janito.cli.prompt_core import PromptHandler as GenericPromptHandler
-from janito.cli.verbose_output import (
-    print_verbose_header,
-    print_performance,
-    handle_exception,
-)
+from __future__ import annotations
+
+from janito.cli.prompt_setup import setup_agent_and_prompt_handler
 import janito.tools  # Ensure all tools are registered
 from janito.cli.console import shared_console
 
@@ -21,10 +16,9 @@ class PromptHandler:
         self.llm_driver_config = llm_driver_config
         self.role = role
         self.exec_enabled = exec_enabled
-        from janito.agent.setup_agent import create_configured_agent
-
-        # DEBUG: Print exec_enabled propagation
-        self.agent = create_configured_agent(
+        # Instantiate agent together with prompt handler using the shared helper
+        self.agent, self.generic_handler = setup_agent_and_prompt_handler(
+            args=args,
             provider_instance=provider_instance,
             llm_driver_config=llm_driver_config,
             role=role,
@@ -34,13 +28,6 @@ class PromptHandler:
             allowed_permissions=allowed_permissions,
             profile=getattr(args, "profile", None),
         )
-        # The global permission mask has already been set by the CLI runner.  No
-        # additional toggling is necessary here now that the dedicated
-        # ``set_execution_tools_enabled()`` helper has been removed.
-        self.generic_handler = GenericPromptHandler(
-            args, [], provider_instance=provider_instance
-        )
-        self.generic_handler.agent = self.agent
 
     def handle(self) -> None:
         import traceback
@@ -72,56 +59,13 @@ class PromptHandler:
         self._post_prompt_actions()
 
     def _post_prompt_actions(self):
-        final_event = getattr(self.agent, "last_event", None)
-        if final_event is not None:
-            self._print_exit_reason_and_parts(final_event)
-            # --- BEGIN: Print token info in rich rule if --verbose is set ---
-            if hasattr(self.args, "verbose") and self.args.verbose:
-                from janito.perf_singleton import performance_collector
-
-                token_info = performance_collector.get_last_request_usage()
-                from rich.rule import Rule
-                from rich import print as rich_print
-                from janito.cli.utils import format_tokens
-
-                if token_info:
-                    if isinstance(token_info, dict):
-                        token_str = " | ".join(
-                            f"{k}: {format_tokens(v) if isinstance(v, int) else v}"
-                            for k, v in token_info.items()
-                        )
-                    else:
-                        token_str = str(token_info)
-                    rich_print(Rule(f"[bold cyan]Token Usage[/bold cyan] {token_str}"))
-                else:
-                    rich_print(Rule("[cyan]No token usage info available.[/cyan]"))
-        else:
-            shared_console.print("[yellow]No output produced by the model.[/yellow]")
+        # Align with chat mode: only print token usage summary
+        from janito.formatting_token import print_token_message_summary
+        from janito.perf_singleton import performance_collector
+        usage = performance_collector.get_last_request_usage()
+        print_token_message_summary(shared_console, msg_count=1, usage=usage)
         self._cleanup_driver_and_console()
 
-    def _print_exit_reason_and_parts(self, final_event):
-        exit_reason = (
-            getattr(final_event, "metadata", {}).get("exit_reason")
-            if hasattr(final_event, "metadata")
-            else None
-        )
-        if exit_reason:
-            print(f"[bold yellow]Exit reason: {exit_reason}[/bold yellow]")
-        parts = getattr(final_event, "parts", None)
-        if not exit_reason:
-            if parts is None or len(parts) == 0:
-                shared_console.print(
-                    "[yellow]No output produced by the model.[/yellow]"
-                )
-            else:
-                if hasattr(self.args, "verbose_agent") and self.args.verbose_agent:
-                    print(
-                        "[yellow]No user-visible output. Model returned the following parts:"
-                    )
-                    for idx, part in enumerate(parts):
-                        print(
-                            f"  [part {idx}] type: {type(part).__name__} | content: {getattr(part, 'content', repr(part))}"
-                        )
 
     def _cleanup_driver_and_console(self):
         if hasattr(self.agent, "join_driver"):

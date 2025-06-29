@@ -180,13 +180,10 @@ class LLMAgent:
         if getattr(self, "verbose_agent", False):
             print("[agent] [DEBUG] Entered _process_next_response")
         elapsed = 0.0
-        try:
-            if getattr(self, "verbose_agent", False):
-                print("[agent] [DEBUG] Waiting for event from output_queue...")
-            return self._poll_for_event(poll_timeout, max_wait_time)
-        except KeyboardInterrupt:
-            self._handle_keyboard_interrupt()
-            return None, False
+        if getattr(self, "verbose_agent", False):
+            print("[agent] [DEBUG] Waiting for event from output_queue...")
+        # Let KeyboardInterrupt propagate to caller
+        return self._poll_for_event(poll_timeout, max_wait_time)
 
     def _poll_for_event(self, poll_timeout, max_wait_time):
         elapsed = 0.0
@@ -216,15 +213,6 @@ class LLMAgent:
             ]:
                 return (event, False)
 
-    def _handle_keyboard_interrupt(self):
-        if hasattr(self, "input_queue") and self.input_queue is not None:
-            from janito.driver_events import RequestFinished
-
-            cancel_event = RequestFinished(
-                status=RequestStatus.CANCELLED,
-                reason="User interrupted (KeyboardInterrupt)",
-            )
-            self.input_queue.put(cancel_event)
 
     def _get_event_from_output_queue(self, poll_timeout):
         try:
@@ -344,6 +332,7 @@ class LLMAgent:
             try:
                 result, added_tool_results = self._process_next_response()
             except KeyboardInterrupt:
+                # Propagate the interrupt to the caller, but signal the driver to cancel first
                 cancel_event.set()
                 raise
             if getattr(self, "verbose_agent", False):
@@ -434,6 +423,59 @@ class LLMAgent:
         if hasattr(self, "llm_provider") and hasattr(self.llm_provider, "model_name"):
             return self.llm_provider.model_name
         return "?"
+
+    def reset_driver_config_to_model_defaults(self, model_name: str):
+        """
+        Reset all driver config fields to the model's defaults for the current provider (overwriting any user customizations).
+        """
+        provider = self.llm_provider
+        # Find model spec
+        model_spec = None
+        if hasattr(provider, "MODEL_SPECS"):
+            model_spec = provider.MODEL_SPECS.get(model_name)
+        if not model_spec:
+            raise ValueError(f"Model '{model_name}' not found in provider MODEL_SPECS.")
+        # Overwrite all config fields with model defaults
+        config = getattr(provider, "driver_config", None)
+        if config is None:
+            return
+        config.model = model_name
+        # Standard fields, with safe conversion for int fields
+        def safe_int(val):
+            try:
+                if val is None or val == "N/A":
+                    return None
+                return int(val)
+            except Exception:
+                return None
+        def safe_float(val):
+            try:
+                if val is None or val == "N/A":
+                    return None
+                return float(val)
+            except Exception:
+                return None
+        config.temperature = safe_float(getattr(model_spec, "default_temp", None))
+        config.max_tokens = safe_int(getattr(model_spec, "max_response", None))
+        config.max_completion_tokens = safe_int(getattr(model_spec, "max_cot", None))
+        # Optionally reset other fields to None/defaults
+        config.top_p = None
+        config.presence_penalty = None
+        config.frequency_penalty = None
+        config.stop = None
+        config.reasoning_effort = None
+        # Update driver if present
+        if self.driver is not None:
+            if hasattr(self.driver, "model_name"):
+                self.driver.model_name = model_name
+            if hasattr(self.driver, "config"):
+                self.driver.config = config
+
+    def change_model(self, model_name: str):
+        """
+        Change the model for the agent's provider and driver config, and update the driver if present.
+        """
+        self.reset_driver_config_to_model_defaults(model_name)
 
     def join_driver(self, timeout=None):
         """

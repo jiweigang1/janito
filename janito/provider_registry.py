@@ -58,15 +58,17 @@ class ProviderRegistry:
             shared_console.print(table)
             return
 
-        # Fallback: plain ASCII output
+        # Fallback: plain ASCII output (render without rich formatting)
         print("Supported LLM Providers")
-        print("Provider | Maintainer | Model Names")
-        for row in table.rows:
-            # row is a rich.table.Row -> row.cells is a list of Text objects
-            cells_text = [str(cell) for cell in row.cells]
+        # Build header from column titles
+        header_titles = [column.header or "" for column in table.columns]
+        print(" | ".join(header_titles))
+        # rich.table.Row objects in recent Rich versions don't expose a public `.cells` attribute.
+        # Instead, cell content is stored in each column's private `_cells` list.
+        for row_index, _ in enumerate(table.rows):
+            cells_text = [str(column._cells[row_index]) for column in table.columns]
             ascii_row = " | ".join(cells_text).encode("ascii", "ignore").decode("ascii")
             print(ascii_row)
-        shared_console.print(table)
 
     def _get_provider_info(self, provider_name):
         static_info = STATIC_PROVIDER_METADATA.get(provider_name, {})

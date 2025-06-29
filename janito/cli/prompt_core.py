@@ -210,7 +210,23 @@ class PromptHandler:
                 on_event(final_event)
                 global_event_bus.publish(final_event)
         except KeyboardInterrupt:
-            self.console.print("[red]Request interrupted.[red]")
+            # Capture user interrupt / cancellation
+            self.console.print("[red]Interrupted by the user.[/red]")
+            try:
+                from janito.driver_events import RequestFinished, RequestStatus
+                # Record a synthetic "cancelled" final event so that downstream
+                # handlers (e.g. single_shot_mode.handler._post_prompt_actions)
+                # can reliably detect that the prompt was interrupted by the
+                # user and avoid showing misleading messages such as
+                # "No output produced by the model.".
+                if hasattr(self, "agent") and self.agent is not None:
+                    self.agent.last_event = RequestFinished(
+                        status=RequestStatus.CANCELLED,
+                        reason="Interrupted by the user",
+                    )
+            except Exception:
+                # Do not fail on cleanup – this hook is best-effort only.
+                pass
 
     def _print_verbose_debug(self, message):
         if hasattr(self.args, "verbose_agent") and self.args.verbose_agent:

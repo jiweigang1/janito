@@ -1,6 +1,6 @@
 import attr
 from typing import ClassVar
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 @attr.s(auto_attribs=True, kw_only=True)
@@ -12,4 +12,4 @@ class Event:
     """
 
     category: ClassVar[str] = "generic"
-    timestamp: datetime = attr.ib(factory=datetime.utcnow)
+    timestamp: datetime = attr.ib(factory=lambda: datetime.now(timezone.utc))

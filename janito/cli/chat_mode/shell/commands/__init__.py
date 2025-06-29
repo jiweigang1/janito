@@ -4,6 +4,7 @@ from .lang import LangShellHandler
 from .livelogs import LivelogsShellHandler
 from .prompt import PromptShellHandler, RoleShellHandler, ProfileShellHandler
 from .multi import MultiShellHandler
+from .model import ModelShellHandler
 from .role import RoleCommandShellHandler
 from .session import HistoryShellHandler
 from .tools import ToolsShellHandler
@@ -37,6 +38,7 @@ COMMAND_HANDLERS = {
     "/history": HistoryShellHandler,
 
     "/tools": ToolsShellHandler,
+    "/model": ModelShellHandler,
     "/multi": MultiShellHandler,
     "/help": HelpShellHandler,
 }
