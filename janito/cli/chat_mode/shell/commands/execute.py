@@ -13,7 +13,6 @@ class ExecuteShellHandler(ShellCmdHandler):
             shared_console.print("[yellow]Usage: /execute on|off[/yellow]")
             return
         enable = arg == "on"
-        self.shell_state.allow_execution = enable
         # Dynamically enable/disable execution tools in the registry
         try:
             from janito.tools.permissions import set_global_allowed_permissions, get_global_allowed_permissions

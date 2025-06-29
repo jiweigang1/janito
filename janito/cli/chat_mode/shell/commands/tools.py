@@ -6,10 +6,6 @@ class ToolsShellHandler(ShellCmdHandler):
 
     def run(self):
         try:
-            # Initialize allow_execution before use
-            allow_execution = False
-            if hasattr(self, 'shell_state') and self.shell_state is not None:
-                allow_execution = getattr(self.shell_state, 'allow_execution', False)
 
             import janito.tools  # Ensure all tools are registered
             from janito.tools.permissions import get_global_allowed_permissions
@@ -57,9 +53,7 @@ class ToolsShellHandler(ShellCmdHandler):
                 table.add_row(group, " ".join(sorted(tool_list)))
             shared_console.print(table)
 
-            if allow_execution:
-                shared_console.print("[green]Execution tools are ENABLED.[/green]")
-
+            
             # Find all possible execution tools (by permission: execute=True)
             exec_tools = []
             for tool_instance in registry.get_tools():
@@ -67,7 +61,9 @@ class ToolsShellHandler(ShellCmdHandler):
                 if perms and perms.execute:
                     exec_tools.append(tool_instance.tool_name)
 
-            if not allow_execution and exec_tools:
+            from janito.tools.permissions import get_global_allowed_permissions
+            perms = get_global_allowed_permissions()
+            if not perms.execute and exec_tools:
                 shared_console.print("[yellow]⚠️  Warning: Execution tools (e.g., commands, code execution) are disabled. Use -x to enable them.[/yellow]")
 
         except Exception as e:

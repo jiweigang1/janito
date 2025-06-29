@@ -25,7 +25,6 @@ from janito.cli.prompt_setup import setup_agent_and_prompt_handler
 
 class ChatShellState:
     def __init__(self, mem_history, conversation_history):
-        self.allow_execution = False  # Controls whether execution tools are enabled
         self.mem_history = mem_history
         self.conversation_history = conversation_history
         self.paste_mode = False
@@ -61,11 +60,6 @@ class ChatSession:
         exec_enabled=False,
         allowed_permissions=None,
     ):
-        # Set allow_execution from exec_enabled or args
-        if args is not None and hasattr(args, "exec"):
-            allow_execution = bool(getattr(args, "exec", False))
-        else:
-            allow_execution = exec_enabled
 
         self.console = console
         self.user_input_history = UserInputHistory()
@@ -114,7 +108,7 @@ class ChatSession:
             role=role,
             verbose_tools=verbose_tools,
             verbose_agent=verbose_agent,
-            exec_enabled=allow_execution,
+            exec_enabled=exec_enabled,
             allowed_permissions=allowed_permissions,
             profile=profile,
             profile_system_prompt=profile_system_prompt,
@@ -123,7 +117,6 @@ class ChatSession:
 
         self.shell_state = ChatShellState(self.mem_history, conversation_history)
         self.shell_state.agent = self.agent
-        self.shell_state.allow_execution = allow_execution
         # Filter execution tools at startup
         try:
             # Permissions are now managed globally; registry filtering is automatic
