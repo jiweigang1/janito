@@ -19,6 +19,14 @@ class LLMDriver(ABC):
         except Exception:
             pass
 
+    def clear_input_queue(self):
+        """Remove all items from the input queue."""
+        try:
+            while True:
+                self.input_queue.get_nowait()
+        except Exception:
+            pass
+
     """
     Abstract base class for LLM drivers (threaded, queue-based).
     Subclasses must implement:

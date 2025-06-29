@@ -305,6 +305,13 @@ class LLMAgent:
             and hasattr(self.driver, "clear_output_queue")
         ):
             self.driver.clear_output_queue()
+        # Drain input queue before sending new messages
+        if (
+            hasattr(self, "driver")
+            and self.driver
+            and hasattr(self.driver, "clear_input_queue")
+        ):
+            self.driver.clear_input_queue()
         """
         Main agent conversation loop supporting function/tool calls and conversation history extension, now as a blocking event-driven loop with event publishing.
 
