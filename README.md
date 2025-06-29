@@ -129,7 +129,7 @@ Janito has configuration options, like `--set api-key API_KEY` and `--set provid
   janito --web
   ```
 
-  This starts the lightweight web file viewer (termweb) in the background, allowing you to inspect files referenced in responses directly in your browser. Combine with interactive mode or prompts as needed.
+  This starts the lightweight web file viewer () in the background, allowing you to inspect files referenced in responses directly in your browser. Combine with interactive mode or prompts as needed.
   
   > **Tip:** Use with the interactive shell for the best experience with clickable file links.
 
@@ -173,7 +173,7 @@ Janito has configuration options, like `--set api-key API_KEY` and `--set provid
 ### Core CLI Options
 | Option                  | Description                                                                 |
 |------------------------|-----------------------------------------------------------------------------|
-| `--web`          | Enable the builtin lightweight web file viewer for clickable file links (termweb). |
+| `--web`          | Enable the builtin lightweight web file viewer for clickable file links (). |
 | `--version`            | Show program version                                                        |
 | `--list-tools`         | List all registered tools                                                   |
 | `--list-providers`     | List all supported LLM providers                                            |
@@ -216,8 +216,8 @@ Once inside the interactive chat mode, you can use these slash commands:
 | Command              | Description                                  |
 |----------------------|----------------------------------------------|
 | `/tools`             | List available tools                         |
-| `/termweb-status`    | Show status of termweb server                |
-| `/termweb-logs`      | Show last lines of termweb logs              |
+| `/-status`    | Show status of  server                |
+| `/-logs`      | Show last lines of  logs              |
 | `/livelogs`          | Show live updates from server log file       |
 | `/edit <filename>`   | Open file in browser-based editor            |
 

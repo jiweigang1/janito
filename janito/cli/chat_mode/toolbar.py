@@ -51,29 +51,29 @@ def get_toolbar_func(perf: PerformanceCollector, msg_count: int, shell_state):
         model_name = "?"
         role = "?"
         agent = shell_state.agent if hasattr(shell_state, "agent") else None
-        termweb_support = getattr(shell_state, "termweb_support", False)
-        termweb_port = (
-            shell_state.termweb_port if hasattr(shell_state, "termweb_port") else None
+        _support = getattr(shell_state, "_support", False)
+        _port = (
+            shell_state._port if hasattr(shell_state, "_port") else None
         )
-        termweb_status = (
-            shell_state.termweb_status
-            if hasattr(shell_state, "termweb_status")
+        _status = (
+            shell_state._status
+            if hasattr(shell_state, "_status")
             else None
         )
         # Use cached liveness check only (set by background thread in shell_state)
-        this_termweb_status = termweb_status
-        if not termweb_support:
-            this_termweb_status = None
-        elif termweb_status == "starting" or termweb_status is None:
-            this_termweb_status = termweb_status
+        this__status = _status
+        if not _support:
+            this__status = None
+        elif _status == "starting" or _status is None:
+            this__status = _status
         else:
             live_status = (
-                shell_state.termweb_live_status
-                if hasattr(shell_state, "termweb_live_status")
+                shell_state._live_status
+                if hasattr(shell_state, "_live_status")
                 else None
             )
             if live_status is not None:
-                this_termweb_status = live_status
+                this__status = live_status
         if agent is not None:
             # Use agent API to get provider and model name
             provider_name = (
@@ -97,13 +97,13 @@ def get_toolbar_func(perf: PerformanceCollector, msg_count: int, shell_state):
             permissions = None
         bindings_line = assemble_bindings_line(width, permissions)
         toolbar_text = first_line + "\n" + bindings_line
-        # Add termweb status if available, after the F12 line
-        if this_termweb_status == "online" and termweb_port:
-            toolbar_text += f"\n<termweb> Termweb </termweb>Online<termweb> at <u>http://localhost:{termweb_port}</u></termweb>"
-        elif this_termweb_status == "starting":
-            toolbar_text += "\n<termweb> Termweb </termweb>Starting"
-        elif this_termweb_status == "offline":
-            toolbar_text += "\n<termweb> Termweb </termweb>Offline"
+        # Add  status if available, after the F12 line
+        if this__status == "online" and _port:
+            toolbar_text += f"\n<> Termweb </>Online<> at <u>http://localhost:{_port}</u></>"
+        elif this__status == "starting":
+            toolbar_text += "\n<> Termweb </>Starting"
+        elif this__status == "offline":
+            toolbar_text += "\n<> Termweb </>Offline"
         return HTML(toolbar_text)
 
     return get_toolbar

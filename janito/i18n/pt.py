@@ -3,7 +3,6 @@ translations = {
     "36107ed78ab25f6fb12ad8ce13018cd1ce6735d1": "Iniciando servidor web...",
     "70a0d194687568a47aa617fd85036ace1e69a982": "Deseja realmente sair? (s/n): ",
     "5c9ebcbbd7632ecb328bd52958b17158afaa32c6": "F12 = Ação Rápida (segue a ação recomendada)",
-    "e4034394acca752c021b2ab50f60da8273e3c314": "TermWeb iniciado... Disponível em http://localhost:{selected_port}",
     "fe21121e2934234b68d19b2757532117d440c1e3": "Chave de API não encontrada. Por favor, configure 'api_key' no seu arquivo de configuração.",
     "c9e3759b1756eba35b381ce2b72cd659e132b01f": "Olá, {name}!",
     "ca1fee2f55baabdc2e4b0e9529c89ee024e62079": "Nenhum prompt fornecido nas mensagens",

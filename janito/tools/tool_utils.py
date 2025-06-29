@@ -20,9 +20,8 @@ def display_path(path):
     Returns:
         str: Display path, as an ANSI hyperlink.
     """
-    from janito.cli.config import get_termweb_port
-
-    port = get_termweb_port()
+    
+    port = 8088
     if os.path.isabs(path):
         cwd = os.path.abspath(os.getcwd())
         abs_path = os.path.abspath(path)

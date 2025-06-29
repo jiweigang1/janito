@@ -133,11 +133,11 @@ definition = [
         },
     ),
     (
-        ["--termweb-port"],
+        ["---port"],
         {
             "type": int,
             "default": 8088,
-            "help": "Port for the termweb server (default: 8088)",
+            "help": "Port for the  server (default: 8088)",
         },
     ),
     (["--effort"],
@@ -171,7 +171,7 @@ MODIFIER_KEYS = [
     "verbose",
     "raw",
     "web",
-    "termweb_port",
+    "_port",
     "verbose_api",
     "verbose_tools",
     "exec",

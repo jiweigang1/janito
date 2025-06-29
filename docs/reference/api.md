@@ -99,10 +99,6 @@ Each tool inherits from `ToolBase` and implements a specific function:
 
 - CLI entry points and utilities for command-line usage.
 
-### janito.termweb.app
-
-- Quart-based web application entry point for file viewing and browser-based interaction. Provides the main web interface for interacting with the agent and tools via HTTP, and enables clickable file links in CLI environments.
-
 ---
 
 For detailed class and method documentation, see the source code or future expanded API docs.

@@ -1,5 +1,4 @@
 from .base import ShellCmdHandler
-from .edit import EditShellHandler
 from .history_view import ViewShellHandler
 from .lang import LangShellHandler
 from .livelogs import LivelogsShellHandler
@@ -7,7 +6,6 @@ from .prompt import PromptShellHandler, RoleShellHandler, ProfileShellHandler
 from .multi import MultiShellHandler
 from .role import RoleCommandShellHandler
 from .session import HistoryShellHandler
-from .termweb_log import TermwebLogTailShellHandler
 from .tools import ToolsShellHandler
 from .help import HelpShellHandler
 from janito.cli.console import shared_console
@@ -29,7 +27,7 @@ COMMAND_HANDLERS = {
         "janito.cli.chat_mode.shell.commands.conversation_restart",
         fromlist=["RestartShellHandler"],
     ).RestartShellHandler,
-    "/edit": EditShellHandler,
+
     "/view": ViewShellHandler,
     "/lang": LangShellHandler,
     "/livelogs": LivelogsShellHandler,
@@ -37,7 +35,7 @@ COMMAND_HANDLERS = {
     "/role": RoleShellHandler,
     "/profile": ProfileShellHandler,
     "/history": HistoryShellHandler,
-    "/termweb-logs": TermwebLogTailShellHandler,
+
     "/tools": ToolsShellHandler,
     "/multi": MultiShellHandler,
     "/help": HelpShellHandler,

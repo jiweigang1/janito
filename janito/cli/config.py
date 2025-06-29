@@ -13,16 +13,15 @@ CONFIG_OPTIONS = {
     "profile": "Agent Profile name (only 'base' is supported)",
 }
 
-DEFAULT_TERMWEB_PORT = 8088
 
 
-def get_termweb_port():
-    port = config.get("termweb_port")
+def get__port():
+    port = config.get("_port")
     try:
         return int(port)
     except Exception:
-        return DEFAULT_TERMWEB_PORT
+        pass
 
 
-def set_termweb_port(port):
-    config.file_set("termweb_port", int(port))
+def set__port(port):
+    config.file_set("_port", int(port))

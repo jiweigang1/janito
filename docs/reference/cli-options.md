@@ -35,7 +35,6 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 | `-R`, `--raw` | Print the raw JSON response from the OpenAI API (if applicable) |
 | `--web` | Enable the builtin lightweight web file viewer for terminal links (disabled by default) |
 
-| `--termweb-port TERMWEB_PORT` | Port for the termweb server (default: 8088) |
 | `--effort {low, medium, high, none}` | Set the reasoning effort for models that support it (low, medium, high, none) |
 | `-e`, `--event-log` | Enable event logging to the system bus |
 | `--event-debug` | Print debug info on event subscribe/submit methods |
@@ -46,7 +45,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 janito -p openai -m gpt-3.5-turbo "Your prompt here"
 janito -p google -m gemini-2.5-flash "Your prompt here"
 janito --list-tools
-janito --web  # Enable clickable file links via web viewer (termweb)
+janito --web  # Enable clickable file links via web viewer
 
 ```
 
@@ -71,4 +70,3 @@ The `--effort` option allows you to set the reasoning effort for models that sup
 - `none`: Disables special reasoning effort (model default)
 
 > **Note:** Not all models or providers support this option. If unsupported, the option may be ignored.
-

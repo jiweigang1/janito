@@ -4,7 +4,7 @@ This guide explains how to start using Janito after installation. For an overvie
 
 ## Quickstart
 
-After installing Janito, you can use it from the command line or launch the web interface:
+After installing Janito, you can use it from the command line:
 
 ### Run a One-Off Prompt
 ```bash
@@ -19,11 +19,6 @@ janito
 Or, to enable clickable file links in your browser during the session:
 ```bash
 janito --web
-```
-
-### Launch the Web Terminal Interface
-```bash
-janito termweb
 ```
 
 ## Basic Usage Tips

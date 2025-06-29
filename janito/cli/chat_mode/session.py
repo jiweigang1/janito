@@ -24,16 +24,16 @@ class ChatShellState:
         self.mem_history = mem_history
         self.conversation_history = conversation_history
         self.paste_mode = False
-        self.termweb_port = None
-        self.termweb_pid = None
-        self.termweb_stdout_path = None
-        self.termweb_stderr_path = None
+        self._port = None
+        self._pid = None
+        self._stdout_path = None
+        self._stderr_path = None
         self.livereload_stderr_path = None
-        self.termweb_status = "starting"  # Tracks the current termweb status (updated by background thread/UI)
-        self.termweb_live_status = (
+        self._status = "starting"  # Tracks the current  status (updated by background thread/UI)
+        self._live_status = (
             None  # 'online', 'offline', updated by background checker
         )
-        self.termweb_live_checked_time = None  # datetime.datetime of last status check
+        self._live_checked_time = None  # datetime.datetime of last status check
         self.last_usage_info = {}
         self.last_elapsed = None
         self.main_agent = {}
@@ -151,34 +151,33 @@ class ChatSession:
             self.shell_state.conversation_history
         )
 
-        # TERMWEB logic migrated from runner
-        self.termweb_support = False
+        self._support = False
         if args and getattr(args, "web", False):
-            self.termweb_support = True
-            self.shell_state.termweb_support = self.termweb_support
-            from janito.cli.termweb_starter import termweb_start_and_watch
-            from janito.cli.config import get_termweb_port
+            self._support = True
+            self.shell_state._support = self._support
+            from janito.cli._starter import _start_and_watch
+            from janito.cli.config import get__port
             import threading
             from rich.console import Console
 
-            Console().print("[yellow]Starting termweb in background...[/yellow]")
-            self.termweb_lock = threading.Lock()
-            termweb_thread = termweb_start_and_watch(
-                self.shell_state, self.termweb_lock, get_termweb_port()
+            Console().print("[yellow]Starting  in background...[/yellow]")
+            self._lock = threading.Lock()
+            _thread = _start_and_watch(
+                self.shell_state, self._lock, get__port()
             )
             # Initial status is set to 'starting' by constructor; the watcher will update
-            self.termweb_thread = termweb_thread
+            self._thread = _thread
 
-            # Start a background timer to update live termweb status (for UI responsiveness)
+            # Start a background timer to update live  status (for UI responsiveness)
             import threading, datetime
 
-            def update_termweb_liveness():
+            def update__liveness():
                 while True:
-                    with self.termweb_lock:
-                        port = getattr(self.shell_state, "termweb_port", None)
+                    with self._lock:
+                        port = getattr(self.shell_state, "_port", None)
                         if port:
                             try:
-                                # is_termweb_running is removed; inline health check here:
+                                # is__running is removed; inline health check here:
                                 try:
                                     import http.client
 
@@ -190,31 +189,31 @@ class ChatSession:
                                     running = resp.status == 200
                                 except Exception:
                                     running = False
-                                self.shell_state.termweb_live_status = (
+                                self.shell_state._live_status = (
                                     "online" if running else "offline"
                                 )
                             except Exception:
-                                self.shell_state.termweb_live_status = "offline"
-                            self.shell_state.termweb_live_checked_time = (
+                                self.shell_state._live_status = "offline"
+                            self.shell_state._live_checked_time = (
                                 datetime.datetime.now()
                             )
                         else:
-                            self.shell_state.termweb_live_status = None
-                            self.shell_state.termweb_live_checked_time = (
+                            self.shell_state._live_status = None
+                            self.shell_state._live_checked_time = (
                                 datetime.datetime.now()
                             )
                     # sleep outside lock
                     threading.Event().wait(1.0)
 
-            self._termweb_liveness_thread = threading.Thread(
-                target=update_termweb_liveness, daemon=True
+            self.__liveness_thread = threading.Thread(
+                target=update__liveness, daemon=True
             )
-            self._termweb_liveness_thread.start()
+            self.__liveness_thread.start()
             # No queue or blocking checks; UI (and timer) will observe self.shell_state fields
 
         else:
-            self.shell_state.termweb_support = False
-            self.shell_state.termweb_status = "offline"
+            self.shell_state._support = False
+            self.shell_state._status = "offline"
 
     def run(self):
         session = self._create_prompt_session()
