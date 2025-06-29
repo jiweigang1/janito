@@ -85,18 +85,50 @@ class ChatSession:
         from janito.agent.setup_agent import create_configured_agent
 
         profile = getattr(args, "profile", None) if args is not None else None
-        # Determine whether to apply a system prompt template.
-        # A template should only be used when the user explicitly specifies
-        # a profile via --profile. Otherwise, no system prompt should be set.
-        agent = create_configured_agent(
-            provider_instance=provider_instance,
-            llm_driver_config=llm_driver_config,
-            role=role,
-            verbose_tools=verbose_tools,
-            verbose_agent=verbose_agent,
-            exec_enabled=allow_execution,
-            profile=profile,
-        )
+        profile_system_prompt = None
+        # If in chat mode and profile is not set, prompt user to select one
+        if profile is None:
+            try:
+                from janito.cli.chat_mode.session_profile_select import select_profile
+                result = select_profile()
+                if isinstance(result, dict) and result.get("profile") is None and result.get("profile_system_prompt"):
+                    profile = None
+                    profile_system_prompt = result["profile_system_prompt"]
+                elif isinstance(result, str) and result.startswith("role:"):
+                    role = result[len("role:"):].strip()
+                    profile = "developer"
+                else:
+                    if result == "software developer":
+                        profile = "developer"
+                    else:
+                        profile = result
+            except ImportError:
+                profile = "helpful assistant"
+                # If profile is 'developer' and a custom role is set, use the developer profile with the custom role
+        if profile == "developer" and role:
+            agent = create_configured_agent(
+                provider_instance=provider_instance,
+                llm_driver_config=llm_driver_config,
+                role=role,
+                verbose_tools=verbose_tools,
+                verbose_agent=verbose_agent,
+                exec_enabled=allow_execution,
+                allowed_permissions=allowed_permissions,
+                profile="developer",
+                profile_system_prompt=None,
+            )
+        else:
+            agent = create_configured_agent(
+                provider_instance=provider_instance,
+                llm_driver_config=llm_driver_config,
+                role=role,
+                verbose_tools=verbose_tools,
+                verbose_agent=verbose_agent,
+                exec_enabled=allow_execution,
+                allowed_permissions=allowed_permissions,
+                profile=profile,
+                profile_system_prompt=profile_system_prompt,
+            )
         from janito.conversation_history import LLMConversationHistory
 
         self.shell_state = ChatShellState(self.mem_history, LLMConversationHistory())

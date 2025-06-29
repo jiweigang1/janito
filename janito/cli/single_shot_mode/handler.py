@@ -15,7 +15,7 @@ from janito.cli.console import shared_console
 
 
 class PromptHandler:
-    def __init__(self, args, provider_instance, llm_driver_config, role=None, exec_enabled=False):
+    def __init__(self, args, provider_instance, llm_driver_config, role=None, exec_enabled=False, allowed_permissions=None):
         self.args = args
         self.provider_instance = provider_instance
         self.llm_driver_config = llm_driver_config
@@ -31,6 +31,7 @@ class PromptHandler:
             verbose_tools=getattr(args, "verbose_tools", False),
             verbose_agent=getattr(args, "verbose_agent", False),
             exec_enabled=exec_enabled,
+            allowed_permissions=allowed_permissions,
             profile=getattr(args, "profile", None),
         )
         # The global permission mask has already been set by the CLI runner.  No

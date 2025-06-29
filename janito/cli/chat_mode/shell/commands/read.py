@@ -25,6 +25,12 @@ class ReadShellHandler(ShellCmdHandler):
 
         except Exception as e:
             shared_console.print(f"[yellow]Warning: Could not update read permissions dynamically: {e}[/yellow]")
+        # Refresh system prompt if agent is available
+        agent = getattr(self.shell_state, "agent", None)
+        if agent:
+            if hasattr(agent, "_refresh_system_prompt_from_template"):
+                agent._refresh_system_prompt_from_template()
+            # No need to print the system prompt after permission change
         if enable:
             shared_console.print("[green]Read permissions ENABLED. Tools can now read files/data.[/green]")
         else:

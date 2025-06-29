@@ -94,6 +94,21 @@ class LLMAgent:
                 autoescape=select_autoescape(),
             )
             template = env.get_template(Path(self.system_prompt_template).name)
+            # Refresh allowed_permissions in context before rendering
+            from janito.tools.permissions import get_global_allowed_permissions
+            from janito.tools.tool_base import ToolPermissions
+            perms = get_global_allowed_permissions()
+            if isinstance(perms, ToolPermissions):
+                perm_str = ""
+                if perms.read:
+                    perm_str += "r"
+                if perms.write:
+                    perm_str += "w"
+                if perms.execute:
+                    perm_str += "x"
+                self._template_vars["allowed_permissions"] = perm_str or None
+            else:
+                self._template_vars["allowed_permissions"] = perms
             self.system_prompt = template.render(**self._template_vars)
 
     def get_system_prompt(self) -> str:

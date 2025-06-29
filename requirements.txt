@@ -8,3 +8,4 @@ prompt_toolkit>=3.0.51
 lxml>=5.4.0
 requests>=2.32.4
 bs4>=0.0.2
+questionary>=2.0.1

@@ -92,7 +92,7 @@ def prepare_llm_driver_config(args, modifiers):
     llm_driver_config = LLMDriverConfig(**driver_config_data)
     if getattr(llm_driver_config, "verbose_api", None):
         pass
-    agent_role = modifiers.get("role", "software developer")
+    agent_role = modifiers.get("role", "developer")
     return provider, llm_driver_config, agent_role
 
 
@@ -140,7 +140,10 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
         # DEBUG: Print exec_enabled propagation at runner
         
         handler = SingleShotPromptHandler(
-            args, provider_instance, llm_driver_config, role=agent_role, exec_enabled=exec_enabled
+            args, provider_instance, llm_driver_config,
+            role=agent_role,
+            exec_enabled=exec_enabled,
+            allowed_permissions=allowed_permissions,
         )
         handler.handle()
     else:

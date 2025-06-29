@@ -25,22 +25,55 @@ def handle_show_system_prompt(args):
 
     # Prepare context for Jinja2 rendering
     context = {}
-    context["role"] = agent_role or "software developer"
+    context["role"] = agent_role or "developer"
     context["profile"] = getattr(args, "profile", None)
-    pd = PlatformDiscovery()
-    context["platform"] = pd.get_platform_name()
-    context["python_version"] = pd.get_python_version()
-    context["shell_info"] = pd.detect_shell()
+    # Compute allowed_permissions from CLI args (as in agent setup)
+    from janito.tools.tool_base import ToolPermissions
+    read = getattr(args, "read", False)
+    write = getattr(args, "write", False)
+    execute = getattr(args, "exec", False)
+    allowed = ToolPermissions(read=read, write=write, execute=execute)
+    perm_str = ""
+    if allowed.read:
+        perm_str += "r"
+    if allowed.write:
+        perm_str += "w"
+    if allowed.execute:
+        perm_str += "x"
+    allowed_permissions = perm_str or None
+    context["allowed_permissions"] = allowed_permissions
+    # DEBUG: Show permissions/context before rendering
+    from rich import print as rich_print
+    debug_flag = False
+    import sys
+    try:
+        debug_flag = (hasattr(sys, 'argv') and ('--debug' in sys.argv or '--verbose' in sys.argv or '-v' in sys.argv))
+    except Exception:
+        pass
+    if debug_flag:
+        rich_print(f"[bold magenta][DEBUG][/bold magenta] Rendering system prompt template '[cyan]{template_filename}[/cyan]' with allowed_permissions: [yellow]{allowed_permissions}[/yellow]")
+        rich_print(f"[bold magenta][DEBUG][/bold magenta] Template context: [green]{context}[/green]")
+    if allowed_permissions and 'x' in allowed_permissions:
+        pd = PlatformDiscovery()
+        context["platform"] = pd.get_platform_name()
+        context["python_version"] = pd.get_python_version()
+        context["shell_info"] = pd.detect_shell()
 
     # Locate and load the system prompt template
     templates_dir = (
         Path(__file__).parent.parent.parent / "agent" / "templates" / "profiles"
     )
     profile = getattr(args, "profile", None)
-    template_filename = f"system_prompt_template_{profile}.txt.j2" if profile else "system_prompt_template_main.txt.j2"
-    template_path = templates_dir / template_filename
+    if profile:
+        template_filename = f"system_prompt_template_{profile}.txt.j2"
+        template_path = templates_dir / template_filename
+    else:
+        # No profile specified means the main agent has no dedicated system prompt template.
+        print("[janito] No profile specified. The main agent runs without a system prompt template.\n"
+              "Use --profile PROFILE to view a profile-specific system prompt.")
+        return
     template_content = None
-    if template_path.exists():
+    if template_path and template_path.exists():
         with open(template_path, "r", encoding="utf-8") as file:
             template_content = file.read()
     else:
