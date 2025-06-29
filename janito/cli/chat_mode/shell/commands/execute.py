@@ -38,6 +38,6 @@ class ExecuteShellHandler(ShellCmdHandler):
                 agent._refresh_system_prompt_from_template()
             # No need to print the system prompt after permission change
         if enable:
-            shared_console.print("[green]Execution tools ENABLED. You can now use code and command execution tools.[/green]")
+            shared_console.print("[green]Execution tools ENABLED. Tools can now execute code and commands.[/green]")
         else:
             shared_console.print("[yellow]Execution tools DISABLED. Tools cannot run code or commands.[/yellow]")

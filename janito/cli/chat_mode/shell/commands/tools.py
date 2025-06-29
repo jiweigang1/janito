@@ -15,22 +15,50 @@ class ToolsShellHandler(ShellCmdHandler):
             from janito.tools.permissions import get_global_allowed_permissions
             registry = janito.tools.get_local_tools_adapter()
             tools = registry.list_tools()
-            shared_console.print("Registered tools:" if tools else "No tools registered.")
-            # Get tool instances for annotation
+            from rich.table import Table
+            shared_console.print("Registered tools:")
             tool_instances = {t.tool_name: t for t in registry.get_tools()}
+            if not tools:
+                shared_console.print("No tools are enabled under the current permission settings.")
+                return
+            # Group tools by permission class
+            perm_groups = {}
+            def perm_class(perms):
+                if perms.execute:
+                    if perms.read and perms.write:
+                        return "read-write-execute"
+                    elif perms.read:
+                        return "read-execute"
+                    elif perms.write:
+                        return "write-execute"
+                    else:
+                        return "execute-only"
+                elif perms.read and perms.write:
+                    return "read-write"
+                elif perms.read:
+                    return "read-only"
+                elif perms.write:
+                    return "write-only"
+                else:
+                    return "none"
             for tool in tools:
                 inst = tool_instances.get(tool, None)
-                is_exec = getattr(inst, 'permissions', None)
-                is_exec = is_exec.execute if is_exec else False
-                if is_exec and not allow_execution:
-                    shared_console.print(f"- {tool} (disabled)")
+                perms = getattr(inst, 'permissions', None)
+                if not perms:
+                    group = "unknown"
                 else:
-                    shared_console.print(f"- {tool}")
+                    group = perm_class(perms)
+                perm_groups.setdefault(group, []).append(tool)
+            # Build and print table
+            table = Table(title="Tools by Permission Class")
+            table.add_column("Permission Type", style="cyan", no_wrap=True)
+            table.add_column("Tools", style="magenta")
+            for group, tool_list in sorted(perm_groups.items()):
+                table.add_row(group, " ".join(sorted(tool_list)))
+            shared_console.print(table)
 
             if allow_execution:
                 shared_console.print("[green]Execution tools are ENABLED.[/green]")
-            else:
-                shared_console.print("[yellow]Execution tools are DISABLED. Use /exec on to enable them.[/yellow]")
 
             # Find all possible execution tools (by permission: execute=True)
             exec_tools = []

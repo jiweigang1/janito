@@ -32,6 +32,6 @@ class ReadShellHandler(ShellCmdHandler):
                 agent._refresh_system_prompt_from_template()
             # No need to print the system prompt after permission change
         if enable:
-            shared_console.print("[green]Read permissions ENABLED. Tools can now read files/data.[/green]")
+            shared_console.print("[green]Read permissions ENABLED. Tools can now read files and data.[/green]")
         else:
             shared_console.print("[yellow]Read permissions DISABLED. Tools cannot read files/data.[/yellow]")
