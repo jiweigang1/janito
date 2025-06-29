@@ -84,13 +84,18 @@ class ChatSession:
         self.llm_driver_config = llm_driver_config
         from janito.agent.setup_agent import create_configured_agent
 
+        profile = getattr(args, "profile", None) if args is not None else None
+        # Determine whether to apply a system prompt template.
+        # A template should only be used when the user explicitly specifies
+        # a profile via --profile. Otherwise, no system prompt should be set.
         agent = create_configured_agent(
             provider_instance=provider_instance,
             llm_driver_config=llm_driver_config,
             role=role,
             verbose_tools=verbose_tools,
             verbose_agent=verbose_agent,
-            exec_enabled=allow_execution
+            exec_enabled=allow_execution,
+            profile=profile,
         )
         from janito.conversation_history import LLMConversationHistory
 

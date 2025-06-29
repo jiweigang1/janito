@@ -1,5 +1,7 @@
 """
 CLI Command: Show the resolved system prompt for the main agent (single-shot mode)
+
+Supports --profile to select a profile-specific system prompt template.
 """
 
 from janito.cli.core.runner import prepare_llm_driver_config
@@ -24,6 +26,7 @@ def handle_show_system_prompt(args):
     # Prepare context for Jinja2 rendering
     context = {}
     context["role"] = agent_role or "software developer"
+    context["profile"] = getattr(args, "profile", None)
     pd = PlatformDiscovery()
     context["platform"] = pd.get_platform_name()
     context["python_version"] = pd.get_python_version()
@@ -33,7 +36,9 @@ def handle_show_system_prompt(args):
     templates_dir = (
         Path(__file__).parent.parent.parent / "agent" / "templates" / "profiles"
     )
-    template_path = templates_dir / "system_prompt_template_main.txt.j2"
+    profile = getattr(args, "profile", None)
+    template_filename = f"system_prompt_template_{profile}.txt.j2" if profile else "system_prompt_template_main.txt.j2"
+    template_path = templates_dir / template_filename
     template_content = None
     if template_path.exists():
         with open(template_path, "r", encoding="utf-8") as file:
@@ -42,20 +47,25 @@ def handle_show_system_prompt(args):
         # Try package import fallback
         try:
             with importlib.resources.files("janito.agent.templates.profiles").joinpath(
-                "system_prompt_template_main.txt.j2"
+                template_filename
             ).open("r", encoding="utf-8") as file:
                 template_content = file.read()
         except (FileNotFoundError, ModuleNotFoundError, AttributeError):
-            print(
-                f"[janito] Could not find system_prompt_template_main.txt.j2 in {template_path} nor in janito.agent.templates.profiles package."
-            )
-            print("No system prompt is set or resolved for this configuration.")
-            return
+            if profile:
+                raise FileNotFoundError(
+                    f"[janito] Could not find profile-specific template '{template_filename}' in {template_path} nor in janito.agent.templates.profiles package."
+                )
+            else:
+                print(
+                    f"[janito] Could not find {template_filename} in {template_path} nor in janito.agent.templates.profiles package."
+                )
+                print("No system prompt is set or resolved for this configuration.")
+                return
 
     template = Template(template_content)
     system_prompt = template.render(**context)
 
-    print("\n--- System Prompt (resolved) ---\n")
+    print(f"\n--- System Prompt (resolved, profile: {getattr(args, 'profile', 'main')}) ---\n")
     print(system_prompt)
     print("\n-------------------------------\n")
     if agent_role:

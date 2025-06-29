@@ -15,6 +15,14 @@ from janito.cli.core.event_logger import (
 
 definition = [
     (
+        ["--profile"],
+        {
+            "metavar": "PROFILE",
+            "help": "Select the profile name for the system prompt (e.g. 'developer').",
+            "default": None,
+        },
+    ),
+    (
         ["-W", "--workdir"],
         {
             "metavar": "WORKDIR",

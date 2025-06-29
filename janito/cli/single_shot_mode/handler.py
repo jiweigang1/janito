@@ -31,6 +31,7 @@ class PromptHandler:
             verbose_tools=getattr(args, "verbose_tools", False),
             verbose_agent=getattr(args, "verbose_agent", False),
             exec_enabled=exec_enabled,
+            profile=getattr(args, "profile", None),
         )
         # The global permission mask has already been set by the CLI runner.  No
         # additional toggling is necessary here now that the dedicated

@@ -22,15 +22,16 @@ def setup_agent(
     verbose_agent=False,
     exec_enabled=False,
     allowed_permissions=None,
-    use_system_prompt=False,
+    profile=None,
 ):
     """
-    Creates an agent. By default, does NOT set a system prompt unless use_system_prompt=True.
+    Creates an agent. A system prompt is rendered from a template only when a profile is specified.
     """
     tools_provider = get_local_tools_adapter()
     tools_provider.set_verbose_tools(verbose_tools)
 
-    if zero_mode or not use_system_prompt:
+    # If zero_mode is enabled or no profile is given we skip the system prompt.
+    if zero_mode or profile is None:
         # Pass provider to agent, let agent create driver
         agent = LLMAgent(
             provider_instance,
@@ -44,30 +45,36 @@ def setup_agent(
         if role:
             agent.template_vars["role"] = role
         return agent
-    # Normal flow (use_system_prompt is True)
+    # Normal flow (profile-specific system prompt)
     if templates_dir is None:
         # Set default template directory
         templates_dir = Path(__file__).parent / "templates" / "profiles"
-    template_path = templates_dir / "system_prompt_template_main.txt.j2"
+    template_filename = f"system_prompt_template_{profile}.txt.j2"
+    template_path = templates_dir / template_filename
 
     template_content = None
     if template_path.exists():
         with open(template_path, "r", encoding="utf-8") as file:
             template_content = file.read()
     else:
-        # Try package import fallback: janito.agent.templates.profiles.system_prompt_template_main.txt.j2
+        # Try package import fallback: janito.agent.templates.profiles.system_prompt_template_<profile>.txt.j2
         try:
             with importlib.resources.files("janito.agent.templates.profiles").joinpath(
-                "system_prompt_template_main.txt.j2"
+                template_filename
             ).open("r", encoding="utf-8") as file:
                 template_content = file.read()
         except (FileNotFoundError, ModuleNotFoundError, AttributeError):
-            warnings.warn(
-                f"[janito] Could not find system_prompt_template_main.txt.j2 in {template_path} nor in janito.agent.templates.profiles package."
-            )
-            raise FileNotFoundError(
-                f"Template file not found in either {template_path} or package resource."
-            )
+            if profile:
+                raise FileNotFoundError(
+                    f"[janito] Could not find profile-specific template '{template_filename}' in {template_path} nor in janito.agent.templates.profiles package."
+                )
+            else:
+                warnings.warn(
+                    f"[janito] Could not find {template_filename} in {template_path} nor in janito.agent.templates.profiles package."
+                )
+                raise FileNotFoundError(
+                    f"Template file not found in either {template_path} or package resource."
+                )
 
     import time
     template = Template(template_content)
@@ -75,6 +82,7 @@ def setup_agent(
     # Compose context for Jinja2 rendering without using to_dict or temperature
     context = {}
     context["role"] = role or "software developer"
+    context["profile"] = profile
     # Inject current platform environment information only if exec_enabled
     context["exec_enabled"] = bool(exec_enabled)
     if exec_enabled:
@@ -98,6 +106,7 @@ def setup_agent(
         verbose_agent=verbose_agent,
     )
     agent.template_vars["role"] = context["role"]
+    agent.template_vars["profile"] = profile
     return agent
 
 
@@ -112,7 +121,8 @@ def create_configured_agent(
     zero_mode=False,
     exec_enabled=False,
     allowed_permissions=None,
-    use_system_prompt=False,
+
+    profile=None,
 ):
     """
     Normalizes agent setup for all CLI modes.
@@ -139,6 +149,8 @@ def create_configured_agent(
         input_queue = getattr(driver, "input_queue", None)
         output_queue = getattr(driver, "output_queue", None)
 
+    # Automatically enable system prompt when a profile is specified
+
     agent = setup_agent(
         provider_instance=provider_instance,
         llm_driver_config=llm_driver_config,
@@ -150,7 +162,7 @@ def create_configured_agent(
         verbose_tools=verbose_tools,
         verbose_agent=verbose_agent,
         exec_enabled=exec_enabled,
-        use_system_prompt=use_system_prompt,
+        profile=profile,
     )
     if driver is not None:
         agent.driver = driver  # Attach driver to agent for thread management
