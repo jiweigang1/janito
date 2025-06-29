@@ -205,10 +205,13 @@ class ChatSession:
             self.shell_state._status = "offline"
 
     def run(self):
-        session = self._create_prompt_session()
+        self.console.clear()
+        from janito.version import __version__
         self.console.print(
-            "[bold green]Type /help for commands. Type /exit or press Ctrl+C to quit.[/bold green]"
+            f"[bold green]Janito Chat Mode v{__version__}[/bold green]"
         )
+        self.console.print("[green]/help for commands   /exit or Ctrl+C to quit[/green]")
+        session = self._create_prompt_session()
         self._chat_loop(session)
 
     def _chat_loop(self, session):

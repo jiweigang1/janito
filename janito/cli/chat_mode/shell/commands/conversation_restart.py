@@ -77,7 +77,8 @@ def handle_restart(shell_state=None):
         if default_perms is not None:
             set_global_allowed_permissions(default_perms)
             janito.tools.local_tools_adapter.set_allowed_permissions(default_perms)
-            msg = f"[green]Tool permissions have been restored to CLI defaults: {default_perms}[/green]"
+            msg = None
+        
         else:
             from janito.tools.tool_base import ToolPermissions
             set_global_allowed_permissions(ToolPermissions(read=False, write=False, execute=False))
@@ -86,7 +87,9 @@ def handle_restart(shell_state=None):
         # Refresh system prompt to reflect new permissions
         if hasattr(shell_state, "agent") and shell_state.agent and hasattr(shell_state.agent, "_refresh_system_prompt_from_template"):
             shell_state.agent._refresh_system_prompt_from_template()
-        shared_console.print(msg)
+        if msg:
+            shared_console.print(msg)
+
     except Exception as e:
         shared_console.print(f"[yellow]Warning: Failed to restore tool permissions: {e}[/yellow]")
 
