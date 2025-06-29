@@ -113,6 +113,9 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
     from janito.tools.tool_base import ToolPermissions
     allowed_permissions = ToolPermissions(read=read, write=write, execute=execute)
     set_global_allowed_permissions(allowed_permissions)
+    # Store the default permissions for later restoration (e.g., on /restart)
+    from janito.tools.permissions import set_default_allowed_permissions
+    set_default_allowed_permissions(allowed_permissions)
     adapter = janito.tools.get_local_tools_adapter(workdir=getattr(args, "workdir", None))
 
     # Print allowed permissions in verbose mode
