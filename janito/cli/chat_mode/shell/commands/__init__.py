@@ -12,6 +12,10 @@ from .help import HelpShellHandler
 from janito.cli.console import shared_console
 
 COMMAND_HANDLERS = {
+    # Bang handler for shell commands
+    "!": __import__(
+        "janito.cli.chat_mode.shell.commands.bang", fromlist=["BangShellHandler"]
+    ).BangShellHandler,
     "/execute": __import__(
         "janito.cli.chat_mode.shell.commands.execute", fromlist=["ExecuteShellHandler"]
     ).ExecuteShellHandler,

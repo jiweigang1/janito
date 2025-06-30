@@ -185,6 +185,11 @@ class ChatSession:
             if cmd_input.startswith("/"):
                 handle_command(cmd_input, shell_state=self.shell_state)
                 continue
+            if cmd_input.startswith("!"):
+                # Pass everything after ! to the bang handler
+                from janito.cli.chat_mode.shell.commands import handle_command
+                handle_command(f"! {cmd_input[1:]}", shell_state=self.shell_state)
+                continue
             self.user_input_history.append(cmd_input)
             try:
                 import time
