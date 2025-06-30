@@ -59,10 +59,13 @@ class PromptHandler:
 
     def _post_prompt_actions(self):
         # Align with chat mode: only print token usage summary
+        import sys
         from janito.formatting_token import print_token_message_summary
         from janito.perf_singleton import performance_collector
         usage = performance_collector.get_last_request_usage()
-        print_token_message_summary(shared_console, msg_count=1, usage=usage)
+        # If running in stdin mode, do not print token usage
+        if sys.stdin.isatty():
+            print_token_message_summary(shared_console, msg_count=1, usage=usage)
         self._cleanup_driver_and_console()
 
 

@@ -200,6 +200,17 @@ class JanitoCLI:
         self._define_args()
         self.args = self.parser.parse_args()
         self._set_all_arg_defaults()
+        # Support reading prompt from stdin if no user_prompt is given
+        import sys
+        if not sys.stdin.isatty():
+            stdin_input = sys.stdin.read().strip()
+            if stdin_input:
+                if self.args.user_prompt and len(self.args.user_prompt) > 0:
+                    # Prefix the prompt argument to the stdin input
+                    combined = ' '.join(self.args.user_prompt) + ' ' + stdin_input
+                    self.args.user_prompt = [combined]
+                else:
+                    self.args.user_prompt = [stdin_input]
         from janito.cli.rich_terminal_reporter import RichTerminalReporter
 
         self.rich_reporter = RichTerminalReporter(raw_mode=self.args.raw)
