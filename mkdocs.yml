@@ -14,6 +14,7 @@ nav:
       - Terminal Shell: guides/terminal-shell.md
       - Single-Shot: guides/single-shot-terminal.md
       - Prompt Design Style: concepts/prompt-design-style.md
+      - Using Profiles: guides/profiles.md
   - Developing & Extending:
       - Developer Guide: guides/developing.md
       - Tools Developer Guide: guides/tools-developer-guide.md

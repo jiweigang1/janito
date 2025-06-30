@@ -32,9 +32,8 @@ def display_path(path):
             disp = path
     else:
         disp = os.path.relpath(path)
-    url = f"http://localhost:{port}/?path={urllib.parse.quote(path)}"
-    # Use Rich markup for hyperlinks
-    return f"[link={url}]{disp}[/link]"
+    # URL injection removed; just return display path
+    return disp
 
 
 def pluralize(word: str, count: int) -> str:

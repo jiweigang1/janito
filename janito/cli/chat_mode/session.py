@@ -34,10 +34,7 @@ class ChatShellState:
         self._stderr_path = None
         self.livereload_stderr_path = None
         self._status = "starting"  # Tracks the current  status (updated by background thread/UI)
-        self._live_status = (
-            None  # 'online', 'offline', updated by background checker
-        )
-        self._live_checked_time = None  # datetime.datetime of last status check
+
         self.last_usage_info = {}
         self.last_elapsed = None
         self.main_agent = {}
@@ -153,45 +150,7 @@ class ChatSession:
             # Start a background timer to update live  status (for UI responsiveness)
             import threading, datetime
 
-            def update__liveness():
-                while True:
-                    with self._lock:
-                        port = getattr(self.shell_state, "_port", None)
-                        if port:
-                            try:
-                                # is__running is removed; inline health check here:
-                                try:
-                                    import http.client
-
-                                    conn = http.client.HTTPConnection(
-                                        "localhost", port, timeout=0.5
-                                    )
-                                    conn.request("GET", "/")
-                                    resp = conn.getresponse()
-                                    running = resp.status == 200
-                                except Exception:
-                                    running = False
-                                self.shell_state._live_status = (
-                                    "online" if running else "offline"
-                                )
-                            except Exception:
-                                self.shell_state._live_status = "offline"
-                            self.shell_state._live_checked_time = (
-                                datetime.datetime.now()
-                            )
-                        else:
-                            self.shell_state._live_status = None
-                            self.shell_state._live_checked_time = (
-                                datetime.datetime.now()
-                            )
-                    # sleep outside lock
-                    threading.Event().wait(1.0)
-
-            self.__liveness_thread = threading.Thread(
-                target=update__liveness, daemon=True
-            )
-            self.__liveness_thread.start()
-            # No queue or blocking checks; UI (and timer) will observe self.shell_state fields
+            # Health check and liveness thread removed as per refactor to eliminate localhost references.
 
         else:
             self.shell_state._support = False
@@ -204,6 +163,12 @@ class ChatSession:
             f"[bold green]Janito Chat Mode v{__version__}[/bold green]"
         )
         self.console.print("[green]/help for commands   /exit or Ctrl+C to quit[/green]")
+
+        # Inform user if no privileges are enabled
+        from janito.cli.chat_mode.shell.commands._priv_check import user_has_any_privileges
+        if not user_has_any_privileges():
+            self.console.print("[yellow]Note: You currently have no privileges enabled. If you need to interact with files or the system, enable permissions using /read on, /write on, or /execute on.[/yellow]")
+
         session = self._create_prompt_session()
         self._chat_loop(session)
 

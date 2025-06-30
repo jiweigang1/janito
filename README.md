@@ -76,6 +76,21 @@ janito -set provider=PROVIDER
 
 After installation, use the `janito` command in your terminal.
 
+Janito supports both general-purpose and specialized assistance through the use of **profiles**. Profiles allow you to select a specific system prompt template and behavior for the agent, enabling workflows tailored to different roles or tasks (e.g., developer, writer, data analyst), or to use Janito as a generic AI assistant.
+
+### Profiles: General-Purpose and Specialized Assistance
+
+- By default, Janito acts as a general-purpose assistant.
+- You can select a specialized profile using the `--profile` option:
+  ```bash
+  janito --profile developer "Refactor this code for better readability."
+  janito --profile writer "Draft a blog post about AI in healthcare."
+  ```
+- Profiles change the system prompt and agent behavior to suit the selected role or workflow.
+- To see available profiles or customize them, refer to the documentation or the `agent/templates/profiles/` directory.
+
+> **Tip:** Use `--profile` for targeted workflows, or omit it for a general-purpose assistant.
+
 Janito has configuration options, like `--set api-key API_KEY` and `--set provider=PROVIDER`, that create durable configurations and single shoot options, like `-p PROVIDER` and `-m MODEL`, that are active for the single run of the command or session.
 
 ### Basic Commands
@@ -136,12 +151,25 @@ Janito has configuration options, like `--set api-key API_KEY` and `--set provid
 
 - **Enable Execution Tools (Code/Shell Execution)**
   
-  By default, tools that can execute code or shell commands are **disabled** for safety. To enable these tools (such as code execution, shell commands, etc.), use the `--exec` or `-x` flag:
-  
-  ```bash
-  janito -x "Run this code: print('Hello, world!')"
-  ```
-  > **Warning:** Enabling execution tools allows running arbitrary code or shell commands. Only use `--exec` if you trust your prompt and environment.
+  By default, **all tool privileges (read, write, execute)** are disabled for safety. This means Janito starts with no permissions to run tools that read, write, or execute code/shell commands unless you explicitly enable them.
+
+- To enable **read** tools (e.g., file reading, searching): add `-r` or `--read`
+- To enable **write** tools (e.g., file editing): add `-w` or `--write`
+- To enable **execution** tools (code/shell execution): add `-x` or `--exec`
+
+You can combine these flags as needed. For example, to enable both read and write tools:
+
+```bash
+janito -r -w "Read and update this file: ..."
+```
+
+To enable all permissions (read, write, execute):
+
+```bash
+janito -r -w -x "Run this code: print('Hello, world!')"
+```
+
+> **Warning:** Enabling execution tools allows running arbitrary code or shell commands. Only use `--exec` if you trust your prompt and environment.
 
 - **Set a System Prompt**
   ```bash

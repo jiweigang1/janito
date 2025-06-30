@@ -16,7 +16,9 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 | `--verbose-tools` | Print info messages for tool execution in tools adapter. |
 | `--verbose-agent` | Print info messages for agent event and message part handling. |
 | `-z`, `--zero` | IDE zero mode: disables system prompt & all tools for raw LLM interaction |
-| `-x`, `--exec` | Enable execution/run tools (allows running code or shell tools from the CLI). **Disabled by default for safety.** |
+| `-r`, `--read` | Enable tools that require read permissions (default: off) |
+| `-w`, `--write` | Enable tools that require write permissions (default: off) |
+| `-x`, `--exec` | Enable execution/run tools (allows running code or shell tools from the CLI). (default: off) |
 | `--unset KEY` | Unset (remove) a config key |
 | `--version` | Show program's version number and exit |
 | `--list-tools` | List all registered tools |

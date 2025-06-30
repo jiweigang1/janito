@@ -99,7 +99,7 @@ def get_toolbar_func(perf: PerformanceCollector, msg_count: int, shell_state):
         toolbar_text = first_line + "\n" + bindings_line
         # Add  status if available, after the F12 line
         if this__status == "online" and _port:
-            toolbar_text += f"\n<> Termweb </>Online<> at <u>http://localhost:{_port}</u></>"
+            toolbar_text += f"\n<> Termweb </>Online"
         elif this__status == "starting":
             toolbar_text += "\n<> Termweb </>Starting"
         elif this__status == "offline":
