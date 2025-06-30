@@ -12,7 +12,7 @@ class UserInputHistory:
     """
 
     def __init__(self, history_dir=None):
-        self.history_dir = history_dir or os.path.join(".janito", "input_history")
+        self.history_dir = history_dir or os.path.join(os.path.expanduser("~"), ".janito", "input_history")
         os.makedirs(self.history_dir, exist_ok=True)
 
     def _get_today_file(self):

@@ -76,12 +76,9 @@ class ChatSession:
                 from janito.cli.chat_mode.session_profile_select import select_profile
 
                 result = select_profile()
-                if (
-                    isinstance(result, dict)
-                    and result.get("profile") is None
-                    and result.get("profile_system_prompt")
-                ):
-                    profile_system_prompt = result["profile_system_prompt"]
+                if isinstance(result, dict):
+                    profile = result.get("profile")
+                    profile_system_prompt = result.get("profile_system_prompt")
                 elif isinstance(result, str) and result.startswith("role:"):
                     role = result[len("role:") :].strip()
                     profile = "developer"

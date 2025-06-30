@@ -5,31 +5,8 @@ from janito.cli.console import shared_console
 
 
 def handle_restart(shell_state=None):
-    from janito.cli.chat_mode.shell.session.manager import (
-        load_last_conversation,
-        save_conversation,
-    )
-
     reset_session_id()
-    save_path = os.path.join(".janito", "last_conversation.json")
-
-    # --- Append end-of-conversation message to old history if it exists and is non-trivial ---
-    if os.path.exists(save_path):
-        try:
-            messages, prompts, usage = load_last_conversation(save_path)
-            if messages and (
-                len(messages) > 1
-                or (len(messages) == 1 and messages[0].get("role") != "system")
-            ):
-                messages.append(
-                    {"role": "system", "content": "[Session ended by user]"}
-                )
-                # Save to permanent chat history (let save_conversation pick session file)
-                save_conversation(messages, prompts, usage)
-        except Exception as e:
-            shared_console.print(
-                f"[bold red]Failed to update previous conversation history:[/bold red] {e}"
-            )
+    # Conversation history is no longer saved or loaded.
 
     # Clear the terminal screen
     shared_console.clear()
