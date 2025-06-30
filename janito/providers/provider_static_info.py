@@ -8,9 +8,6 @@ STATIC_PROVIDER_METADATA = {
     "azure_openai": {
         "maintainer": "João Pinto <lamego.pinto@gmail.com>",
     },
-    "mistralai": {
-        "maintainer": "Needs maintainer",
-    },
     "anthropic": {
         "maintainer": "Needs maintainer",
     },
