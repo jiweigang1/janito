@@ -182,49 +182,55 @@ class ChatSession:
                 continue
             if self._handle_exit_conditions(cmd_input):
                 break
-            if cmd_input.startswith("/"):
-                handle_command(cmd_input, shell_state=self.shell_state)
-                continue
-            if cmd_input.startswith("!"):
-                # Pass everything after ! to the bang handler
-                from janito.cli.chat_mode.shell.commands import handle_command
-                handle_command(f"! {cmd_input[1:]}", shell_state=self.shell_state)
+            if self._handle_command_input(cmd_input):
                 continue
             self.user_input_history.append(cmd_input)
-            try:
-                import time
-                final_event = (
-                    self._prompt_handler.agent.last_event
-                    if hasattr(self._prompt_handler.agent, "last_event")
+            self._process_prompt(cmd_input)
+
+    def _handle_command_input(self, cmd_input):
+        if cmd_input.startswith("/"):
+            handle_command(cmd_input, shell_state=self.shell_state)
+            return True
+        if cmd_input.startswith("!"):
+            # Pass everything after ! to the bang handler
+            handle_command(f"! {cmd_input[1:]}", shell_state=self.shell_state)
+            return True
+        return False
+
+    def _process_prompt(self, cmd_input):
+        try:
+            import time
+            final_event = (
+                self._prompt_handler.agent.last_event
+                if hasattr(self._prompt_handler.agent, "last_event")
+                else None
+            )
+            start_time = time.time()
+            self._prompt_handler.run_prompt(cmd_input)
+            end_time = time.time()
+            elapsed = end_time - start_time
+            self.msg_count += 1
+            # After prompt, print the stat line using the shared core function
+            from janito.formatting_token import print_token_message_summary
+
+            usage = self.performance_collector.get_last_request_usage()
+            print_token_message_summary(self.console, self.msg_count, usage, elapsed=elapsed)
+            # Print exit reason if present in the final event
+            if final_event and hasattr(final_event, "metadata"):
+                exit_reason = (
+                    final_event.metadata.get("exit_reason")
+                    if hasattr(final_event, "metadata")
                     else None
                 )
-                start_time = time.time()
-                self._prompt_handler.run_prompt(cmd_input)
-                end_time = time.time()
-                elapsed = end_time - start_time
-                self.msg_count += 1
-                # After prompt, print the stat line using the shared core function
-                from janito.formatting_token import print_token_message_summary
-
-                usage = self.performance_collector.get_last_request_usage()
-                print_token_message_summary(self.console, self.msg_count, usage, elapsed=elapsed)
-                # Print exit reason if present in the final event
-                if final_event and hasattr(final_event, "metadata"):
-                    exit_reason = (
-                        final_event.metadata.get("exit_reason")
-                        if hasattr(final_event, "metadata")
-                        else None
+                if exit_reason:
+                    self.console.print(
+                        f"[bold yellow]Exit reason: {exit_reason}[/bold yellow]"
                     )
-                    if exit_reason:
-                        self.console.print(
-                            f"[bold yellow]Exit reason: {exit_reason}[/bold yellow]"
-                        )
 
-            except Exception as exc:
-                self.console.print(f"[red]Exception in agent: {exc}[/red]")
-                import traceback
-
-                self.console.print(traceback.format_exc())
+        except Exception as exc:
+            self.console.print(f"[red]Exception in agent: {exc}[/red]")
+            import traceback
+            self.console.print(traceback.format_exc())
 
     def _create_prompt_session(self):
         return PromptSession(
