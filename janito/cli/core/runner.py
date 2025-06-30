@@ -96,7 +96,7 @@ def prepare_llm_driver_config(args, modifiers):
     return provider, llm_driver_config, agent_role
 
 
-def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=False, exec_enabled=False):
+def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=False, ):
     """
     Main runner for CLI execution. If exec_enabled is False, disables execution/run tools.
     """
@@ -108,7 +108,7 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
     from janito.tools.tool_base import ToolPermissions
     read = getattr(args, "read", False)
     write = getattr(args, "write", False)
-    execute = exec_enabled
+    execute = getattr(args, "exec", False)
     from janito.tools.permissions import set_global_allowed_permissions
     from janito.tools.tool_base import ToolPermissions
     allowed_permissions = ToolPermissions(read=read, write=write, execute=execute)
@@ -145,7 +145,7 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
         handler = SingleShotPromptHandler(
             args, provider_instance, llm_driver_config,
             role=agent_role,
-            exec_enabled=exec_enabled,
+            
             allowed_permissions=allowed_permissions,
         )
         handler.handle()
@@ -162,7 +162,7 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
             args=args,
             verbose_tools=verbose_tools,
             verbose_agent=getattr(args, "verbose_agent", False),
-            exec_enabled=exec_enabled,
+            
             allowed_permissions=allowed_permissions,
         )
         session.run()

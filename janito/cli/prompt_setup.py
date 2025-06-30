@@ -21,7 +21,7 @@ def setup_agent_and_prompt_handler(
     role: Optional[str] = None,
     verbose_tools: bool = False,
     verbose_agent: bool = False,
-    exec_enabled: bool = False,
+    
     allowed_permissions: Optional[list[str]] = None,
     profile: Optional[str] = None,
     profile_system_prompt: Optional[str] = None,
@@ -40,7 +40,7 @@ def setup_agent_and_prompt_handler(
         role=role,
         verbose_tools=verbose_tools,
         verbose_agent=verbose_agent,
-        exec_enabled=exec_enabled,
+        
         allowed_permissions=allowed_permissions,
         profile=profile,
         profile_system_prompt=profile_system_prompt,

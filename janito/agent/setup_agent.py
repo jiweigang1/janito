@@ -20,7 +20,7 @@ def setup_agent(
     output_queue=None,
     verbose_tools=False,
     verbose_agent=False,
-    exec_enabled=False,
+    
     allowed_permissions=None,
     profile=None,
     profile_system_prompt=None,
@@ -170,7 +170,7 @@ def create_configured_agent(
     verbose_agent=False,
     templates_dir=None,
     zero_mode=False,
-    exec_enabled=False,
+    
     allowed_permissions=None,
     profile=None,
     profile_system_prompt=None,
@@ -212,7 +212,7 @@ def create_configured_agent(
         output_queue=output_queue,
         verbose_tools=verbose_tools,
         verbose_agent=verbose_agent,
-        exec_enabled=exec_enabled,
+        
         allowed_permissions=allowed_permissions,
         profile=profile,
         profile_system_prompt=profile_system_prompt,

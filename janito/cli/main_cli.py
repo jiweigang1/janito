@@ -235,9 +235,6 @@ class JanitoCLI:
             if getattr(self.args, k, None) is not None
         }
 
-    def exec_enabled(self):
-        return getattr(self.args, "exec", False)
-
     def classify(self):
         if any(getattr(self.args, k, None) for k in SETTER_KEYS):
             return RunMode.SET
@@ -291,8 +288,7 @@ class JanitoCLI:
                 llm_driver_config,
                 agent_role,
                 verbose_tools=self.args.verbose_tools,
-                exec_enabled=self.exec_enabled(),
-            )
+                            )
         elif run_mode == RunMode.GET:
             handle_getter(self.args)
 

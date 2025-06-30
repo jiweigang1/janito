@@ -10,13 +10,12 @@ from janito.cli.console import shared_console
 
 
 class PromptHandler:
-    def __init__(self, args, provider_instance, llm_driver_config, role=None, exec_enabled=False, allowed_permissions=None):
+    def __init__(self, args, provider_instance, llm_driver_config, role=None,  allowed_permissions=None):
         self.args = args
         self.provider_instance = provider_instance
         self.llm_driver_config = llm_driver_config
         self.role = role
-        self.exec_enabled = exec_enabled
-        # Instantiate agent together with prompt handler using the shared helper
+                # Instantiate agent together with prompt handler using the shared helper
         self.agent, self.generic_handler = setup_agent_and_prompt_handler(
             args=args,
             provider_instance=provider_instance,
@@ -24,7 +23,7 @@ class PromptHandler:
             role=role,
             verbose_tools=getattr(args, "verbose_tools", False),
             verbose_agent=getattr(args, "verbose_agent", False),
-            exec_enabled=exec_enabled,
+            
             allowed_permissions=allowed_permissions,
             profile=getattr(args, "profile", None),
         )
