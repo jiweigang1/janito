@@ -10,6 +10,8 @@ from janito.event_bus.bus import event_bus
 from janito.llm import message_parts
 
 
+import sys
+
 class RichTerminalReporter(EventHandlerBase):
     """
     Handles UI rendering for janito events using Rich.
@@ -63,8 +65,15 @@ class RichTerminalReporter(EventHandlerBase):
                 self.console.print(Markdown(part.content))
                 self.console.file.flush()
 
+    def delete_current_line(self):
+        """
+        Clears the entire current line in the terminal and returns the cursor to column 1.
+        """
+        sys.stdout.write('\033[2K\r')
+        sys.stdout.flush()
+
     def on_RequestFinished(self, event):
-        self.console.print("")  # Print end of line after waiting message
+        self.delete_current_line()
         self._waiting_printed = False
         response = getattr(event, "response", None)
         error = getattr(event, "error", None)
