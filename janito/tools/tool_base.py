@@ -48,16 +48,6 @@ class ToolBase:
             )
         )
 
-    def report_info(self, message: str, context: dict = None):
-        self._event_bus.publish(
-            ReportEvent(
-                subtype=ReportSubtype.ACTION_INFO,
-                message=message,
-                action=None,
-                tool=self.name,
-                context=context,
-            )
-        )
 
     def report_error(self, message: str, context: dict = None):
         self._event_bus.publish(

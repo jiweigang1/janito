@@ -187,18 +187,22 @@ class ChatSession:
                 continue
             self.user_input_history.append(cmd_input)
             try:
+                import time
                 final_event = (
                     self._prompt_handler.agent.last_event
                     if hasattr(self._prompt_handler.agent, "last_event")
                     else None
                 )
+                start_time = time.time()
                 self._prompt_handler.run_prompt(cmd_input)
+                end_time = time.time()
+                elapsed = end_time - start_time
                 self.msg_count += 1
                 # After prompt, print the stat line using the shared core function
                 from janito.formatting_token import print_token_message_summary
 
                 usage = self.performance_collector.get_last_request_usage()
-                print_token_message_summary(self.console, self.msg_count, usage)
+                print_token_message_summary(self.console, self.msg_count, usage, elapsed=elapsed)
                 # Print exit reason if present in the final event
                 if final_event and hasattr(final_event, "metadata"):
                     exit_reason = (

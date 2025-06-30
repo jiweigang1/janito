@@ -41,13 +41,18 @@ class PromptHandler:
             shared_console.print(
                 "[yellow]Warning: Some characters in your input were not valid UTF-8 and have been replaced.[/yellow]"
             )
+        import time
         try:
+            start_time = time.time()
             self.generic_handler.handle_prompt(
                 sanitized,
                 args=self.args,
                 print_header=True,
                 raw=getattr(self.args, "raw", False),
             )
+            end_time = time.time()
+            elapsed = end_time - start_time
+            self._post_prompt_actions(elapsed=elapsed)
             if hasattr(self.args, "verbose_agent") and self.args.verbose_agent:
                 print("[debug] handle_prompt() completed without exception.")
         except Exception as e:
@@ -55,9 +60,8 @@ class PromptHandler:
                 f"[error] Exception occurred in handle_prompt: {type(e).__name__}: {e}"
             )
             traceback.print_exc()
-        self._post_prompt_actions()
 
-    def _post_prompt_actions(self):
+    def _post_prompt_actions(self, elapsed=None):
         # Align with chat mode: only print token usage summary
         import sys
         from janito.formatting_token import print_token_message_summary
@@ -65,7 +69,7 @@ class PromptHandler:
         usage = performance_collector.get_last_request_usage()
         # If running in stdin mode, do not print token usage
         if sys.stdin.isatty():
-            print_token_message_summary(shared_console, msg_count=1, usage=usage)
+            print_token_message_summary(shared_console, msg_count=1, usage=usage, elapsed=elapsed)
         self._cleanup_driver_and_console()
 
 

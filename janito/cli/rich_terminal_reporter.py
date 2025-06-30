@@ -108,14 +108,14 @@ class RichTerminalReporter(EventHandlerBase):
         if not msg or not subtype:
             return
         if subtype == ReportSubtype.ACTION_INFO:
-            if getattr(event, "action", None) in (
+            # Use orange for modification actions, cyan otherwise
+            modification_actions = (
                 getattr(ReportAction, "UPDATE", None),
                 getattr(ReportAction, "WRITE", None),
                 getattr(ReportAction, "DELETE", None),
-            ):
-                self.console.print(f"[magenta]{msg}[/magenta]", end="")
-            else:
-                self.console.print(msg, end="")
+            )
+            style = "orange1" if getattr(event, "action", None) in modification_actions else "cyan"
+            self.console.print(Text(msg, style=style), end="")
             self.console.file.flush()
         elif subtype in (
             ReportSubtype.SUCCESS,
@@ -125,10 +125,10 @@ class RichTerminalReporter(EventHandlerBase):
             self.console.print(msg)
             self.console.file.flush()
         elif subtype == ReportSubtype.STDOUT:
-            self.console.print(f"[on dark_green]{msg}[/]")
+            self.console.print(Text(msg, style="on dark_green"))
             self.console.file.flush()
         elif subtype == ReportSubtype.STDERR:
-            self.console.print(f"[on red]{msg}[/]")
+            self.console.print(Text(msg, style="on red"))
             self.console.file.flush()
         else:
             self.console.print(msg)

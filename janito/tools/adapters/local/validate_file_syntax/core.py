@@ -96,7 +96,7 @@ class ValidateFileSyntaxTool(ToolBase):
         )
         result = validate_file_syntax(
             file_path,
-            report_info=self.report_info,
+            
             report_warning=self.report_warning,
             report_success=self.report_success,
         )

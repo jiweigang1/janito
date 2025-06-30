@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.4.0]
+### Changed
+- Refactored tool permission management: migrated to a permission-based model (read/write/execute), updated CLI and docs, removed legacy execution toggling.
+- Enhanced tool permissions: tools are now grouped by permission, config supports tool_permissions, ask_user is read-only, and permissions are applied at startup.
+- Refined permission and tool output messages in shell commands; improved tool listing by permission class in tools.py.
+- Refactored agent and prompt handler setup, improved model switching, and enhanced user interrupt handling. Includes new /model shell command and fixes for provider registry ASCII fallback.
+- Refactored agent system prompt and permissions logic, switched to profile-based template selection, removed unused templates, and added --profile CLI support.
+- Refactored chat mode startup messages and permission reset handling for improved clarity.
+- Refactored ChatSession and ChatShellState: removed allow_execution logic and related assignments, use exec_enabled directly for execution control.
+- Refactored tool system to use latest git tag for version detection in release script.
+- Refined release script to recommend creating a new git tag if version exists on PyPI.
+- Removed termweb: web file viewer and related CLI/editor features, updated docs and config accordingly.
+- Removed temporary file x.txt.
+- Restored tool permissions to CLI defaults on /restart; store and retrieve default tool permissions in AllowedPermissionsState. Runner now sets and saves default permissions for restoration. Updated conversation_restart to restore or fallback to all-off permissions.
+- Updated disabled execution tools message for clarity.
+- Docs and UX: clarified permissions (read/write/exec), added profiles doc links, and removed localhost references from UI/toolbar.
+
+### Added
+- Agent/driver: drain driver's input queue before sending new messages in chat() to prevent stale DriverInput processing.
+
+### Fixed
+- Ensure tools adapter is always available in provider classes, even if driver is missing. Prevents AttributeError in generic code paths relying on execute_tool().
+
 ## [2.3.1] - 2025-06-25
 ### Changed
 - Bumped version to 2.3.1 in `version.py`, `pyproject.toml`, and `__init__.py`.
