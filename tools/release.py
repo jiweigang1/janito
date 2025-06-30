@@ -93,7 +93,7 @@ def check_version_on_pypi(pkg_name, project_version):
             with urllib.request.urlopen(url) as resp:
                 if resp.status == 200:
                     print_error(
-                        f"Version {project_version} already exists on PyPI. Please update the version in pyproject.toml."
+                        f"Version {project_version} already exists on PyPI. Please create a new git tag with a higher version (vX.Y.Z) before releasing."
                     )
         except Exception:
             pass  # Not found is expected
