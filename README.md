@@ -136,19 +136,6 @@ Janito has configuration options, like `--set api-key API_KEY` and `--set provid
 
 ### Advanced Options
 
-- **Enable Inline Web File Viewer for Clickable Links**
-  
-  By default, Janito can open referenced files in a browser-based viewer when you click on file links in supported terminals. To enable this feature for your session, use the `--web` flag:
-  
-  ```bash
-  janito --web
-  ```
-
-  This starts the lightweight web file viewer () in the background, allowing you to inspect files referenced in responses directly in your browser. Combine with interactive mode or prompts as needed.
-  
-  > **Tip:** Use with the interactive shell for the best experience with clickable file links.
-
-
 - **Enable Execution Tools (Code/Shell Execution)**
   
   By default, **all tool privileges (read, write, execute)** are disabled for safety. This means Janito starts with no permissions to run tools that read, write, or execute code/shell commands unless you explicitly enable them.
@@ -201,7 +188,7 @@ janito -r -w -x "Run this code: print('Hello, world!')"
 ### Core CLI Options
 | Option                  | Description                                                                 |
 |------------------------|-----------------------------------------------------------------------------|
-| `--web`          | Enable the builtin lightweight web file viewer for clickable file links (). |
+
 | `--version`            | Show program version                                                        |
 | `--list-tools`         | List all registered tools                                                   |
 | `--list-providers`     | List all supported LLM providers                                            |
