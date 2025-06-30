@@ -272,6 +272,12 @@ See [docs/supported-providers-models.md](docs/supported-providers-models.md) for
 
 Contributions are welcome! Please see the `CONTRIBUTING.md` (if available) or open an issue to get started.
 
+---
+
+## Developer Documentation
+
+For developer-specific setup, versioning, and contribution guidelines, see [README-dev.md](./README-dev.md).
+
 ## License
 
 This project is licensed under the terms of the MIT license.

@@ -158,7 +158,7 @@ class ChatSession:
 
     def run(self):
         self.console.clear()
-        from janito.version import __version__
+        from janito import __version__
         self.console.print(
             f"[bold green]Janito Chat Mode v{__version__}[/bold green]"
         )

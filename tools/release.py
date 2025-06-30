@@ -13,6 +13,7 @@ RED = "\033[0;31m"
 YELLOW = "\033[0;33m"
 NC = "\033[0m"
 
+# NOTE: Version is now determined from the latest git tag (vX.Y.Z or X.Y.Z)
 
 def print_info(msg):
     print(f"{GREEN}[INFO]{NC} {msg}")
@@ -48,17 +49,23 @@ def check_tool(tool):
             sys.exit(1)
 
 
-def get_version_from_pyproject():
-    if not os.path.isfile("pyproject.toml"):
-        print_error(
-            "pyproject.toml not found. Are you running this from the project root?"
-        )
-    with open("pyproject.toml", encoding="utf-8") as f:
-        for line in f:
-            m = re.match(r'^version = "([0-9]+\.[0-9]+\.[0-9]+)"', line.strip())
-            if m:
-                return m.group(1)
-    print_error("Could not find version in pyproject.toml")
+def get_latest_version_tag():
+    # Get the latest tag matching semantic versioning (vX.Y.Z or X.Y.Z)
+    try:
+        tags = subprocess.check_output([
+            "git", "tag", "--list", "v[0-9]*.[0-9]*.[0-9]*", "--sort=-v:refname"
+        ]).decode().split()
+        if not tags:
+            tags = subprocess.check_output([
+                "git", "tag", "--list", "[0-9]*.[0-9]*.[0-9]*", "--sort=-v:refname"
+            ]).decode().split()
+        if not tags:
+            print_error("No version tags found in the repository.")
+        latest_tag = tags[0]
+        version = latest_tag.lstrip('v')
+        return version, latest_tag
+    except Exception as e:
+        print_error(f"Error getting latest version tag: {e}")
 
 
 def get_latest_pypi_version(pkg_name):
@@ -105,23 +112,6 @@ def check_version_on_pypi(pkg_name, project_version):
         )
 
 
-def get_git_tag_for_version(version):
-    tag_v = f"v{version}"
-    tag_raw = version
-    for tag in [tag_v, tag_raw]:
-        try:
-            subprocess.run(
-                ["git", "rev-parse", tag],
-                check=True,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-            )
-            return tag
-        except subprocess.CalledProcessError:
-            continue
-    print_error(
-        f"No git tag found matching version {version} (expected tag: {tag_v} or {tag_raw}). Please create the tag before running this script."
-    )
 
 
 def check_tag_points_to_head(tag):
@@ -141,10 +131,9 @@ def main():
     build_only = "--build-only" in sys.argv
     check_tool("build")
     check_tool("twine")
-    project_version = get_version_from_pyproject()
-    print_info(f"Project version from pyproject.toml: {project_version}")
+    project_version, tag = get_latest_version_tag()
+    print_info(f"Project version from latest git tag: {project_version}")
     check_version_on_pypi("janito", project_version)
-    tag = get_git_tag_for_version(project_version)
     print_info(f"Found git tag: {tag}")
     check_tag_points_to_head(tag)
     # Remove dist directory

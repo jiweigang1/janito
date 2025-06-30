@@ -1,7 +1,7 @@
 from prompt_toolkit.formatted_text import HTML
 from janito.performance_collector import PerformanceCollector
 from janito.cli.config import config
-from janito.version import __version__ as VERSION
+from janito import __version__ as VERSION
 
 
 def format_tokens(n, tag=None):

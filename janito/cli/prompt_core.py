@@ -3,7 +3,7 @@ Core PromptHandler: Handles prompt submission and response formatting for janito
 """
 
 import time
-from janito.version import __version__ as VERSION
+from janito import __version__ as VERSION
 from janito.performance_collector import PerformanceCollector
 from rich.status import Status
 from rich.console import Console

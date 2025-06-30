@@ -6,7 +6,7 @@ from rich import print as rich_print
 from rich.align import Align
 from rich.panel import Panel
 from rich.text import Text
-from janito.version import __version__ as VERSION
+from janito import __version__ as VERSION
 from janito.cli.utils import format_tokens
 
 
