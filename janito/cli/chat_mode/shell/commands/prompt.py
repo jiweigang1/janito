@@ -54,11 +54,3 @@ class RoleShellHandler(ShellCmdHandler):
         )
 
 
-class ProfileShellHandler(ShellCmdHandler):
-    help_text = (
-        "Show the current and available Agent Profile (only 'base' is supported)"
-    )
-
-    def run(self):
-        shared_console.print("[bold green]Current profile:[/bold green] base")
-        shared_console.print("[bold yellow]Available profiles:[/bold yellow]\n- base")

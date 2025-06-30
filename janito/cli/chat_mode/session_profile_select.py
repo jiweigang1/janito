@@ -22,7 +22,7 @@ def select_profile():
         style=custom_style
     ).ask()
     if answer == "helpful assistant":
-        return {"profile": None, "profile_system_prompt": "You are an helpful assistant"}
+        return {"profile": "assistant", "profile_system_prompt": None}
     if answer == "using role...":
         role_name = questionary.text("Enter the role name:").ask()
         return f"role:{role_name}"
