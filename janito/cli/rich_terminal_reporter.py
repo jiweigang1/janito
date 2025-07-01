@@ -30,7 +30,8 @@ class RichTerminalReporter(EventHandlerBase):
         self.raw_mode = raw_mode
         import janito.report_events as report_events
 
-        super().__init__(driver_events, report_events)
+        import janito.tools.tool_events as tool_events
+        super().__init__(driver_events, report_events, tool_events)
         self._waiting_printed = False
 
     def on_RequestStarted(self, event):
@@ -102,7 +103,27 @@ class RichTerminalReporter(EventHandlerBase):
                 self.console.file.flush()
         # No output if not raw_mode or if response is None
 
+    def on_ToolCallError(self, event):
+        # Optionally handle tool call errors in a user-friendly way
+        error = getattr(event, "error", None)
+        tool = getattr(event, "tool_name", None)
+        if error and tool:
+            self.console.print(f"[bold red]Tool Error ({tool}):[/] {error}")
+            self.console.file.flush()
+
     def on_ReportEvent(self, event):
+        # Special handling for security-related report events
+        subtype = getattr(event, "subtype", None)
+        msg = getattr(event, "message", None)
+        action = getattr(event, "action", None)
+        tool = getattr(event, "tool", None)
+        context = getattr(event, "context", None)
+        if subtype == ReportSubtype.ERROR and msg and "[SECURITY] Path access denied" in msg:
+            # Highlight security errors with a distinct style
+            self.console.print(Panel(f"{msg}", title="[red]SECURITY VIOLATION[/red]", style="bold red"))
+            self.console.file.flush()
+            return
+
         msg = event.message if hasattr(event, "message") else None
         subtype = event.subtype if hasattr(event, "subtype") else None
         if not msg or not subtype:

@@ -15,6 +15,14 @@ from janito.cli.core.event_logger import (
 
 definition = [
     (
+        ["-u", "--unrestricted-paths"],
+        {
+            "action": "store_true",
+            "help": "Disable path security: allow tool arguments to use any file/directory path (DANGEROUS)",
+        },
+    ),
+
+    (
         ["--profile"],
         {
             "metavar": "PROFILE",

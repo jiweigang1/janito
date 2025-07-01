@@ -16,6 +16,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 | `--verbose-tools` | Print info messages for tool execution in tools adapter. |
 | `--verbose-agent` | Print info messages for agent event and message part handling. |
 | `-z`, `--zero` | IDE zero mode: disables system prompt & all tools for raw LLM interaction |
+| `-u`, `--unrestricted-paths` | Disable path security: allow tool arguments to use any file/directory path (DANGEROUS) |
 | `-r`, `--read` | Enable tools that require read permissions (default: off) |
 | `-w`, `--write` | Enable tools that require write permissions (default: off) |
 | `-x`, `--exec` | Enable execution/run tools (allows running code or shell tools from the CLI). (default: off) |
@@ -48,7 +49,7 @@ janito -p openai -m gpt-3.5-turbo "Your prompt here"
 janito -p google -m gemini-2.5-flash "Your prompt here"
 janito --list-tools
 janito --web  # Enable clickable file links via web viewer
-
+janito -u -x --read --write "Run a tool with unrestricted paths (DANGEROUS)"
 ```
 
 ### ⚠️ Enabling Execution Tools
@@ -59,6 +60,15 @@ By default, tools that can execute code or shell commands are **disabled** for s
 janito -x "Run this code: print('Hello, world!')"
 ```
 > **Warning:** Enabling execution tools allows running arbitrary code or shell commands. Only use `--exec` if you trust your prompt and environment.
+
+### ⚠️ Disabling Path Security
+
+By default, all file and directory arguments to tools are restricted to the working directory (see `--workdir`). To disable this security and allow any path (including system files), use the `-u` or `--unrestricted-paths` flag:
+
+```sh
+janito -u "Do something with C:/Windows/System32/hosts"
+```
+> **Warning:** Disabling path security is extremely dangerous. Only use `--unrestricted-paths` if you trust your prompt, tools, and environment.
 
 _This page is generated from the output of `janito --help`._
 

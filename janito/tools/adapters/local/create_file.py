@@ -48,7 +48,7 @@ class CreateFileTool(ToolBase):
         if is_overwrite:
             # Overwrite branch: log only overwrite warning (no create message)
             self.report_action(
-                tr("⚠️ Overwriting file '{disp_path}'", disp_path=disp_path),
+                tr("⚠️  Overwriting file '{disp_path}'", disp_path=disp_path),
                 ReportAction.CREATE,
             )
         dir_name = os.path.dirname(path)

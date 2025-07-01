@@ -144,14 +144,14 @@ class ReplaceTextInFileTool(ToolBase):
             warning = tr(" [Warning: Search text not found in file]")
         if not file_changed:
             self.report_warning(
-                tr(" ℹ️ No changes made. (not found)"), ReportAction.CREATE
+                tr(" ℹ️  No changes made. (not found)"), ReportAction.CREATE
             )
             concise_warning = tr(
                 "No changes made. The search text was not found. Expand your search context with surrounding lines if needed."
             )
         if occurrences > 1 and replaced_count == 0:
             self.report_warning(
-                tr(" ℹ️ No changes made. (not unique)"), ReportAction.CREATE
+                tr(" ℹ️  No changes made. (not unique)"), ReportAction.CREATE
             )
             concise_warning = tr(
                 "No changes made. The search text is not unique. Expand your search context with surrounding lines to ensure uniqueness."

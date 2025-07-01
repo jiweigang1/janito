@@ -18,16 +18,51 @@ class LocalToolsAdapter(ToolsAdapter):
     """
 
     def __init__(self, tools=None, event_bus=None, workdir=None):
+        """Create a new LocalToolsAdapter.
+
+        Parameters
+        ----------
+        tools : list, optional
+            An optional iterable with tool *classes* (not instances) that should
+            be registered immediately.
+        event_bus : janito.event_bus.bus.EventBus, optional
+            The event bus to which tool-related events will be published.  When
+            *None* (default) the **global** :pydata:`janito.event_bus.bus.event_bus`
+            singleton is used so that CLI components such as the
+            :class:`janito.cli.rich_terminal_reporter.RichTerminalReporter` will
+            receive security violation or execution events automatically.
+        workdir : str | pathlib.Path, optional
+            Base directory that path-security checks will allow.  Defaults to
+            the current working directory at the time of instantiation.
+        """
+        # Fall back to the global event bus so that ReportEvents emitted from
+        # the tools adapter (for example path-security violations) are visible
+        # to UI components even if the caller did not supply a custom bus.
+        if event_bus is None:
+            from janito.event_bus.bus import event_bus as global_event_bus
+            event_bus = global_event_bus
+
         super().__init__(tools=tools, event_bus=event_bus)
+
+        # Internal registry structure: { tool_name: {"class": cls, "instance": obj, "function": obj.run} }
         self._tools: Dict[str, Dict[str, Any]] = {}
-        self.workdir = workdir
-        if self.workdir:
-            import os
-            os.chdir(self.workdir)
+
+        import os
+        self.workdir = workdir or os.getcwd()
+        # Ensure *some* workdir is set – fallback to CWD.
+        if not self.workdir:
+            self.workdir = os.getcwd()
+        # Normalise by changing the actual process working directory for
+        # consistency with many file-system tools.
+        os.chdir(self.workdir)
+
         if tools:
             for tool in tools:
                 self.register_tool(tool)
 
+    # ---------------------------------------------------------------------
+    # Registration helpers
+    # ---------------------------------------------------------------------
     def register_tool(self, tool_class: Type):
         instance = tool_class()
         if not hasattr(instance, "run") or not callable(instance.run):
@@ -54,28 +89,43 @@ class LocalToolsAdapter(ToolsAdapter):
     def disable_tool(self, name: str):
         self.unregister_tool(name)
 
+    # ------------------------------------------------------------------
+    # Lookup helpers used by ToolsAdapterBase
+    # ------------------------------------------------------------------
     def get_tool(self, name: str):
         return self._tools[name]["instance"] if name in self._tools else None
 
     def list_tools(self):
-        return [name for name, entry in self._tools.items() if self.is_tool_allowed(entry["instance"])]
+        return [
+            name
+            for name, entry in self._tools.items()
+            if self.is_tool_allowed(entry["instance"])
+        ]
 
     def get_tool_classes(self):
-        return [entry["class"] for entry in self._tools.values() if self.is_tool_allowed(entry["instance"])]
+        return [
+            entry["class"]
+            for entry in self._tools.values()
+            if self.is_tool_allowed(entry["instance"])
+        ]
 
     def get_tools(self):
-        return [entry["instance"] for entry in self._tools.values() if self.is_tool_allowed(entry["instance"])]
+        return [
+            entry["instance"]
+            for entry in self._tools.values()
+            if self.is_tool_allowed(entry["instance"])
+        ]
 
-
+    # ------------------------------------------------------------------
+    # Convenience methods
+    # ------------------------------------------------------------------
     def add_tool(self, tool):
-        # Register by instance (useful for hand-built objects)
+        """Register an *instance* (instead of a class) as a tool."""
         if not hasattr(tool, "run") or not callable(tool.run):
             raise TypeError(f"Tool '{tool}' must implement a callable 'run' method.")
         tool_name = getattr(tool, "tool_name", None)
         if not tool_name or not isinstance(tool_name, str):
-            raise ValueError(
-                f"Tool '{tool}' must provide a 'tool_name' (str) attribute."
-            )
+            raise ValueError(f"Tool '{tool}' must provide a 'tool_name' (str) attribute.")
         if tool_name in self._tools:
             raise ValueError(f"Tool '{tool_name}' is already registered.")
         self._tools[tool_name] = {
@@ -85,17 +135,28 @@ class LocalToolsAdapter(ToolsAdapter):
         }
 
 
-# Optional: a local-tool decorator
-
+# -------------------------------------------------------------------------
+# Decorator helper for quick registration of local tools
+# -------------------------------------------------------------------------
 
 def register_local_tool(tool=None):
+    """Class decorator that registers the tool on the *singleton* adapter.
+
+    Example
+    -------
+    >>> @register_local_tool
+    ... class MyTool(BaseTool):
+    ...     ...
+    """
+
     def decorator(cls):
-        from janito.tools.tool_base import ToolPermissions
-        from janito.tools.permissions import get_global_allowed_permissions
+                # Register the tool on a *fresh* adapter instance to avoid circular
+        # import issues during package initialisation.  This keeps behaviour
+        # identical to the original implementation while still allowing
+        # immediate use via the singleton in janito.tools.adapters.local.
         LocalToolsAdapter().register_tool(cls)
         return cls
 
     if tool is None:
         return decorator
     return decorator(tool)
-

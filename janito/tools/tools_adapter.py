@@ -167,6 +167,34 @@ class ToolsAdapterBase:
         if validation_error:
             return validation_error
 
+        # --- SECURITY: Path restriction enforcement ---
+        if not getattr(self, 'unrestricted_paths', False):
+            workdir = getattr(self, 'workdir', None)
+            # Ensure workdir is always set; default to current working directory.
+            if not workdir:
+                import os
+                workdir = os.getcwd()
+            from janito.tools.path_security import validate_paths_in_arguments, PathSecurityError
+            schema = getattr(tool, 'schema', None)
+            try:
+                validate_paths_in_arguments(arguments, workdir, schema=schema)
+            except PathSecurityError as sec_err:
+                # Publish both a ToolCallError and a user-facing ReportEvent for path security errors
+                self._publish_tool_call_error(tool_name, request_id, str(sec_err), arguments)
+                if self._event_bus:
+                    from janito.report_events import ReportEvent, ReportSubtype, ReportAction
+                    self._event_bus.publish(
+                        ReportEvent(
+                            subtype=ReportSubtype.ERROR,
+                            message=f"[SECURITY] Path access denied: {sec_err}",
+                            action=ReportAction.EXECUTE,
+                            tool=tool_name,
+                            context={"arguments": arguments, "request_id": request_id}
+                        )
+                    )
+                return f"Security error: {sec_err}"
+        # --- END SECURITY ---
+
         self._publish_tool_call_started(tool_name, request_id, arguments)
         self._print_verbose(f"[tools-adapter] Executing tool: {tool_name} with arguments: {arguments}")
         try:

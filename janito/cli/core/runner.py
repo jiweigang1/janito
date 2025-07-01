@@ -117,7 +117,11 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
     # Store the default permissions for later restoration (e.g., on /restart)
     from janito.tools.permissions import set_default_allowed_permissions
     set_default_allowed_permissions(allowed_permissions)
+    unrestricted_paths = getattr(args, "unrestricted_paths", False)
     adapter = janito.tools.get_local_tools_adapter(workdir=getattr(args, "workdir", None))
+    if unrestricted_paths:
+        # Patch: disable path security enforcement for this adapter instance
+        setattr(adapter, "unrestricted_paths", True)
 
     # Print allowed permissions in verbose mode
     if getattr(args, "verbose", False):
