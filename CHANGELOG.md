@@ -4,11 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [2.5.0] - 2025-07-01
 ### Added
+- Show working directory in chat mode startup message.
 - Bang (`!`) shell command handler for direct shell access from the chat interface.
 - Elapsed time reporting to token usage summary and improved terminal output styling.
 - CLI support for reading prompt from stdin and suppressing token usage summary in non-interactive mode.
 
 ### Changed
+- Import `os` in help command handler for future extensibility.
 - Refactored `ChatSession._chat_loop` to reduce complexity by extracting command and prompt handling methods.
 - Refactored profile selection, removed `ProfileShellHandler`, and improved terminal reporter output for STDOUT/STDERR.
 - Refactored to remove `exec_enabled` argument from agent and CLI setup; now uses `args.exec` directly.

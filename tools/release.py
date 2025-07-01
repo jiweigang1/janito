@@ -131,6 +131,12 @@ def main():
     build_only = "--build-only" in sys.argv
     check_tool("build")
     check_tool("twine")
+
+    # Check git status for uncommitted changes
+    status = subprocess.check_output(["git", "status", "--porcelain"]).decode().strip()
+    if status:
+        print_error("There are uncommitted changes in the working directory. Please commit or stash them before releasing.\n\nGit status output:\n" + status)
+
     project_version, tag = get_latest_version_tag()
     print_info(f"Project version from latest git tag: {project_version}")
     check_version_on_pypi("janito", project_version)
