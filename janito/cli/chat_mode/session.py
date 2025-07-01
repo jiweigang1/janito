@@ -160,6 +160,14 @@ class ChatSession:
             f"[bold green]Janito Chat Mode v{__version__}[/bold green]"
         )
         self.console.print("[green]/help for commands   /exit or Ctrl+C to quit[/green]")
+        import os
+        cwd = os.getcwd()
+        home = os.path.expanduser('~')
+        if cwd.startswith(home):
+            cwd_display = '~' + cwd[len(home):]
+        else:
+            cwd_display = cwd
+        self.console.print(f"[green]Working Dir:[/green] {cwd_display}")
 
         # Inform user if no privileges are enabled
         from janito.cli.chat_mode.shell.commands._priv_check import user_has_any_privileges

@@ -1,6 +1,6 @@
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 from janito.cli.console import shared_console
-
+import os
 
 class HelpShellHandler(ShellCmdHandler):
     help_text = "Show this help message"
