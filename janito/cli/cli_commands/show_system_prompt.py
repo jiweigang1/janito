@@ -97,6 +97,9 @@ def handle_show_system_prompt(args):
 
     template = Template(template_content)
     system_prompt = template.render(**context)
+    # Merge multiple empty lines into a single empty line
+    import re
+    system_prompt = re.sub(r'\n{3,}', '\n\n', system_prompt)
 
     print(f"\n--- System Prompt (resolved, profile: {getattr(args, 'profile', 'main')}) ---\n")
     print(system_prompt)

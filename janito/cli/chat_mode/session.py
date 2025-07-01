@@ -70,8 +70,10 @@ class ChatSession:
 
         # --- Profile selection (interactive) ---------------------------------
         profile = getattr(args, "profile", None) if args is not None else None
+        role_arg = getattr(args, "role", None) if args is not None else None
         profile_system_prompt = None
-        if profile is None:
+        # If either --profile or --role is provided, skip interactive selection
+        if profile is None and role_arg is None:
             try:
                 from janito.cli.chat_mode.session_profile_select import select_profile
 
@@ -88,6 +90,11 @@ class ChatSession:
                     )
             except ImportError:
                 profile = "helpful assistant"
+        # If --role is provided, set role and default profile to developer if not set
+        if role_arg is not None:
+            role = role_arg
+            if profile is None:
+                profile = "developer"
 
         # ---------------------------------------------------------------------
         from janito.conversation_history import LLMConversationHistory

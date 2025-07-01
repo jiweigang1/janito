@@ -23,6 +23,14 @@ definition = [
         },
     ),
     (
+        ["--role"],
+        {
+            "metavar": "ROLE",
+            "help": "Select the developer role name (overrides profile, e.g. 'python-expert').",
+            "default": None,
+        },
+    ),
+    (
         ["-W", "--workdir"],
         {
             "metavar": "WORKDIR",
@@ -165,6 +173,7 @@ MODIFIER_KEYS = [
     "provider",
     "model",
     "role",
+    "profile",
     "system",
     "temperature",
 
@@ -240,11 +249,15 @@ class JanitoCLI:
                 setattr(self.args, key, None)
 
     def collect_modifiers(self):
-        return {
+        modifiers = {
             k: getattr(self.args, k)
             for k in MODIFIER_KEYS
             if getattr(self.args, k, None) is not None
         }
+        # If --role is provided, override role in modifiers
+        if getattr(self.args, "role", None):
+            modifiers["role"] = getattr(self.args, "role")
+        return modifiers
 
     def classify(self):
         if any(getattr(self.args, k, None) for k in SETTER_KEYS):

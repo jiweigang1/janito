@@ -140,6 +140,9 @@ def setup_agent(
     start_render = time.time()
     rendered_prompt = template.render(**context)
     end_render = time.time()
+    # Merge multiple empty lines into a single empty line
+    import re
+    rendered_prompt = re.sub(r'\n{3,}', '\n\n', rendered_prompt)
     
     # Create the agent as before, now passing the explicit role
     # Do NOT pass temperature; do not depend on to_dict
