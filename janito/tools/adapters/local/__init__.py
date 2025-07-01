@@ -23,15 +23,14 @@ from .get_file_outline.search_outline import SearchOutlineTool
 from .search_text.core import SearchTextTool
 from .validate_file_syntax.core import ValidateFileSyntaxTool
 
-# Singleton tools adapter with all standard tools registered
 from janito.tools.tool_base import ToolPermissions
 import os
-local_tools_adapter = LocalToolsAdapter(workdir=os.getcwd())
-
 from janito.tools.permissions import get_global_allowed_permissions
 
+# Singleton tools adapter with all standard tools registered
+local_tools_adapter = LocalToolsAdapter(workdir=os.getcwd())
+
 def get_local_tools_adapter(workdir=None):
-    import os
     return LocalToolsAdapter(workdir=workdir or os.getcwd())
 
 # Register tools

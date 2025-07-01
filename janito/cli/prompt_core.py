@@ -49,87 +49,94 @@ class PromptHandler:
             on_event(inner_event)
         from janito.tools.tool_events import ToolCallFinished
 
-        # Print tool result if ToolCallFinished event is received
         if isinstance(inner_event, ToolCallFinished):
-            # Print result if verbose_tools is enabled or always for user visibility
-            if hasattr(self.args, "verbose_tools") and self.args.verbose_tools:
-                self.console.print(
-                    f"[cyan][tools-adapter] Tool '{inner_event.tool_name}' result:[/cyan] {inner_event.result}"
-                )
-            else:
-                self.console.print(inner_event.result)
-            return None
+            return self._handle_tool_call_finished(inner_event)
         if isinstance(inner_event, RateLimitRetry):
-            status.update(f"[yellow]Rate limited. Waiting {inner_event.retry_delay:.0f}s before retry (attempt {inner_event.attempt}).[yellow]")
-            return None
+            return self._handle_rate_limit_retry(inner_event, status)
         if isinstance(inner_event, RequestFinished):
+            if getattr(inner_event, "status", None) == "error":
+                return self._handle_request_finished_error(inner_event, status)
+            if getattr(inner_event, "status", None) in (RequestStatus.EMPTY_RESPONSE, RequestStatus.TIMEOUT):
+                return self._handle_empty_or_timeout(inner_event, status)
             status.update("[bold green]Received response![bold green]")
             return "break"
-        elif (
-            isinstance(inner_event, RequestFinished)
-            and getattr(inner_event, "status", None) == "error"
-        ):  # noqa
-            error_msg = (
-                inner_event.error if hasattr(inner_event, "error") else "Unknown error"
-            )
-            if (
-                "Status 429" in error_msg
-                and "Service tier capacity exceeded for this model" in error_msg
-            ):
-                status.update(
-                    "[yellow]Service tier capacity exceeded, retrying...[yellow]"
-                )
-                return "break"
-            status.update(f"[bold red]Error: {error_msg}[bold red]")
-            self.console.print(f"[red]Error: {error_msg}[red]")
-            return "break"
-        elif isinstance(inner_event, ToolCallError):
-            error_msg = (
-                inner_event.error
-                if hasattr(inner_event, "error")
-                else "Unknown tool error"
-            )
-            tool_name = (
-                inner_event.tool_name
-                if hasattr(inner_event, "tool_name")
-                else "unknown"
-            )
-            status.update(
-                f"[bold red]Tool Error in '{tool_name}': {error_msg}[bold red]"
-            )
-            self.console.print(f"[red]Tool Error in '{tool_name}': {error_msg}[red]")
-            return "break"
-        elif isinstance(inner_event, RequestFinished) and getattr(
-            inner_event, "status", None
-        ) in (RequestStatus.EMPTY_RESPONSE, RequestStatus.TIMEOUT):
-            details = getattr(inner_event, "details", None) or {}
-            block_reason = details.get("block_reason")
-            block_msg = details.get("block_reason_message")
-            msg = details.get(
-                "message", "LLM returned an empty or incomplete response."
-            )
-            driver_name = getattr(inner_event, "driver_name", "unknown driver")
-            if block_reason or block_msg:
-                status.update(
-                    f"[bold yellow]Blocked by driver: {driver_name} | {block_reason or ''} {block_msg or ''}[bold yellow]"
-                )
-                self.console.print(
-                    f"[yellow]Blocked by driver: {driver_name} (empty response): {block_reason or ''}\n{block_msg or ''}[/yellow]"
-                )
-            else:
-                status.update(
-                    f"[yellow]LLM produced no output for this request (driver: {driver_name}).[/yellow]"
-                )
-                self.console.print(
-                    f"[yellow]Warning: {msg} (driver: {driver_name})[/yellow]"
-                )
-            return "break"
-        # Report unknown event types
+        if isinstance(inner_event, ToolCallError):
+            return self._handle_tool_call_error(inner_event, status)
         event_type = type(inner_event).__name__
         self.console.print(
             f"[yellow]Warning: Unknown event type encountered: {event_type}[yellow]"
         )
         return None
+
+    def _handle_tool_call_finished(self, inner_event):
+        if hasattr(self.args, "verbose_tools") and self.args.verbose_tools:
+            self.console.print(
+                f"[cyan][tools-adapter] Tool '{inner_event.tool_name}' result:[/cyan] {inner_event.result}"
+            )
+        else:
+            self.console.print(inner_event.result)
+        return None
+
+    def _handle_rate_limit_retry(self, inner_event, status):
+        status.update(f"[yellow]Rate limited. Waiting {inner_event.retry_delay:.0f}s before retry (attempt {inner_event.attempt}).[yellow]")
+        return None
+
+    def _handle_request_finished_error(self, inner_event, status):
+        error_msg = (
+            inner_event.error if hasattr(inner_event, "error") else "Unknown error"
+        )
+        if (
+            "Status 429" in error_msg
+            and "Service tier capacity exceeded for this model" in error_msg
+        ):
+            status.update(
+                "[yellow]Service tier capacity exceeded, retrying...[yellow]"
+            )
+            return "break"
+        status.update(f"[bold red]Error: {error_msg}[bold red]")
+        self.console.print(f"[red]Error: {error_msg}[red]")
+        return "break"
+
+    def _handle_tool_call_error(self, inner_event, status):
+        error_msg = (
+            inner_event.error
+            if hasattr(inner_event, "error")
+            else "Unknown tool error"
+        )
+        tool_name = (
+            inner_event.tool_name
+            if hasattr(inner_event, "tool_name")
+            else "unknown"
+        )
+        status.update(
+            f"[bold red]Tool Error in '{tool_name}': {error_msg}[bold red]"
+        )
+        self.console.print(f"[red]Tool Error in '{tool_name}': {error_msg}[red]")
+        return "break"
+
+    def _handle_empty_or_timeout(self, inner_event, status):
+        details = getattr(inner_event, "details", None) or {}
+        block_reason = details.get("block_reason")
+        block_msg = details.get("block_reason_message")
+        msg = details.get(
+            "message", "LLM returned an empty or incomplete response."
+        )
+        driver_name = getattr(inner_event, "driver_name", "unknown driver")
+        if block_reason or block_msg:
+            status.update(
+                f"[bold yellow]Blocked by driver: {driver_name} | {block_reason or ''} {block_msg or ''}[bold yellow]"
+            )
+            self.console.print(
+                f"[yellow]Blocked by driver: {driver_name} (empty response): {block_reason or ''}\n{block_msg or ''}[/yellow]"
+            )
+        else:
+            status.update(
+                f"[yellow]LLM produced no output for this request (driver: {driver_name}).[/yellow]"
+            )
+            self.console.print(
+                f"[yellow]Warning: {msg} (driver: {driver_name})[/yellow]"
+            )
+        return "break"
 
     def _process_event_iter(self, event_iter, on_event):
         for event in event_iter:

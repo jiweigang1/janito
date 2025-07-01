@@ -10,6 +10,79 @@ from queue import Queue
 from janito.platform_discovery import PlatformDiscovery
 
 
+def _load_template_content(profile, templates_dir):
+    """
+    Loads the template content for the given profile from the specified directory or package resources.
+    """
+    template_filename = f"system_prompt_template_{profile}.txt.j2"
+    template_path = templates_dir / template_filename
+    if template_path.exists():
+        with open(template_path, "r", encoding="utf-8") as file:
+            return file.read(), template_path
+    # Try package import fallback
+    try:
+        with importlib.resources.files("janito.agent.templates.profiles").joinpath(
+            template_filename
+        ).open("r", encoding="utf-8") as file:
+            return file.read(), template_path
+    except (FileNotFoundError, ModuleNotFoundError, AttributeError):
+        raise FileNotFoundError(
+            f"[janito] Could not find profile-specific template '{template_filename}' in {template_path} nor in janito.agent.templates.profiles package."
+        )
+
+
+def _prepare_template_context(role, profile, allowed_permissions):
+    """
+    Prepares the context dictionary for Jinja2 template rendering.
+    """
+    from janito.tools.tool_base import ToolPermissions
+    from janito.tools.permissions import get_global_allowed_permissions
+    context = {}
+    context["role"] = role or "developer"
+    context["profile"] = profile
+    if allowed_permissions is None:
+        allowed_permissions = get_global_allowed_permissions()
+    # Convert ToolPermissions -> string like "rwx"
+    if isinstance(allowed_permissions, ToolPermissions):
+        perm_str = ""
+        if allowed_permissions.read:
+            perm_str += "r"
+        if allowed_permissions.write:
+            perm_str += "w"
+        if allowed_permissions.execute:
+            perm_str += "x"
+        allowed_permissions = perm_str or None
+    context["allowed_permissions"] = allowed_permissions
+    # Inject platform info if execute permission is present
+    if allowed_permissions and 'x' in allowed_permissions:
+        pd = PlatformDiscovery()
+        context["platform"] = pd.get_platform_name()
+        context["python_version"] = pd.get_python_version()
+        context["shell_info"] = pd.detect_shell()
+    return context
+
+
+def _create_agent(provider_instance, tools_provider, role, system_prompt, input_queue, output_queue, verbose_agent, context, template_path, profile):
+    """
+    Creates and returns an LLMAgent instance with the provided parameters.
+    """
+    agent = LLMAgent(
+        provider_instance,
+        tools_provider,
+        agent_name=role or "developer",
+        system_prompt=system_prompt,
+        input_queue=input_queue,
+        output_queue=output_queue,
+        verbose_agent=verbose_agent,
+    )
+    agent.template_vars["role"] = context["role"]
+    agent.template_vars["profile"] = profile
+    agent.system_prompt_template = str(template_path)
+    agent._template_vars = context.copy()
+    agent._original_template_vars = context.copy()
+    return agent
+
+
 def setup_agent(
     provider_instance,
     llm_driver_config,
@@ -20,7 +93,6 @@ def setup_agent(
     output_queue=None,
     verbose_tools=False,
     verbose_agent=False,
-    
     allowed_permissions=None,
     profile=None,
     profile_system_prompt=None,
@@ -33,7 +105,6 @@ def setup_agent(
 
     # If zero_mode is enabled or no profile is given we skip the system prompt.
     if zero_mode or (profile is None and profile_system_prompt is None):
-        # Pass provider to agent, let agent create driver
         agent = LLMAgent(
             provider_instance,
             tools_provider,
@@ -46,6 +117,7 @@ def setup_agent(
         if role:
             agent.template_vars["role"] = role
         return agent
+
     # If profile_system_prompt is set, use it directly
     if profile_system_prompt is not None:
         agent = LLMAgent(
@@ -61,81 +133,25 @@ def setup_agent(
         agent.template_vars["profile"] = None
         agent.template_vars["profile_system_prompt"] = profile_system_prompt
         return agent
+
     # Normal flow (profile-specific system prompt)
     if templates_dir is None:
-        # Set default template directory
         templates_dir = Path(__file__).parent / "templates" / "profiles"
-    template_filename = f"system_prompt_template_{profile}.txt.j2"
-    template_path = templates_dir / template_filename
-
-    template_content = None
-    if template_path.exists():
-        with open(template_path, "r", encoding="utf-8") as file:
-            template_content = file.read()
-    else:
-        # Try package import fallback: janito.agent.templates.profiles.system_prompt_template_<profile>.txt.j2
-        try:
-            with importlib.resources.files("janito.agent.templates.profiles").joinpath(
-                template_filename
-            ).open("r", encoding="utf-8") as file:
-                template_content = file.read()
-        except (FileNotFoundError, ModuleNotFoundError, AttributeError):
-            if profile:
-                raise FileNotFoundError(
-                    f"[janito] Could not find profile-specific template '{template_filename}' in {template_path} nor in janito.agent.templates.profiles package."
-                )
-            else:
-                warnings.warn(
-                    f"[janito] Could not find {template_filename} in {template_path} nor in janito.agent.templates.profiles package."
-                )
-                raise FileNotFoundError(
-                    f"Template file not found in either {template_path} or package resource."
-                )
+    template_content, template_path = _load_template_content(profile, templates_dir)
 
     import time
     template = Template(template_content)
-    # Prepare context for Jinja2 rendering from llm_driver_config
-    # Compose context for Jinja2 rendering without using to_dict or temperature
-    context = {}
-    context["role"] = role or "developer"
-    context["profile"] = profile
-    # Normalize and inject allowed tool permissions
-    from janito.tools.tool_base import ToolPermissions
-    from janito.tools.permissions import get_global_allowed_permissions
+    context = _prepare_template_context(role, profile, allowed_permissions)
 
-    if allowed_permissions is None:
-        # Fallback to globally configured permissions if not explicitly provided
-        allowed_permissions = get_global_allowed_permissions()
-
-    # Convert ToolPermissions -> string like "rwx" so the Jinja template can use
-    # membership checks such as `'r' in allowed_permissions`.
-    if isinstance(allowed_permissions, ToolPermissions):
-        perm_str = ""
-        if allowed_permissions.read:
-            perm_str += "r"
-        if allowed_permissions.write:
-            perm_str += "w"
-        if allowed_permissions.execute:
-            perm_str += "x"
-        allowed_permissions = perm_str or None  # None if empty
-
-    context["allowed_permissions"] = allowed_permissions
-
-    # Inject platform information only when execute permission is granted
-    if allowed_permissions and 'x' in allowed_permissions:
-        pd = PlatformDiscovery()
-        context["platform"] = pd.get_platform_name()
-        context["python_version"] = pd.get_python_version()
-        context["shell_info"] = pd.detect_shell()
-    # DEBUG: Show permissions passed to template
-        from rich import print as rich_print
+    # Debug output if requested
+    from rich import print as rich_print
     debug_flag = False
     try:
         debug_flag = (hasattr(sys, 'argv') and ('--debug' in sys.argv or '--verbose' in sys.argv or '-v' in sys.argv))
     except Exception:
         pass
     if debug_flag:
-        rich_print(f"[bold magenta][DEBUG][/bold magenta] Rendering system prompt template '[cyan]{template_filename}[/cyan]' with allowed_permissions: [yellow]{allowed_permissions}[/yellow]")
+        rich_print(f"[bold magenta][DEBUG][/bold magenta] Rendering system prompt template '[cyan]{template_path.name}[/cyan]' with allowed_permissions: [yellow]{context.get('allowed_permissions')}[/yellow]")
         rich_print(f"[bold magenta][DEBUG][/bold magenta] Template context: [green]{context}[/green]")
     start_render = time.time()
     rendered_prompt = template.render(**context)
@@ -143,26 +159,19 @@ def setup_agent(
     # Merge multiple empty lines into a single empty line
     import re
     rendered_prompt = re.sub(r'\n{3,}', '\n\n', rendered_prompt)
-    
-    # Create the agent as before, now passing the explicit role
-    # Do NOT pass temperature; do not depend on to_dict
-    agent = LLMAgent(
+
+    return _create_agent(
         provider_instance,
         tools_provider,
-        agent_name=role or "developer",
-        system_prompt=rendered_prompt,
-        input_queue=input_queue,
-        output_queue=output_queue,
-        verbose_agent=verbose_agent,
+        role,
+        rendered_prompt,
+        input_queue,
+        output_queue,
+        verbose_agent,
+        context,
+        template_path,
+        profile,
     )
-    agent.template_vars["role"] = context["role"]
-    agent.template_vars["profile"] = profile
-    # Store template path and context for dynamic prompt refresh
-    agent.system_prompt_template = str(template_path)
-    
-    agent._template_vars = context.copy()
-    agent._original_template_vars = context.copy()
-    return agent
 
 
 def create_configured_agent(
@@ -174,7 +183,6 @@ def create_configured_agent(
     verbose_agent=False,
     templates_dir=None,
     zero_mode=False,
-    
     allowed_permissions=None,
     profile=None,
     profile_system_prompt=None,
@@ -194,7 +202,6 @@ def create_configured_agent(
     Returns:
         Configured agent instance
     """
-    # If provider_instance has create_driver, wire queues (single-shot mode)
     input_queue = None
     output_queue = None
     driver = None
@@ -203,8 +210,6 @@ def create_configured_agent(
         driver.start()  # Ensure the driver background thread is started
         input_queue = getattr(driver, "input_queue", None)
         output_queue = getattr(driver, "output_queue", None)
-
-    # Automatically enable system prompt when a profile is specified
 
     agent = setup_agent(
         provider_instance=provider_instance,
@@ -216,7 +221,6 @@ def create_configured_agent(
         output_queue=output_queue,
         verbose_tools=verbose_tools,
         verbose_agent=verbose_agent,
-        
         allowed_permissions=allowed_permissions,
         profile=profile,
         profile_system_prompt=profile_system_prompt,

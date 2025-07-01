@@ -162,60 +162,64 @@ class ToolsAdapterBase:
         tool = self.get_tool(tool_name)
         self._ensure_tool_exists(tool, tool_name, request_id, arguments)
         func = self._get_tool_callable(tool)
-        # First, validate arguments against the callable signature to catch unexpected / missing params
+
+        validation_error = self._validate_tool_arguments(tool, func, arguments, tool_name, request_id)
+        if validation_error:
+            return validation_error
+
+        self._publish_tool_call_started(tool_name, request_id, arguments)
+        self._print_verbose(f"[tools-adapter] Executing tool: {tool_name} with arguments: {arguments}")
+        try:
+            result = self.execute(tool, **(arguments or {}), **kwargs)
+        except Exception as e:
+            self._handle_execution_error(tool_name, request_id, e, arguments)
+        self._print_verbose(f"[tools-adapter] Tool execution finished: {tool_name} -> {result}")
+        self._publish_tool_call_finished(tool_name, request_id, result)
+        return result
+
+    def _validate_tool_arguments(self, tool, func, arguments, tool_name, request_id):
         sig_error = self._validate_arguments_against_signature(func, arguments)
         if sig_error:
-            if self._event_bus:
-                self._event_bus.publish(
-                    ToolCallError(
-                        tool_name=tool_name,
-                        request_id=request_id,
-                        error=sig_error,
-                        arguments=arguments,
-                    )
-                )
+            self._publish_tool_call_error(tool_name, request_id, sig_error, arguments)
             return sig_error
-
-        # Optionally validate against JSON schema if available
         schema = getattr(tool, "schema", None)
         if schema and arguments is not None:
-            validation_error = self._validate_arguments_against_schema(
-                arguments, schema
-            )
+            validation_error = self._validate_arguments_against_schema(arguments, schema)
             if validation_error:
-                if self._event_bus:
-                    self._event_bus.publish(
-                        ToolCallError(
-                            tool_name=tool_name,
-                            request_id=request_id,
-                            error=validation_error,
-                            arguments=arguments,
-                        )
-                    )
+                self._publish_tool_call_error(tool_name, request_id, validation_error, arguments)
                 return validation_error
-        if self.verbose_tools:
-            print(
-                f"[tools-adapter] Executing tool: {tool_name} with arguments: {arguments}"
+        return None
+
+    def _publish_tool_call_error(self, tool_name, request_id, error, arguments):
+        if self._event_bus:
+            self._event_bus.publish(
+                ToolCallError(
+                    tool_name=tool_name,
+                    request_id=request_id,
+                    error=error,
+                    arguments=arguments,
+                )
             )
+
+    def _publish_tool_call_started(self, tool_name, request_id, arguments):
         if self._event_bus:
             self._event_bus.publish(
                 ToolCallStarted(
                     tool_name=tool_name, request_id=request_id, arguments=arguments
                 )
             )
-        try:
-            result = self.execute(tool, **(arguments or {}), **kwargs)
-        except Exception as e:
-            self._handle_execution_error(tool_name, request_id, e, arguments)
-        if self.verbose_tools:
-            print(f"[tools-adapter] Tool execution finished: {tool_name} -> {result}")
+
+    def _publish_tool_call_finished(self, tool_name, request_id, result):
         if self._event_bus:
             self._event_bus.publish(
                 ToolCallFinished(
                     tool_name=tool_name, request_id=request_id, result=result
                 )
             )
-        return result
+
+    def _print_verbose(self, message):
+        if self.verbose_tools:
+            print(message)
 
     def execute_function_call_message_part(self, function_call_message_part):
         """

@@ -81,28 +81,35 @@ class OpenAIModelDriver(LLMDriver):
         return api_kwargs
 
     def _call_api(self, driver_input: DriverInput):
-        """Call the OpenAI-compatible chat completion endpoint.
-
-        Implements automatic retry logic when the provider returns a *retriable*
-        HTTP 429 or ``RESOURCE_EXHAUSTED`` error **that is not caused by quota
-        exhaustion**. A ``RateLimitRetry`` driver event is emitted each time a
-        retry is scheduled so that user-interfaces can inform the user about
-        the wait.
-
-        OpenAI uses the 429 status code both for temporary rate-limit errors *and*
-        for permanent quota-exceeded errors (``insufficient_quota``).  Retrying
-        the latter is pointless, so we inspect the error payload for
-        ``insufficient_quota`` or common quota-exceeded wording and treat those
-        as fatal, bubbling them up as a regular RequestFinished/ERROR instead of
-        emitting a RateLimitRetry.
-        """
+        """Call the OpenAI-compatible chat completion endpoint with retry and error handling."""
         cancel_event = getattr(driver_input, "cancel_event", None)
         config = driver_input.config
-        conversation = self.convert_history_to_api_messages(
-            driver_input.conversation_history
-        )
+        conversation = self.convert_history_to_api_messages(driver_input.conversation_history)
         request_id = getattr(config, "request_id", None)
-        if config.verbose_api:
+        self._print_api_call_start(config)
+        import time
+        client = self._instantiate_openai_client(config)
+        api_kwargs = self._prepare_api_kwargs(config, conversation)
+        max_retries = getattr(config, "max_retries", 3)
+        attempt = 1
+        while True:
+            try:
+                self._print_api_attempt(config, attempt, max_retries, api_kwargs)
+                if self._check_cancel(cancel_event, request_id, before_call=True):
+                    return None
+                result = client.chat.completions.create(**api_kwargs)
+                if self._check_cancel(cancel_event, request_id, before_call=False):
+                    return None
+                self._handle_api_success(config, result, request_id)
+                return result
+            except Exception as e:
+                if self._handle_api_exception(e, config, api_kwargs, attempt, max_retries, request_id):
+                    attempt += 1
+                    continue
+                raise
+
+    def _print_api_call_start(self, config):
+        if getattr(config, "verbose_api", False):
             tool_adapter_name = type(self.tools_adapter).__name__ if self.tools_adapter else None
             tool_names = []
             if self.tools_adapter and hasattr(self.tools_adapter, "list_tools"):
@@ -114,125 +121,73 @@ class OpenAIModelDriver(LLMDriver):
                 f"[verbose-api] OpenAI API call about to be sent. Model: {config.model}, max_tokens: {config.max_tokens}, tools_adapter: {tool_adapter_name}, tool_names: {tool_names}",
                 flush=True,
             )
-        import time, re, json
 
-        client = self._instantiate_openai_client(config)
-        api_kwargs = self._prepare_api_kwargs(config, conversation)
-        max_retries = getattr(config, "max_retries", 3)
-        attempt = 1
-        while True:
-            try:
-                if config.verbose_api:
-                    print(
-                        f"[OpenAI] API CALL (attempt {attempt}/{max_retries}): chat.completions.create(**{api_kwargs})",
-                        flush=True,
-                    )
-                if self._check_cancel(cancel_event, request_id, before_call=True):
-                    return None
-                result = client.chat.completions.create(**api_kwargs)
-                if self._check_cancel(cancel_event, request_id, before_call=False):
-                    return None
-                # Success path
-                self._print_verbose_result(config, result)
-                usage_dict = self._extract_usage(result)
-                if config.verbose_api:
-                    print(
-                        f"[OpenAI][DEBUG] Attaching usage info to RequestFinished: {usage_dict}",
-                        flush=True,
-                    )
-                self.output_queue.put(
-                    RequestFinished(
-                        driver_name=self.__class__.__name__,
-                        request_id=request_id,
-                        response=result,
-                        status=RequestStatus.SUCCESS,
-                        usage=usage_dict,
-                    )
-                )
-                if config.verbose_api:
-                    pretty.install()
-                    print("[OpenAI] API RESPONSE:", flush=True)
-                    pretty.pprint(result)
-                return result
-            except Exception as e:
-                # Check for rate-limit errors (HTTP 429 or RESOURCE_EXHAUSTED)
-                status_code = getattr(e, "status_code", None)
-                err_str = str(e)
-                # Determine if this is a retriable rate-limit error (HTTP 429) or a non-retriable
-                # quota exhaustion error. OpenAI returns the same 429 status code for both, so we
-                # additionally check for the ``insufficient_quota`` code or typical quota-related
-                # strings in the error message. If the error is quota-related we treat it as fatal
-                # so that the caller can surface a proper error message instead of silently
-                # retrying forever.
-                lower_err = err_str.lower()
-                is_insufficient_quota = (
-                    "insufficient_quota" in lower_err
-                    or "exceeded your current quota" in lower_err
-                )
-                is_rate_limit = (
-                    (status_code == 429 or "error code: 429" in lower_err or "resource_exhausted" in lower_err)
-                    and not is_insufficient_quota
-                )
-                if not is_rate_limit or attempt > max_retries:
-                    # If it's not a rate-limit error or we've exhausted retries, handle as fatal
-                    self._handle_fatal_exception(e, config, api_kwargs)
-                # Parse retry delay from error message (default 1s)
-                retry_delay = self._extract_retry_delay_seconds(e)
-                if retry_delay is None:
-                    # simple exponential backoff if not provided
-                    retry_delay = min(2 ** (attempt - 1), 30)
-                # Emit RateLimitRetry event so UIs can show a spinner / message
-                self.output_queue.put(
-                    RateLimitRetry(
-                        driver_name=self.__class__.__name__,
-                        request_id=request_id,
-                        attempt=attempt,
-                        retry_delay=retry_delay,
-                        error=err_str,
-                        details={},
-                    )
-                )
-                if config.verbose_api:
-                    print(
-                        f"[OpenAI][RateLimit] Attempt {attempt}/{max_retries} failed with rate-limit. Waiting {retry_delay}s before retry.",
-                        flush=True,
-                    )
-                # Wait while still allowing cancellation
-                start_wait = time.time()
-                while time.time() - start_wait < retry_delay:
-                    if self._check_cancel(cancel_event, request_id, before_call=False):
-                        return None
-                    time.sleep(0.1)
-                attempt += 1
-                continue
-            # console with large JSON payloads when the service returns HTTP 429.
-            # We still surface the exception to the caller so that standard error
-            # handling (e.g. retries in higher-level code) continues to work.
-            status_code = getattr(e, "status_code", None)
-            err_str = str(e)
-            is_rate_limit = (
-                status_code == 429
-                or "Error code: 429" in err_str
-                or "RESOURCE_EXHAUSTED" in err_str
+    def _print_api_attempt(self, config, attempt, max_retries, api_kwargs):
+        if getattr(config, "verbose_api", False):
+            print(
+                f"[OpenAI] API CALL (attempt {attempt}/{max_retries}): chat.completions.create(**{api_kwargs})",
+                flush=True,
             )
-            is_verbose = getattr(config, "verbose_api", False)
 
-            # Only print the full diagnostics if the user explicitly requested
-            # verbose output or if the problem is not a rate-limit situation.
-            if is_verbose or not is_rate_limit:
-                print(f"[ERROR] Exception during OpenAI API call: {e}", flush=True)
-                print(f"[ERROR] config: {config}", flush=True)
-                print(
-                    f"[ERROR] api_kwargs: {api_kwargs if 'api_kwargs' in locals() else 'N/A'}",
-                    flush=True,
-                )
-                import traceback
+    def _handle_api_success(self, config, result, request_id):
+        self._print_verbose_result(config, result)
+        usage_dict = self._extract_usage(result)
+        if getattr(config, "verbose_api", False):
+            print(
+                f"[OpenAI][DEBUG] Attaching usage info to RequestFinished: {usage_dict}",
+                flush=True,
+            )
+        self.output_queue.put(
+            RequestFinished(
+                driver_name=self.__class__.__name__,
+                request_id=request_id,
+                response=result,
+                status=RequestStatus.SUCCESS,
+                usage=usage_dict,
+            )
+        )
+        if getattr(config, "verbose_api", False):
+            pretty.install()
+            print("[OpenAI] API RESPONSE:", flush=True)
+            pretty.pprint(result)
 
-                print("[ERROR] Full stack trace:", flush=True)
-                print(traceback.format_exc(), flush=True)
-            # Re-raise so that the calling logic can convert this into a
-            # RequestFinished event with status=ERROR.
-            raise
+    def _handle_api_exception(self, e, config, api_kwargs, attempt, max_retries, request_id):
+        status_code = getattr(e, "status_code", None)
+        err_str = str(e)
+        lower_err = err_str.lower()
+        is_insufficient_quota = (
+            "insufficient_quota" in lower_err or "exceeded your current quota" in lower_err
+        )
+        is_rate_limit = (
+            (status_code == 429 or "error code: 429" in lower_err or "resource_exhausted" in lower_err)
+            and not is_insufficient_quota
+        )
+        if not is_rate_limit or attempt > max_retries:
+            self._handle_fatal_exception(e, config, api_kwargs)
+        retry_delay = self._extract_retry_delay_seconds(e)
+        if retry_delay is None:
+            retry_delay = min(2 ** (attempt - 1), 30)
+        self.output_queue.put(
+            RateLimitRetry(
+                driver_name=self.__class__.__name__,
+                request_id=request_id,
+                attempt=attempt,
+                retry_delay=retry_delay,
+                error=err_str,
+                details={},
+            )
+        )
+        if getattr(config, "verbose_api", False):
+            print(
+                f"[OpenAI][RateLimit] Attempt {attempt}/{max_retries} failed with rate-limit. Waiting {retry_delay}s before retry.",
+                flush=True,
+            )
+        start_wait = time.time()
+        while time.time() - start_wait < retry_delay:
+            if self._check_cancel(getattr(config, "cancel_event", None), request_id, before_call=False):
+                return False
+            time.sleep(0.1)
+        return True
 
     def _extract_retry_delay_seconds(self, exception) -> float | None:
         """Extract the retry delay in seconds from the provider error response.
@@ -401,73 +356,66 @@ class OpenAIModelDriver(LLMDriver):
         Handles 'tool_results' and 'tool_calls' roles for compliance.
         """
         import json
-
         api_messages = []
         for msg in conversation_history.get_history():
-            role = msg.get("role")
-            content = msg.get("content")
-            if role == "tool_results":
-                # Expect content to be a list of tool result dicts or a stringified list
-                try:
-                    results = (
-                        json.loads(content) if isinstance(content, str) else content
-                    )
-                except Exception:
-                    results = [content]
-                for result in results:
-                    # result should be a dict with keys: name, content, tool_call_id
-                    if isinstance(result, dict):
-                        api_messages.append(
-                            {
-                                "role": "tool",
-                                "content": result.get("content", ""),
-                                "name": result.get("name", ""),
-                                "tool_call_id": result.get("tool_call_id", ""),
-                            }
-                        )
-                    else:
-                        api_messages.append(
-                            {
-                                "role": "tool",
-                                "content": str(result),
-                                "name": "",
-                                "tool_call_id": "",
-                            }
-                        )
-            elif role == "tool_calls":
-                # Convert to assistant message with tool_calls field
-                import json
+            self._append_api_message(api_messages, msg)
+        self._replace_none_content(api_messages)
+        return api_messages
 
-                try:
-                    tool_calls = (
-                        json.loads(content) if isinstance(content, str) else content
-                    )
-                except Exception:
-                    tool_calls = []
-                api_messages.append(
-                    {"role": "assistant", "content": "", "tool_calls": tool_calls}
-                )
+    def _append_api_message(self, api_messages, msg):
+        role = msg.get("role")
+        content = msg.get("content")
+        if role == "tool_results":
+            self._handle_tool_results(api_messages, content)
+        elif role == "tool_calls":
+            self._handle_tool_calls(api_messages, content)
+        else:
+            self._handle_other_roles(api_messages, msg, role, content)
+
+    def _handle_tool_results(self, api_messages, content):
+        import json
+        try:
+            results = json.loads(content) if isinstance(content, str) else content
+        except Exception:
+            results = [content]
+        for result in results:
+            if isinstance(result, dict):
+                api_messages.append({
+                    "role": "tool",
+                    "content": result.get("content", ""),
+                    "name": result.get("name", ""),
+                    "tool_call_id": result.get("tool_call_id", ""),
+                })
             else:
-                # Special handling for 'function' role: extract 'name' from metadata if present
-                if role == "function":
-                    name = ""
-                    if isinstance(msg, dict):
-                        metadata = msg.get("metadata", {})
-                        name = (
-                            metadata.get("name", "")
-                            if isinstance(metadata, dict)
-                            else ""
-                        )
-                    api_messages.append(
-                        {"role": "tool", "content": content, "name": name}
-                    )
-                else:
-                    api_messages.append(msg)
-        # Post-processing: Google Gemini API (OpenAI-compatible) rejects null content. Replace None with empty string.
+                api_messages.append({
+                    "role": "tool",
+                    "content": str(result),
+                    "name": "",
+                    "tool_call_id": "",
+                })
+
+    def _handle_tool_calls(self, api_messages, content):
+        import json
+        try:
+            tool_calls = json.loads(content) if isinstance(content, str) else content
+        except Exception:
+            tool_calls = []
+        api_messages.append({"role": "assistant", "content": "", "tool_calls": tool_calls})
+
+    def _handle_other_roles(self, api_messages, msg, role, content):
+        if role == "function":
+            name = ""
+            if isinstance(msg, dict):
+                metadata = msg.get("metadata", {})
+                name = metadata.get("name", "") if isinstance(metadata, dict) else ""
+            api_messages.append({"role": "tool", "content": content, "name": name})
+        else:
+            api_messages.append(msg)
+
+    def _replace_none_content(self, api_messages):
         for m in api_messages:
             if m.get("content", None) is None:
                 m["content"] = ""
-        return api_messages
 
     def _convert_completion_message_to_parts(self, message):
         """

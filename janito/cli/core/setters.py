@@ -18,47 +18,56 @@ def handle_set(args, config_mgr=None):
     if not set_arg:
         return False
     try:
-        if "=" not in set_arg:
-            print(
-                "Error: --set requires KEY=VALUE (e.g., --set provider=provider_name)."
-            )
+        if not _validate_set_arg_format(set_arg):
             return True
-        key, value = set_arg.split("=", 1)
-        key, value = key.strip(), value.strip()
+        key, value = _parse_set_arg(set_arg)
         key = key.replace("-", "_")
-
-        if key == "provider":
-            return _handle_set_config_provider(value)
-        if key == "model":
-            return _handle_set_global_model(value)
-        if "." in key and key.endswith(".model"):
-            return _handle_set_provider_model(key, value)
-        if key == "max_tokens":
-            return _handle_set_max_tokens(value)
-        if key == "base_url":
-            return _handle_set_base_url(value)
-        if key in ["azure_deployment_name", "azure-deployment-name"]:
-            global_config.file_set("azure_deployment_name", value)
-            print(f"Azure deployment name set to '{value}'.")
-            return True
-        if ".max_tokens" in key or ".base_url" in key:
-            return _handle_set_provider_level_setting(key, value)
-        # Tool permissions support: janito set tool_permissions=rwx
-        if key == "tool_permissions":
-            from janito.tools.permissions_parse import parse_permissions_string
-            from janito.tools.permissions import set_global_allowed_permissions
-            perms = parse_permissions_string(value)
-            global_config.file_set("tool_permissions", value)
-            set_global_allowed_permissions(perms)
-            print(f"Tool permissions set to '{value}' (parsed: {perms})")
-            return True
-        print(
-            f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, azure_deployment_name, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url, tool_permissions"
-        )
-        return True
+        return _dispatch_set_key(key, value)
     except Exception as e:
         print(f"Error parsing --set value: {e}")
         return True
+
+def _validate_set_arg_format(set_arg):
+    if "=" not in set_arg:
+        print(
+            "Error: --set requires KEY=VALUE (e.g., --set provider=provider_name)."
+        )
+        return False
+    return True
+
+def _parse_set_arg(set_arg):
+    key, value = set_arg.split("=", 1)
+    return key.strip(), value.strip()
+
+def _dispatch_set_key(key, value):
+    if key == "provider":
+        return _handle_set_config_provider(value)
+    if key == "model":
+        return _handle_set_global_model(value)
+    if "." in key and key.endswith(".model"):
+        return _handle_set_provider_model(key, value)
+    if key == "max_tokens":
+        return _handle_set_max_tokens(value)
+    if key == "base_url":
+        return _handle_set_base_url(value)
+    if key in ["azure_deployment_name", "azure-deployment-name"]:
+        global_config.file_set("azure_deployment_name", value)
+        print(f"Azure deployment name set to '{value}'.")
+        return True
+    if ".max_tokens" in key or ".base_url" in key:
+        return _handle_set_provider_level_setting(key, value)
+    if key == "tool_permissions":
+        from janito.tools.permissions_parse import parse_permissions_string
+        from janito.tools.permissions import set_global_allowed_permissions
+        perms = parse_permissions_string(value)
+        global_config.file_set("tool_permissions", value)
+        set_global_allowed_permissions(perms)
+        print(f"Tool permissions set to '{value}' (parsed: {perms})")
+        return True
+    print(
+        f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, azure_deployment_name, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url, tool_permissions"
+    )
+    return True
 
 
 def _handle_set_max_tokens(value):

@@ -299,38 +299,13 @@ class LLMAgent:
         role: str = "user",
         config=None,
     ):
-        if (
-            hasattr(self, "driver")
-            and self.driver
-            and hasattr(self.driver, "clear_output_queue")
-        ):
-            self.driver.clear_output_queue()
-        # Drain input queue before sending new messages
-        if (
-            hasattr(self, "driver")
-            and self.driver
-            and hasattr(self.driver, "clear_input_queue")
-        ):
-            self.driver.clear_input_queue()
-        """
-        Main agent conversation loop supporting function/tool calls and conversation history extension, now as a blocking event-driven loop with event publishing.
-
-        Args:
-            prompt: The user prompt as a string (optional if messages is provided).
-            messages: A list of message dicts (optional if prompt is provided).
-            role: The role for the prompt (default: 'user').
-            config: Optional driver config (defaults to provider config).
-
-        Returns:
-            The final ResponseReceived event (or error event) when the conversation is complete.
-        """
+        self._clear_driver_queues()
         self._validate_and_update_history(prompt, messages, role)
         self._ensure_system_prompt()
         if config is None:
             config = self.llm_provider.driver_config
         loop_count = 1
         import threading
-
         cancel_event = threading.Event()
         while True:
             self._print_verbose_chat_loop(loop_count)
@@ -339,26 +314,31 @@ class LLMAgent:
             try:
                 result, added_tool_results = self._process_next_response()
             except KeyboardInterrupt:
-                # Propagate the interrupt to the caller, but signal the driver to cancel first
                 cancel_event.set()
                 raise
             if getattr(self, "verbose_agent", False):
-                print(
-                    f"[agent] [DEBUG] Returned from _process_next_response: result={result}, added_tool_results={added_tool_results}"
-                )
-            if result is None:
-                if getattr(self, "verbose_agent", False):
-                    print(
-                        f"[agent] [INFO] Exiting chat loop: _process_next_response returned None result (likely timeout or error). Returning (None, False)."
-                    )
-                return None, False
-            if not added_tool_results:
-                if getattr(self, "verbose_agent", False):
-                    print(
-                        f"[agent] [INFO] Exiting chat loop: _process_next_response returned added_tool_results=False (final response or no more tool calls). Returning result: {result}"
-                    )
+                print(f"[agent] [DEBUG] Returned from _process_next_response: result={result}, added_tool_results={added_tool_results}")
+            if self._should_exit_chat_loop(result, added_tool_results):
                 return result
             loop_count += 1
+
+    def _clear_driver_queues(self):
+        if hasattr(self, "driver") and self.driver:
+            if hasattr(self.driver, "clear_output_queue"):
+                self.driver.clear_output_queue()
+            if hasattr(self.driver, "clear_input_queue"):
+                self.driver.clear_input_queue()
+
+    def _should_exit_chat_loop(self, result, added_tool_results):
+        if result is None:
+            if getattr(self, "verbose_agent", False):
+                print("[agent] [INFO] Exiting chat loop: _process_next_response returned None result (likely timeout or error). Returning (None, False).")
+            return True
+        if not added_tool_results:
+            if getattr(self, "verbose_agent", False):
+                print(f"[agent] [INFO] Exiting chat loop: _process_next_response returned added_tool_results=False (final response or no more tool calls). Returning result: {result}")
+            return True
+        return False
 
     def _print_verbose_chat_loop(self, loop_count):
         if getattr(self, "verbose_agent", False):
@@ -436,42 +416,48 @@ class LLMAgent:
         Reset all driver config fields to the model's defaults for the current provider (overwriting any user customizations).
         """
         provider = self.llm_provider
-        # Find model spec
-        model_spec = None
-        if hasattr(provider, "MODEL_SPECS"):
-            model_spec = provider.MODEL_SPECS.get(model_name)
-        if not model_spec:
-            raise ValueError(f"Model '{model_name}' not found in provider MODEL_SPECS.")
-        # Overwrite all config fields with model defaults
+        model_spec = self._get_model_spec(provider, model_name)
         config = getattr(provider, "driver_config", None)
         if config is None:
             return
+        self._apply_model_defaults_to_config(config, model_spec, model_name)
+        self._update_driver_model_config(model_name, config)
+
+    def _get_model_spec(self, provider, model_name):
+        if hasattr(provider, "MODEL_SPECS"):
+            model_spec = provider.MODEL_SPECS.get(model_name)
+            if model_spec:
+                return model_spec
+        raise ValueError(f"Model '{model_name}' not found in provider MODEL_SPECS.")
+
+    def _apply_model_defaults_to_config(self, config, model_spec, model_name):
         config.model = model_name
-        # Standard fields, with safe conversion for int fields
-        def safe_int(val):
-            try:
-                if val is None or val == "N/A":
-                    return None
-                return int(val)
-            except Exception:
-                return None
-        def safe_float(val):
-            try:
-                if val is None or val == "N/A":
-                    return None
-                return float(val)
-            except Exception:
-                return None
-        config.temperature = safe_float(getattr(model_spec, "default_temp", None))
-        config.max_tokens = safe_int(getattr(model_spec, "max_response", None))
-        config.max_completion_tokens = safe_int(getattr(model_spec, "max_cot", None))
-        # Optionally reset other fields to None/defaults
+        config.temperature = self._safe_float(getattr(model_spec, "default_temp", None))
+        config.max_tokens = self._safe_int(getattr(model_spec, "max_response", None))
+        config.max_completion_tokens = self._safe_int(getattr(model_spec, "max_cot", None))
         config.top_p = None
         config.presence_penalty = None
         config.frequency_penalty = None
         config.stop = None
         config.reasoning_effort = None
-        # Update driver if present
+
+    def _safe_int(self, val):
+        try:
+            if val is None or val == "N/A":
+                return None
+            return int(val)
+        except Exception:
+            return None
+
+    def _safe_float(self, val):
+        try:
+            if val is None or val == "N/A":
+                return None
+            return float(val)
+        except Exception:
+            return None
+
+    def _update_driver_model_config(self, model_name, config):
         if self.driver is not None:
             if hasattr(self.driver, "model_name"):
                 self.driver.model_name = model_name
