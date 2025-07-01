@@ -33,8 +33,7 @@ class ExecuteShellHandler(ShellCmdHandler):
         # Refresh system prompt if agent is available
         agent = getattr(self.shell_state, "agent", None)
         if agent:
-            if hasattr(agent, "_refresh_system_prompt_from_template"):
-                agent._refresh_system_prompt_from_template()
+            agent.refresh_system_prompt_from_template()
             # No need to print the system prompt after permission change
         if enable:
             shared_console.print("[green]Execution tools ENABLED. Tools can now execute code and commands.[/green]")

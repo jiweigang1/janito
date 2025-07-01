@@ -156,6 +156,7 @@ def setup_agent(
     agent.template_vars["profile"] = profile
     # Store template path and context for dynamic prompt refresh
     agent.system_prompt_template = str(template_path)
+    
     agent._template_vars = context.copy()
     agent._original_template_vars = context.copy()
     return agent

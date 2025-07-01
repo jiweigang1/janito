@@ -41,14 +41,7 @@ class RoleShellHandler(ShellCmdHandler):
         if agent and hasattr(agent, "set_template_var"):
             agent.set_template_var("role", new_role)
             # Refresh the system prompt with the new role if possible
-            if (
-                hasattr(agent, "set_system_using_template")
-                and hasattr(agent, "_system_prompt_template_file")
-                and agent._system_prompt_template_file
-            ):
-                agent.set_system_using_template(
-                    agent._system_prompt_template_file, **agent.template_vars
-                )
+            agent.refresh_system_prompt_from_template()
         shared_console.print(
             f"[bold green]System role updated to:[/bold green] {new_role}"
         )

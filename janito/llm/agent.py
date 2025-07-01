@@ -87,7 +87,7 @@ class LLMAgent:
         template = env.get_template(Path(template_path).name)
         self.system_prompt = template.render(**kwargs)
 
-    def _refresh_system_prompt_from_template(self):
+    def refresh_system_prompt_from_template(self):
         if hasattr(self, "_template_vars") and hasattr(self, "system_prompt_template"):
             env = Environment(
                 loader=FileSystemLoader(Path(self.system_prompt_template).parent),

@@ -17,8 +17,7 @@ def handle_restart(shell_state=None):
         # Reset system prompt to original template context if available
         if hasattr(shell_state.agent, "_original_template_vars"):
             shell_state.agent._template_vars = shell_state.agent._original_template_vars.copy()
-        if hasattr(shell_state.agent, "_refresh_system_prompt_from_template"):
-            shell_state.agent._refresh_system_prompt_from_template()
+        shell_state.agent.refresh_system_prompt_from_template()
         # No need to print the system prompt after restart
 
     # Reset tool use tracker
@@ -62,8 +61,8 @@ def handle_restart(shell_state=None):
             janito.tools.local_tools_adapter.set_allowed_permissions(ToolPermissions(read=False, write=False, execute=False))
             msg = "[green]All tool permissions have been set to OFF (read, write, execute = False).[/green]"
         # Refresh system prompt to reflect new permissions
-        if hasattr(shell_state, "agent") and shell_state.agent and hasattr(shell_state.agent, "_refresh_system_prompt_from_template"):
-            shell_state.agent._refresh_system_prompt_from_template()
+        if hasattr(shell_state, "agent") and shell_state.agent and hasattr(shell_state.agent, "refresh_system_prompt_from_template"):
+            shell_state.agent.refresh_system_prompt_from_template()
         if msg:
             shared_console.print(msg)
 
