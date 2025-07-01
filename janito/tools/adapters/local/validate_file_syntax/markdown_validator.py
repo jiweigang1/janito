@@ -2,8 +2,8 @@ from janito.i18n import tr
 import re
 
 
-def validate_markdown(file_path: str) -> str:
-    with open(file_path, "r", encoding="utf-8") as f:
+def validate_markdown(path: str) -> str:
+    with open(path, "r", encoding="utf-8") as f:
         content = f.read()
     lines = content.splitlines()
     errors = []

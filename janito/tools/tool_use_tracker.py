@@ -22,10 +22,10 @@ class ToolUseTracker:
         return cls._instance
 
     def record(self, tool_name: str, params: Dict[str, Any], result: Any = None):
-        # Normalize file_path in params if present
+        # Normalize path in params if present
         norm_params = params.copy()
-        if "file_path" in norm_params:
-            norm_params["file_path"] = normalize_path(norm_params["file_path"])
+        if "path" in norm_params:
+            norm_params["path"] = normalize_path(norm_params["path"])
         self._history.append(
             {"tool": tool_name, "params": norm_params, "result": result}
         )
@@ -33,26 +33,26 @@ class ToolUseTracker:
     def get_history(self) -> List[Dict[str, Any]]:
         return list(self._history)
 
-    def get_operations_on_file(self, file_path: str) -> List[Dict[str, Any]]:
-        norm_file_path = normalize_path(file_path)
+    def get_operations_on_file(self, path: str) -> List[Dict[str, Any]]:
+        norm_path = normalize_path(path)
         ops = []
         for entry in self._history:
             params = entry["params"]
             # Normalize any string param values for comparison
             for v in params.values():
-                if isinstance(v, str) and normalize_path(v) == norm_file_path:
+                if isinstance(v, str) and normalize_path(v) == norm_path:
                     ops.append(entry)
                     break
         return ops
 
-    def file_fully_read(self, file_path: str) -> bool:
-        norm_file_path = normalize_path(file_path)
+    def file_fully_read(self, path: str) -> bool:
+        norm_path = normalize_path(path)
         for entry in self._history:
             if entry["tool"] == "view_file":
                 params = entry["params"]
                 if (
-                    "file_path" in params
-                    and normalize_path(params["file_path"]) == norm_file_path
+                    "path" in params
+                    and normalize_path(params["path"]) == norm_path
                 ):
                     # If both from_line and to_line are None, full file was read
                     if (
@@ -62,8 +62,8 @@ class ToolUseTracker:
                         return True
         return False
 
-    def last_operation_is_full_read_or_replace(self, file_path: str) -> bool:
-        ops = self.get_operations_on_file(file_path)
+    def last_operation_is_full_read_or_replace(self, path: str) -> bool:
+        ops = self.get_operations_on_file(path)
         if not ops:
             return False
         last = ops[-1]

@@ -18,22 +18,22 @@ class GetFileOutlineTool(ToolBase):
     Get an outline of a file's structure. Supports Python and Markdown files.
 
     Args:
-        file_path (str): Path to the file to outline.
+        path (str): Path to the file to outline.
     """
     permissions = ToolPermissions(read=True)
     tool_name = "get_file_outline"
 
-    def run(self, file_path: str) -> str:
+    def run(self, path: str) -> str:
         try:
             self.report_action(
                 tr(
                     "📄 Outline file '{disp_path}' ...",
-                    disp_path=display_path(file_path),
+                    disp_path=display_path(path),
                 ),
                 ReportAction.READ,
             )
-            ext = os.path.splitext(file_path)[1].lower()
-            with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+            ext = os.path.splitext(path)[1].lower()
+            with open(path, "r", encoding="utf-8", errors="replace") as f:
                 lines = f.readlines()
             return self._outline_by_extension(ext, lines)
         except Exception as e:

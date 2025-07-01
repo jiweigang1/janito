@@ -51,8 +51,8 @@ def format_result(
         lines = []
         total = 0
         if per_file_counts:
-            for file_path, count in per_file_counts:
-                lines.append(f"{file_path}: {count}")
+            for path, count in per_file_counts:
+                lines.append(f"{path}: {count}")
                 total += count
         lines.append(f"Total matches: {total}")
         if limit_reached:

@@ -11,11 +11,11 @@ class ViewFileTool(ToolBase):
     Read lines from a file. You can specify a line range, or read the entire file by simply omitting the from_line and to_line parameters.
 
     Args:
-        file_path (str): Path to the file to read lines from.
+        path (str): Path to the file to read lines from.
         from_line (int, optional): Starting line number (1-based). Omit to start from the first line.
         to_line (int, optional): Ending line number (1-based). Omit to read to the end of the file.
 
-    To read the full file, just provide file_path and leave from_line and to_line unset.
+    To read the full file, just provide path and leave from_line and to_line unset.
 
     Returns:
         str: File content with a header indicating the file name and line range. Example:
@@ -28,19 +28,19 @@ class ViewFileTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "view_file"
 
-    def run(self, file_path: str, from_line: int = None, to_line: int = None) -> str:
+    def run(self, path: str, from_line: int = None, to_line: int = None) -> str:
         import os
         from janito.tools.tool_utils import display_path
 
-        disp_path = display_path(file_path)
+        disp_path = display_path(path)
         self.report_action(
             tr("📖 View '{disp_path}'", disp_path=disp_path),
             ReportAction.READ,
         )
         try:
-            if os.path.isdir(file_path):
-                return self._list_directory(file_path, disp_path)
-            lines = self._read_file_lines(file_path)
+            if os.path.isdir(path):
+                return self._list_directory(path, disp_path)
+            lines = self._read_file_lines(path)
             selected, selected_len, total_lines = self._select_lines(
                 lines, from_line, to_line
             )
@@ -56,16 +56,16 @@ class ViewFileTool(ToolBase):
             self.report_error(tr(" ❌ Error: {error}", error=e))
             return tr("Error reading file: {error}", error=e)
 
-    def _list_directory(self, file_path, disp_path):
+    def _list_directory(self, path, disp_path):
         import os
 
         try:
-            entries = os.listdir(file_path)
+            entries = os.listdir(path)
             entries.sort()
             # Suffix subdirectories with '/'
             formatted_entries = []
             for entry in entries:
-                full_path = os.path.join(file_path, entry)
+                full_path = os.path.join(path, entry)
                 if os.path.isdir(full_path):
                     formatted_entries.append(entry + "/")
                 else:
@@ -80,9 +80,9 @@ class ViewFileTool(ToolBase):
             self.report_error(tr(" ❌ Error listing directory: {error}", error=e))
             return tr("Error listing directory: {error}", error=e)
 
-    def _read_file_lines(self, file_path):
+    def _read_file_lines(self, path):
         """Read all lines from the file."""
-        with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
             return f.readlines()
 
     def _select_lines(self, lines, from_line, to_line):

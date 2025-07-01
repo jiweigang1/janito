@@ -12,7 +12,7 @@ class DeleteTextInFileTool(ToolBase):
     Delete all occurrences of text between start_marker and end_marker (inclusive) in a file, using exact string markers.
 
     Args:
-        file_path (str): Path to the file to modify.
+        path (str): Path to the file to modify.
         start_marker (str): The starting delimiter string.
         end_marker (str): The ending delimiter string.
 
@@ -24,14 +24,14 @@ class DeleteTextInFileTool(ToolBase):
 
     def run(
         self,
-        file_path: str,
+        path: str,
         start_marker: str,
         end_marker: str,
         backup: bool = False,
     ) -> str:
         from janito.tools.tool_utils import display_path
 
-        disp_path = display_path(file_path)
+        disp_path = display_path(path)
         info_msg = tr(
             "📝 Delete text in {disp_path} between markers: '{start_marker}' ... '{end_marker}'",
             disp_path=disp_path,
@@ -40,7 +40,7 @@ class DeleteTextInFileTool(ToolBase):
         )
         self.report_action(info_msg, ReportAction.CREATE)
         try:
-            content = self._read_file_content(file_path)
+            content = self._read_file_content(path)
             occurrences, match_lines = self._find_marker_blocks(
                 content, start_marker, end_marker
             )
@@ -49,27 +49,27 @@ class DeleteTextInFileTool(ToolBase):
                     tr(" ℹ️ No blocks found between markers."), ReportAction.CREATE
                 )
                 return tr(
-                    "No blocks found between markers in {file_path}.",
-                    file_path=file_path,
+                    "No blocks found between markers in {path}.",
+                    path=path,
                 )
 
             new_content, deleted_blocks = self._delete_blocks(
                 content, start_marker, end_marker
             )
-            self._write_file_content(file_path, new_content)
-            validation_result = validate_file_syntax(file_path)
+            self._write_file_content(path, new_content)
+            validation_result = validate_file_syntax(path)
             self._report_success(match_lines)
             return tr(
-                "Deleted {count} block(s) between markers in {file_path}. ",
+                "Deleted {count} block(s) between markers in {path}. ",
                 count=deleted_blocks,
-                file_path=file_path
+                path=path
             ) + (f"\n{validation_result}" if validation_result else "")
         except Exception as e:
             self.report_error(tr(" ❌ Error: {error}", error=e), ReportAction.REPLACE)
             return tr("Error deleting text: {error}", error=e)
 
-    def _read_file_content(self, file_path):
-        with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+    def _read_file_content(self, path):
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
             return f.read()
 
     def _find_marker_blocks(self, content, start_marker, end_marker):
@@ -110,11 +110,11 @@ class DeleteTextInFileTool(ToolBase):
             count += 1
         return new_content, count
 
-    def _backup_file(self, file_path, backup_path):
-        shutil.copy2(file_path, backup_path)
+    def _backup_file(self, path, backup_path):
+        shutil.copy2(path, backup_path)
 
-    def _write_file_content(self, file_path, content):
-        with open(file_path, "w", encoding="utf-8", errors="replace") as f:
+    def _write_file_content(self, path, content):
+        with open(path, "w", encoding="utf-8", errors="replace") as f:
             f.write(content)
 
     def _report_success(self, match_lines):

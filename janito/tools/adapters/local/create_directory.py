@@ -10,9 +10,9 @@ import os
 @register_local_tool
 class CreateDirectoryTool(ToolBase):
     """
-    Create a new directory at the specified file_path.
+    Create a new directory at the specified path.
     Args:
-        file_path (str): Path for the new directory.
+        path (str): Path for the new directory.
     Returns:
         str: Status message indicating the result. Example:
             - "5c5 Successfully created the directory at ..."
@@ -21,17 +21,17 @@ class CreateDirectoryTool(ToolBase):
     permissions = ToolPermissions(write=True)
     tool_name = "create_directory"
 
-    def run(self, file_path: str) -> str:
-        # file_path = expand_path(file_path)
-        # Using file_path as is
-        disp_path = display_path(file_path)
+    def run(self, path: str) -> str:
+        # path = expand_path(path)
+        # Using path as is
+        disp_path = display_path(path)
         self.report_action(
             tr("📁 Create directory '{disp_path}' ...", disp_path=disp_path),
             ReportAction.CREATE,
         )
         try:
-            if os.path.exists(file_path):
-                if not os.path.isdir(file_path):
+            if os.path.exists(path):
+                if not os.path.isdir(path):
                     self.report_error(
                         tr(
                             "❌ Path '{disp_path}' exists and is not a directory.",
@@ -52,7 +52,7 @@ class CreateDirectoryTool(ToolBase):
                     "❗ Cannot create directory: '{disp_path}' already exists.",
                     disp_path=disp_path,
                 )
-            os.makedirs(file_path, exist_ok=True)
+            os.makedirs(path, exist_ok=True)
             self.report_success(tr("✅ Directory created"))
             return tr(
                 "✅ Successfully created the directory at '{disp_path}'.",

@@ -44,13 +44,13 @@ def _handle_validation_error(e, report_warning):
 
 
 def validate_file_syntax(
-    file_path: str, report_info=None, report_warning=None, report_success=None
+    path: str, report_info=None, report_warning=None, report_success=None
 ) -> str:
-    ext = os.path.splitext(file_path)[1].lower()
+    ext = os.path.splitext(path)[1].lower()
     validator = _get_validator(ext)
     try:
         if validator:
-            return validator(file_path)
+            return validator(path)
         else:
             msg = tr("⚠️ Warning: Unsupported file extension: {ext}", ext=ext)
             if report_warning:
@@ -75,7 +75,7 @@ class ValidateFileSyntaxTool(ToolBase):
       - JavaScript (.js)
 
     Args:
-        file_path (str): Path to the file to validate.
+        path (str): Path to the file to validate.
     Returns:
         str: Validation status message. Example:
             - "✅ Syntax OK"
@@ -85,8 +85,8 @@ class ValidateFileSyntaxTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "validate_file_syntax"
 
-    def run(self, file_path: str) -> str:
-        disp_path = display_path(file_path)
+    def run(self, path: str) -> str:
+        disp_path = display_path(path)
         self.report_action(
             tr(
                 "🔎 Validate syntax for file '{disp_path}' ...",
@@ -95,7 +95,7 @@ class ValidateFileSyntaxTool(ToolBase):
             ReportAction.READ,
         )
         result = validate_file_syntax(
-            file_path,
+            path,
             
             report_warning=self.report_warning,
             report_success=self.report_success,

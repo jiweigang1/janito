@@ -14,7 +14,7 @@ class RemoveDirectoryTool(ToolBase):
     Remove a directory.
 
     Args:
-        file_path (str): Path to the directory to remove.
+        path (str): Path to the directory to remove.
         recursive (bool, optional): If True, remove non-empty directories recursively (with backup). If False, only remove empty directories. Defaults to False.
     Returns:
         str: Status message indicating result. Example:
@@ -24,8 +24,8 @@ class RemoveDirectoryTool(ToolBase):
     permissions = ToolPermissions(write=True)
     tool_name = "remove_directory"
 
-    def run(self, file_path: str, recursive: bool = False) -> str:
-        disp_path = display_path(file_path)
+    def run(self, path: str, recursive: bool = False) -> str:
+        disp_path = display_path(path)
         self.report_action(
             tr("🗃️ Remove directory '{disp_path}' ...", disp_path=disp_path),
             ReportAction.DELETE,
@@ -34,9 +34,9 @@ class RemoveDirectoryTool(ToolBase):
         try:
             if recursive:
 
-                shutil.rmtree(file_path)
+                shutil.rmtree(path)
             else:
-                os.rmdir(file_path)
+                os.rmdir(path)
             self.report_success(
                 tr("✅ 1 {dir_word}", dir_word=pluralize("directory", 1)),
                 ReportAction.DELETE,

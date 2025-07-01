@@ -15,7 +15,7 @@ class PythonFileRunTool(ToolBase):
     Tool to execute a specified Python script file.
 
     Args:
-        file_path (str): Path to the Python script file to execute.
+        path (str): Path to the Python script file to execute.
         timeout (int): Timeout in seconds for the command. Defaults to 60.
 
     Returns:
@@ -24,9 +24,9 @@ class PythonFileRunTool(ToolBase):
     permissions = ToolPermissions(execute=True)
     tool_name = "python_file_run"
 
-    def run(self, file_path: str, timeout: int = 60) -> str:
+    def run(self, path: str, timeout: int = 60) -> str:
         self.report_action(
-            tr("🚀 Running: python {file_path}", file_path=file_path),
+            tr("🚀 Running: python {path}", path=path),
             ReportAction.EXECUTE,
         )
         self.report_stdout("\n")
@@ -46,7 +46,7 @@ class PythonFileRunTool(ToolBase):
                 ) as stderr_file,
             ):
                 process = subprocess.Popen(
-                    [sys.executable, file_path],
+                    [sys.executable, path],
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     text=True,

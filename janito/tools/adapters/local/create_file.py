@@ -16,7 +16,7 @@ class CreateFileTool(ToolBase):
     Create a new file with the given content.
 
     Args:
-        file_path (str): Path to the file to create.
+        path (str): Path to the file to create.
         content (str): Content to write to the file.
         overwrite (bool, optional): Overwrite existing file if True. Default: False. Recommended only after reading the file to be overwritten.
     Returns:
@@ -28,13 +28,13 @@ class CreateFileTool(ToolBase):
     permissions = ToolPermissions(write=True)
     tool_name = "create_file"
 
-    def run(self, file_path: str, content: str, overwrite: bool = False) -> str:
-        expanded_file_path = file_path  # Using file_path as is
-        disp_path = display_path(expanded_file_path)
-        file_path = expanded_file_path
-        if os.path.exists(file_path) and not overwrite:
+    def run(self, path: str, content: str, overwrite: bool = False) -> str:
+        expanded_path = path  # Using path as is
+        disp_path = display_path(expanded_path)
+        path = expanded_path
+        if os.path.exists(path) and not overwrite:
             try:
-                with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+                with open(path, "r", encoding="utf-8", errors="replace") as f:
                     existing_content = f.read()
             except Exception as e:
                 existing_content = f"[Error reading file: {e}]"
@@ -44,14 +44,14 @@ class CreateFileTool(ToolBase):
                 existing_content=existing_content,
             )
         # Determine if we are overwriting an existing file
-        is_overwrite = os.path.exists(file_path) and overwrite
+        is_overwrite = os.path.exists(path) and overwrite
         if is_overwrite:
             # Overwrite branch: log only overwrite warning (no create message)
             self.report_action(
                 tr("⚠️ Overwriting file '{disp_path}'", disp_path=disp_path),
                 ReportAction.CREATE,
             )
-        dir_name = os.path.dirname(file_path)
+        dir_name = os.path.dirname(path)
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
         if not is_overwrite:
@@ -60,14 +60,14 @@ class CreateFileTool(ToolBase):
                 tr("📝 Create file '{disp_path}' ...", disp_path=disp_path),
                 ReportAction.CREATE,
             )
-        with open(file_path, "w", encoding="utf-8", errors="replace") as f:
+        with open(path, "w", encoding="utf-8", errors="replace") as f:
             f.write(content)
         new_lines = content.count("\n") + 1 if content else 0
         self.report_success(
             tr("✅ {new_lines} lines", new_lines=new_lines), ReportAction.CREATE
         )
         # Perform syntax validation and append result
-        validation_result = validate_file_syntax(file_path)
+        validation_result = validate_file_syntax(path)
         if is_overwrite:
             # Overwrite branch: return minimal overwrite info to user
             return (

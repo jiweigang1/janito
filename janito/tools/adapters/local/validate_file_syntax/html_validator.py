@@ -3,16 +3,16 @@ import re
 from lxml import etree
 
 
-def validate_html(file_path: str) -> str:
-    html_content = _read_html_content(file_path)
+def validate_html(path: str) -> str:
+    html_content = _read_html_content(path)
     warnings = _find_js_outside_script(html_content)
-    lxml_error = _parse_html_and_collect_errors(file_path)
+    lxml_error = _parse_html_and_collect_errors(path)
     msg = _build_result_message(warnings, lxml_error)
     return msg
 
 
-def _read_html_content(file_path):
-    with open(file_path, "r", encoding="utf-8") as f:
+def _read_html_content(path):
+    with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 
@@ -46,11 +46,11 @@ def _find_js_outside_script(html_content):
     return warnings
 
 
-def _parse_html_and_collect_errors(file_path):
+def _parse_html_and_collect_errors(path):
     lxml_error = None
     try:
         parser = etree.HTMLParser(recover=False)
-        with open(file_path, "rb") as f:
+        with open(path, "rb") as f:
             etree.parse(f, parser=parser)
         error_log = parser.error_log
         syntax_errors = []

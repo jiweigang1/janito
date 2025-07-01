@@ -50,7 +50,7 @@ class FindFilesTool(ToolBase):
             dir_output.add(os.path.join(root, d))
         return dir_output
 
-    def _handle_file_path(self, directory, patterns):
+    def _handle_path(self, directory, patterns):
         dir_output = set()
         filename = os.path.basename(directory)
         for pat in patterns:
@@ -129,7 +129,7 @@ class FindFilesTool(ToolBase):
             self._report_search(pattern, disp_path, depth_msg)
             dir_output = set()
             if os.path.isfile(directory):
-                dir_output = self._handle_file_path(directory, patterns)
+                dir_output = self._handle_path(directory, patterns)
             elif os.path.isdir(directory):
                 dir_output = self._handle_directory_path(directory, patterns, max_depth, include_gitignored)
             self._report_success(len(dir_output))

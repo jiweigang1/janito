@@ -1,5 +1,5 @@
-def validate_python(file_path: str) -> str:
+def validate_python(path: str) -> str:
     import py_compile
 
-    py_compile.compile(file_path, doraise=True)
+    py_compile.compile(path, doraise=True)
     return "✅ OK"

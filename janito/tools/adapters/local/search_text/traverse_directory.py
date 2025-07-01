@@ -24,7 +24,7 @@ def filter_dirs(dirs, root, gitignore_filter):
 
 
 def process_file_count_only(
-    file_path,
+    path,
     per_file_counts,
     pattern,
     regex,
@@ -34,7 +34,7 @@ def process_file_count_only(
     total_results,
 ):
     match_count, file_limit_reached, _ = read_file_lines(
-        file_path,
+        path,
         pattern,
         regex,
         use_regex,
@@ -44,12 +44,12 @@ def process_file_count_only(
         total_results + sum(count for _, count in per_file_counts),
     )
     if match_count > 0:
-        per_file_counts.append((file_path, match_count))
+        per_file_counts.append((path, match_count))
     return file_limit_reached
 
 
 def process_file_collect(
-    file_path,
+    path,
     dir_output,
     per_file_counts,
     pattern,
@@ -60,7 +60,7 @@ def process_file_collect(
     total_results,
 ):
     actual_match_count, file_limit_reached, file_lines_output = read_file_lines(
-        file_path,
+        path,
         pattern,
         regex,
         use_regex,
@@ -71,7 +71,7 @@ def process_file_collect(
     )
     dir_output.extend(file_lines_output)
     if actual_match_count > 0:
-        per_file_counts.append((file_path, actual_match_count))
+        per_file_counts.append((path, actual_match_count))
     return file_limit_reached
 
 
@@ -104,12 +104,12 @@ def traverse_directory(
     for root, dirs, files in walker:
         dirs[:] = filter_dirs(dirs, root, gitignore_filter)
         for file in files:
-            file_path = os.path.join(root, file)
-            if gitignore_filter.is_ignored(file_path):
+            path = os.path.join(root, file)
+            if gitignore_filter.is_ignored(path):
                 continue
             if count_only:
                 file_limit_reached = process_file_count_only(
-                    file_path,
+                    path,
                     per_file_counts,
                     pattern,
                     regex,
@@ -123,7 +123,7 @@ def traverse_directory(
                     break
             else:
                 file_limit_reached = process_file_collect(
-                    file_path,
+                    path,
                     dir_output,
                     per_file_counts,
                     pattern,

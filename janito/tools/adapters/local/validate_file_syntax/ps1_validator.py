@@ -2,8 +2,8 @@ from janito.i18n import tr
 import re
 
 
-def validate_ps1(file_path: str) -> str:
-    with open(file_path, "r", encoding="utf-8") as f:
+def validate_ps1(path: str) -> str:
+    with open(path, "r", encoding="utf-8") as f:
         content = f.read()
     errors = []
     # Unmatched curly braces

@@ -17,7 +17,7 @@ class ReplaceTextInFileTool(ToolBase):
         search text in its original location.
 
     Args:
-        file_path (str): Path to the file to modify.
+        path (str): Path to the file to modify.
         search_text (str): The exact text to search for (including indentation).
         replacement_text (str): The text to replace with (including indentation).
         replace_all (bool): If True, replace all occurrences; otherwise, only the first occurrence.
@@ -33,7 +33,7 @@ class ReplaceTextInFileTool(ToolBase):
 
     def run(
         self,
-        file_path: str,
+        path: str,
         search_text: str,
         replacement_text: str,
         replace_all: bool = False,
@@ -41,7 +41,7 @@ class ReplaceTextInFileTool(ToolBase):
     ) -> str:
         from janito.tools.tool_utils import display_path
 
-        disp_path = display_path(file_path)
+        disp_path = display_path(path)
         action = "(all)" if replace_all else ""
         search_lines = len(search_text.splitlines())
         replace_lines = len(replacement_text.splitlines())
@@ -52,11 +52,11 @@ class ReplaceTextInFileTool(ToolBase):
             action,
             search_text,
             replacement_text,
-            file_path,
+            path,
         )
         self.report_action(info_msg, ReportAction.CREATE)
         try:
-            content = self._read_file_content(file_path)
+            content = self._read_file_content(path)
             match_lines = self._find_match_lines(content, search_text)
             occurrences = content.count(search_text)
             replaced_count, new_content = self._replace_content(
@@ -66,9 +66,9 @@ class ReplaceTextInFileTool(ToolBase):
             backup_path = None
             validation_result = ""
             if file_changed:
-                self._write_file_content(file_path, new_content)
+                self._write_file_content(path, new_content)
                 # Perform syntax validation and append result
-                validation_result = validate_file_syntax(file_path)
+                validation_result = validate_file_syntax(path)
             warning, concise_warning = self._handle_warnings(
                 replaced_count, file_changed, occurrences
             )
@@ -86,15 +86,15 @@ class ReplaceTextInFileTool(ToolBase):
                 replace_all,
             )
             return self._format_final_msg(
-                file_path, warning, match_info, details
+                path, warning, match_info, details
             ) + (f"\n{validation_result}" if validation_result else "")
         except Exception as e:
             self.report_error(tr(" ❌ Error"), ReportAction.REPLACE)
             return tr("Error replacing text: {error}", error=e)
 
-    def _read_file_content(self, file_path):
+    def _read_file_content(self, path):
         """Read the entire content of the file."""
-        with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+        with open(path, "r", encoding="utf-8", errors="replace") as f:
             return f.read()
 
     def _find_match_lines(self, content, search_text):
@@ -127,13 +127,13 @@ class ReplaceTextInFileTool(ToolBase):
             new_content = content.replace(search_text, replacement_text, 1)
         return replaced_count, new_content
 
-    def _backup_file(self, file_path, backup_path):
+    def _backup_file(self, path, backup_path):
         """Create a backup of the file."""
-        shutil.copy2(file_path, backup_path)
+        shutil.copy2(path, backup_path)
 
-    def _write_file_content(self, file_path, content):
+    def _write_file_content(self, path, content):
         """Write content to the file."""
-        with open(file_path, "w", encoding="utf-8", errors="replace") as f:
+        with open(path, "w", encoding="utf-8", errors="replace") as f:
             f.write(content)
 
     def _handle_warnings(self, replaced_count, file_changed, occurrences):
@@ -189,7 +189,7 @@ class ReplaceTextInFileTool(ToolBase):
         action,
         search_text,
         replacement_text,
-        file_path,
+        path,
     ):
         """Format the info message for the operation."""
         if replace_lines == 0:
@@ -201,7 +201,7 @@ class ReplaceTextInFileTool(ToolBase):
             )
         else:
             try:
-                with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+                with open(path, "r", encoding="utf-8", errors="replace") as f:
                     _content = f.read()
                 _new_content = _content.replace(
                     search_text, replacement_text, -1 if action else 1
@@ -258,11 +258,11 @@ class ReplaceTextInFileTool(ToolBase):
             details = ""
         return match_info, details
 
-    def _format_final_msg(self, file_path, warning, match_info, details):
+    def _format_final_msg(self, path, warning, match_info, details):
         """Format the final status message."""
         return tr(
-            "Text replaced in {file_path}{warning}. {match_info}{details}",
-            file_path=file_path,
+            "Text replaced in {path}{warning}. {match_info}{details}",
+            path=path,
             warning=warning,
             match_info=match_info,
             details=details,
