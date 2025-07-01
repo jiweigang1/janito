@@ -124,6 +124,38 @@ def _looks_like_path_key(key: str) -> bool:
     return key_lower.endswith(common_suffixes)
 
 
+def _extract_path_keys_from_schema(schema: Mapping[str, Any]) -> set[str]:
+    """Extract keys that represent paths from the provided JSON schema."""
+    path_keys: set[str] = set()
+    if schema is not None:
+        for k, v in schema.get("properties", {}).items():
+            if (
+                v.get("format") == "path"
+                or (
+                    v.get("type") == "string"
+                    and (
+                        "path" in v.get("description", "").lower()
+                        or k.endswith("path")
+                        or k == "path"
+                    )
+                )
+            ):
+                path_keys.add(k)
+    return path_keys
+
+def _validate_argument_value(key: str, value: Any, workdir: str) -> None:
+    """Validate a single argument value (string or list of strings) for path security."""
+    # Single string argument → validate directly.
+    if isinstance(value, str) and value.strip():
+        if not is_path_within_workdir(value, workdir):
+            _raise_outside_workspace_error(key, value, workdir)
+    # Sequence of potential paths → validate every item.
+    elif isinstance(value, list):
+        for item in value:
+            if isinstance(item, str) and item.strip():
+                if not is_path_within_workdir(item, workdir):
+                    _raise_outside_workspace_error(key, item, workdir)
+
 def validate_paths_in_arguments(
     arguments: Mapping[str, Any] | None,
     workdir: str | None,
@@ -141,44 +173,16 @@ def validate_paths_in_arguments(
     description are treated as path parameters.  Without a schema the function
     falls back to a simple heuristic based on the argument name.
     """
-
     if not workdir or not arguments:
         return
 
-    # --- Derive the set of keys that denote paths ------------------------
-    path_keys: set[str] = set()
-    if schema is not None:
-        for k, v in schema.get("properties", {}).items():
-            if (
-                v.get("format") == "path"
-                or (
-                    v.get("type") == "string"
-                    and (
-                        "path" in v.get("description", "").lower()
-                        or k.endswith("path")
-                        or k == "path"
-                    )
-                )
-            ):
-                path_keys.add(k)
+    path_keys = _extract_path_keys_from_schema(schema) if schema is not None else set()
 
-    # --- Walk the supplied arguments -------------------------------------
     for key, value in arguments.items():
         key_is_path = key in path_keys or _looks_like_path_key(key)
         if not key_is_path:
             continue
-
-        # Single string argument → validate directly.
-        if isinstance(value, str) and value.strip():
-            if not is_path_within_workdir(value, workdir):
-                _raise_outside_workspace_error(key, value, workdir)
-
-        # Sequence of potential paths → validate every item.
-        elif isinstance(value, list):
-            for item in value:
-                if isinstance(item, str) and item.strip():
-                    if not is_path_within_workdir(item, workdir):
-                        _raise_outside_workspace_error(key, item, workdir)
+        _validate_argument_value(key, value, workdir)
 
 
 # ---------------------------------------------------------------------------
