@@ -287,8 +287,8 @@ Full and up-to-date documentation is available at: https://janito-dev.github.io/
 
 - [Multiple API_KEY setup](#faq-multiple-api-key)
 - [Use a specific model](#faq-use-specific-model)
-- [Fetch the availale LLM providers](#faq-fetch-providers)
-- [Fetch the availale models](#faq-fetch-models)
+- [Fetch the available LLM providers](#faq-fetch-providers)
+- [Fetch the available models](#faq-fetch-models)
 
 
 <a id="faq-multiple-api-key"></a>
@@ -319,7 +319,7 @@ If you omit the `-p PROVIDER_NAME` argument, Janito will show an error and not s
 <a id="faq-use-specific-model"></a>
 ### Use a specific model
 
-To use a specific model, you can use the `-m` option in the follwing way:
+To use a specific model, you can use the `-m` option in the following way:
 
 ```bash
 janito -m gpt-4.1-nano -p openai "What model do you use?"
@@ -334,7 +334,7 @@ janito "What model do you use?"
 ```
 
 <a id="faq-fetch-providers"></a>
-### Fetch the availale LLM providers
+### Fetch the available LLM providers
 
 You can list all the LLM providers available using:
 
@@ -343,9 +343,9 @@ janito --list-providers
 ```
 
 <a id="faq-fetch-models"></a>
-### Fetch the availale models
+### Fetch the available models
 
-Each LLM provider has its own models, the best way to check what are the available models is usign the following commands:
+Each LLM provider has its own models, the best way to check what are the available models is using the following commands:
 
 ```bash
 janito -p openai --list-models
