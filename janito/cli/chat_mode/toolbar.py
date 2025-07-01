@@ -25,10 +25,7 @@ def assemble_bindings_line(width, permissions=None):
     execute_state = color_state("on" if getattr(permissions, "execute", False) else "off")
     return (
         f" <key-label>CTRL-C</key-label>: Interrupt/Exit | "
-        f"<key-label>F1</key-label>: /restart | "
-        f"<key-label>F2</key-label>: <key-toggle-{('on' if not getattr(permissions, 'read', False) else 'off')}>/read {'on ' if not getattr(permissions, 'read', False) else 'off'}</key-toggle-{('on' if not getattr(permissions, 'read', False) else 'off')}> | "
-        f"<key-label>F3</key-label>: <key-toggle-{('on' if not getattr(permissions, 'write', False) else 'off')}>/write {'on ' if not getattr(permissions, 'write', False) else 'off'}</key-toggle-{('on' if not getattr(permissions, 'write', False) else 'off')}> | "
-        f"<key-label>F4</key-label>: <key-toggle-{('on' if not getattr(permissions, 'execute', False) else 'off')}>/execute {'on ' if not getattr(permissions, 'execute', False) else 'off'}</key-toggle-{('on' if not getattr(permissions, 'execute', False) else 'off')}> | "
+        f"<key-label>F2</key-label>: /restart | "
         f"<b>/help</b>: Help | "
         f"<key-label>F12</key-label>: Do It "
     )

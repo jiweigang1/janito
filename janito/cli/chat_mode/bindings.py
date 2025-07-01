@@ -22,35 +22,10 @@ class KeyBindingsFactory:
             buf.text = "No"
             buf.validate_and_handle()
 
-        @bindings.add("f1")
-        def _(event):
-            buf = event.app.current_buffer
-            buf.text = "/restart"
-            buf.validate_and_handle()
-
         @bindings.add("f2")
         def _(event):
             buf = event.app.current_buffer
-            # Toggle read permission based on current state
-            current = get_global_allowed_permissions()
-            next_state = "off" if getattr(current, "read", False) else "on"
-            buf.text = f"/read {next_state}"
-            buf.validate_and_handle()
-
-        @bindings.add("f3")
-        def _(event):
-            buf = event.app.current_buffer
-            current = get_global_allowed_permissions()
-            next_state = "off" if getattr(current, "write", False) else "on"
-            buf.text = f"/write {next_state}"
-            buf.validate_and_handle()
-
-        @bindings.add("f4")
-        def _(event):
-            buf = event.app.current_buffer
-            current = get_global_allowed_permissions()
-            next_state = "off" if getattr(current, "execute", False) else "on"
-            buf.text = f"/execute {next_state}"
+            buf.text = "/restart"
             buf.validate_and_handle()
 
         @bindings.add("f12")

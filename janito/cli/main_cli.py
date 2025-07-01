@@ -286,6 +286,9 @@ class JanitoCLI:
             self._maybe_print_verbose_provider_model()
             handle_getter(self.args)
             return
+        # If running in single shot mode and --profile is not provided, default to 'developer' profile
+        if get_prompt_mode(self.args) == "single_shot" and not getattr(self.args, "profile", None):
+            self.args.profile = "developer"
         provider = self._get_provider_or_default()
         if provider is None:
             print(
