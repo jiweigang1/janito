@@ -2,7 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.5.0] - 2025-07-01
+### Added
+- Bang (`!`) shell command handler for direct shell access from the chat interface.
+- Elapsed time reporting to token usage summary and improved terminal output styling.
+- CLI support for reading prompt from stdin and suppressing token usage summary in non-interactive mode.
+
+### Changed
+- Refactored `ChatSession._chat_loop` to reduce complexity by extracting command and prompt handling methods.
+- Refactored profile selection, removed `ProfileShellHandler`, and improved terminal reporter output for STDOUT/STDERR.
+- Refactored to remove `exec_enabled` argument from agent and CLI setup; now uses `args.exec` directly.
+- Improved terminal output: added `delete_current_line` to `RichTerminalReporter` for cleaner UI.
+- Refactored and cleaned up: removed redundant import of `handle_command`, removed backup, structure, and test strategy files, and added `.vscode/settings.json` for VSCode excludes.
+
+### Removed
+- MistralAI provider and driver references and related files.
+- Conversation history persistence and updated input history path.
+
+### Documentation
+- Removed inline web file viewer documentation from `README.md` for clarity and focus on core options.
+
 ## [2.4.0]
+
 ### Changed
 - Refactored tool permission management: migrated to a permission-based model (read/write/execute), updated CLI and docs, removed legacy execution toggling.
 - Enhanced tool permissions: tools are now grouped by permission, config supports tool_permissions, ask_user is read-only, and permissions are applied at startup.
