@@ -22,6 +22,8 @@ from janito.cli.chat_mode.shell.autocomplete import ShellCommandCompleter
 # Shared prompt/agent factory
 from janito.cli.prompt_setup import setup_agent_and_prompt_handler
 
+import time
+
 class ChatShellState:
     def __init__(self, mem_history, conversation_history):
         self.mem_history = mem_history
