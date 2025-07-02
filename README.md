@@ -35,7 +35,7 @@ pip install git+https://github.com/janito-dev/janito.git
 Janito integrates with external LLM providers (list below), and most of them require a subscription to get an API_KEY.
 
 > [!NOTE]
-> Today, on June the 26th 2025, Google has a free tier subscription for its Gemini-2.5-flash model. Despite the limitation of the model and of the rate limit of the free tier, it can be used for testing janito. The API_KEY for Gemini is available [here](https://aistudio.google.com/app/apikey).
+> Today, on June the 26th 2025, Google has a free tier subscription for its Gemini-2.5-flash and Gemini-2.5-pro models. Despite the limitation of the models and of the rate limit of the free tier, they can be used for testing janito. The API_KEY for Gemini is available [here](https://aistudio.google.com/app/apikey).
 
 > [!NOTE]
 > [Here](https://github.com/cheahjs/free-llm-api-resources/blob/main/README.md) a list of various services that provide free access or credits towards API-based LLM usage. Note that not all of them are supported by Janito, yet.
