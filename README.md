@@ -251,6 +251,7 @@ Janito is built to be extensible. You can add new LLM providers or tools by impl
 - OpenAI over Azure
 - Google Gemini
 - DeepSeek
+- Anthropic
 
 See [docs/supported-providers-models.md](docs/supported-providers-models.md) for more details.
 
