@@ -9,8 +9,9 @@ STATIC_PROVIDER_METADATA = {
         "maintainer": "João Pinto <lamego.pinto@gmail.com>",
     },
     "anthropic": {
-        "maintainer": "Needs maintainer",
+        "maintainer": "Alberto Minetti <alberto.minetti@gmail.com>",
     },
+
     "deepseek": {
         "maintainer": "João Pinto <lamego.pinto@gmail.com>",
     },

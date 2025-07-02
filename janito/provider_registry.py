@@ -130,7 +130,7 @@ class ProviderRegistry:
             "openai": "janito.providers.openai.model_info",
             "azure_openai": "janito.providers.azure_openai.model_info",
             "google": "janito.providers.google.model_info",
-            
+            "anthropic": "janito.providers.anthropic.model_info",
             "deepseek": "janito.providers.deepseek.model_info",
         }
         if provider_name in provider_to_specs:
