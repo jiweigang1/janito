@@ -18,7 +18,7 @@ class ReadFilesTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "read_files"
 
-    def run(self, paths: list) -> str:
+    def run(self, paths: list[str]) -> str:
         from janito.tools.tool_utils import display_path
         import os
         results = []
