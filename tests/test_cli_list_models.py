@@ -10,7 +10,7 @@ def test_cli_list_models_requires_provider():
     assert "No provider selected" in result.stdout or "No provider selected" in result.stderr or \
            "Provider must be specified" in result.stdout or "Provider must be specified" in result.stderr
 
-@pytest.mark.parametrize("provider", ["openai", "google"])
+@pytest.mark.parametrize("provider", ["openai", "google", "anthropic"])
 def test_cli_list_models_for_provider(provider):
     result = subprocess.run([
         sys.executable, "-m", "janito.cli.main_cli", "--list-models", "-p", provider
