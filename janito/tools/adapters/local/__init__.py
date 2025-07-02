@@ -7,6 +7,7 @@ from .create_file import CreateFileTool
 from .fetch_url import FetchUrlTool
 from .find_files import FindFilesTool
 from .view_file import ViewFileTool
+from .read_files import ReadFilesTool
 from .move_file import MoveFileTool
 from .open_url import OpenUrlTool
 from .open_html_in_browser import OpenHtmlInBrowserTool
@@ -42,6 +43,7 @@ for tool_class in [
     FetchUrlTool,
     FindFilesTool,
     ViewFileTool,
+    ReadFilesTool,
     MoveFileTool,
     OpenUrlTool,
     OpenHtmlInBrowserTool,
