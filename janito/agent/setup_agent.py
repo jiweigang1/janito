@@ -1,13 +1,15 @@
 import importlib.resources
 import re
+import os
 import sys
 import time
 import warnings
 import threading
 from pathlib import Path
 from jinja2 import Template
-from rich import print as rich_print
+from pathlib import Path
 from queue import Queue
+from rich import print as rich_print
 from janito.tools import get_local_tools_adapter
 from janito.llm.agent import LLMAgent
 from janito.drivers.driver_registry import get_driver_class
@@ -15,11 +17,13 @@ from janito.platform_discovery import PlatformDiscovery
 from janito.tools.tool_base import ToolPermissions
 from janito.tools.permissions import get_global_allowed_permissions
 
-
 def _load_template_content(profile, templates_dir):
     """
     Loads the template content for the given profile from the specified directory or package resources.
+    If the profile template is not found in the default locations, tries to load from the user profiles directory ~/.janito/profiles.
     """
+
+
     template_filename = f"system_prompt_template_{profile}.txt.j2"
     template_path = templates_dir / template_filename
     if template_path.exists():
@@ -32,8 +36,14 @@ def _load_template_content(profile, templates_dir):
         ).open("r", encoding="utf-8") as file:
             return file.read(), template_path
     except (FileNotFoundError, ModuleNotFoundError, AttributeError):
+        # Try user profiles directory
+        user_profiles_dir = Path(os.path.expanduser("~/.janito/profiles"))
+        user_template_path = user_profiles_dir / profile
+        if user_template_path.exists():
+            with open(user_template_path, "r", encoding="utf-8") as file:
+                return file.read(), user_template_path
         raise FileNotFoundError(
-            f"[janito] Could not find profile-specific template '{template_filename}' in {template_path} nor in janito.agent.templates.profiles package."
+            f"[janito] Could not find profile-specific template '{template_filename}' in {template_path} nor in janito.agent.templates.profiles package nor in user profiles directory {user_template_path}."
         )
 
 
