@@ -1,14 +1,19 @@
+import importlib.resources
+import re
+import sys
+import time
+import warnings
+import threading
 from pathlib import Path
 from jinja2 import Template
-import importlib.resources
-import sys
-import warnings
+from rich import print as rich_print
+from queue import Queue
 from janito.tools import get_local_tools_adapter
 from janito.llm.agent import LLMAgent
 from janito.drivers.driver_registry import get_driver_class
-from queue import Queue
 from janito.platform_discovery import PlatformDiscovery
-import time
+from janito.tools.tool_base import ToolPermissions
+from janito.tools.permissions import get_global_allowed_permissions
 
 
 def _load_template_content(profile, templates_dir):
@@ -36,8 +41,6 @@ def _prepare_template_context(role, profile, allowed_permissions):
     """
     Prepares the context dictionary for Jinja2 template rendering.
     """
-    from janito.tools.tool_base import ToolPermissions
-    from janito.tools.permissions import get_global_allowed_permissions
     context = {}
     context["role"] = role or "developer"
     context["profile"] = profile
@@ -140,12 +143,10 @@ def setup_agent(
         templates_dir = Path(__file__).parent / "templates" / "profiles"
     template_content, template_path = _load_template_content(profile, templates_dir)
 
-    import time
     template = Template(template_content)
     context = _prepare_template_context(role, profile, allowed_permissions)
 
     # Debug output if requested
-    from rich import print as rich_print
     debug_flag = False
     try:
         debug_flag = (hasattr(sys, 'argv') and ('--debug' in sys.argv or '--verbose' in sys.argv or '-v' in sys.argv))
@@ -158,7 +159,6 @@ def setup_agent(
     rendered_prompt = template.render(**context)
     end_render = time.time()
     # Merge multiple empty lines into a single empty line
-    import re
     rendered_prompt = re.sub(r'\n{3,}', '\n\n', rendered_prompt)
 
     return _create_agent(

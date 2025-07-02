@@ -1,8 +1,20 @@
+import os
+from pathlib import Path
+import questionary
+from questionary import Style
+import os
+from pathlib import Path
+from prompt_toolkit.formatted_text import HTML
+from prompt_toolkit import PromptSession
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.enums import EditingMode
+from prompt_toolkit.formatted_text import HTML
+from .prompt_style import chat_shell_style
+
+
 """
 Profile selection logic for Janito Chat CLI using questionary.
 """
-import questionary
-from questionary import Style
 
 def _handle_helpful_assistant():
     return {"profile": "assistant", "profile_system_prompt": None}
@@ -12,19 +24,12 @@ def _handle_using_role():
     return f"role:{role_name}"
 
 def _get_toolbar(mode):
-    from prompt_toolkit.formatted_text import HTML
     if mode["multiline"]:
         return HTML("<b>Multiline mode (Esc+Enter to submit). Type /single to switch.</b>")
     else:
         return HTML("<b>Single-line mode (Enter to submit). Type /multi for multiline.</b>")
 
 def _handle_custom_system_prompt():
-    from prompt_toolkit import PromptSession
-    from prompt_toolkit.key_binding import KeyBindings
-    from prompt_toolkit.enums import EditingMode
-    from prompt_toolkit.formatted_text import HTML
-    from .prompt_style import chat_shell_style
-
     mode = {"multiline": False}
     bindings = KeyBindings()
 
@@ -65,8 +70,61 @@ def _handle_custom_system_prompt():
             return {"profile": None, "profile_system_prompt": sanitized}
 
 
+def _load_user_profiles():
+    user_profiles_dir = Path.home() / ".janito" / "profiles"
+    profiles = {}
+    if user_profiles_dir.exists() and user_profiles_dir.is_dir():
+        for profile_file in user_profiles_dir.glob("*"):
+            if profile_file.is_file():
+                try:
+                    with open(profile_file, "r", encoding="utf-8") as f:
+                        profiles[profile_file.stem] = f.read().strip()
+                except Exception:
+                    # Ignore unreadable files
+                    pass
+    return profiles
+
+
 def select_profile():
-    import sys
+    user_profiles = _load_user_profiles()
+    choices = [
+        "helpful assistant",
+        "developer",
+        "software developer",
+        "using role...",
+        "full custom system prompt..."
+    ]
+    # Add user profiles to choices
+    if user_profiles:
+        choices.extend(user_profiles.keys())
+
+    custom_style = Style([
+        ("highlighted", "bg:#00aaff #ffffff"),  # background for item under cursor
+        ("question", "fg:#00aaff bold"),
+    ])
+    answer = questionary.select(
+        "Select a profile to use:",
+        choices=choices,
+        default=None,
+        style=custom_style
+    ).ask()
+
+    if answer == "helpful assistant":
+        return _handle_helpful_assistant()
+    if answer == "using role...":
+        return _handle_using_role()
+    elif answer == "full custom system prompt...":
+        return _handle_custom_system_prompt()
+    elif answer in user_profiles:
+        # Return the content of the user profile as a custom system prompt
+        return {"profile": None, "profile_system_prompt": user_profiles[answer]}
+    elif answer == "software developer":
+        # Return the content of the built-in software developer profile prompt
+        with open("./janito/agent/templates/profiles/system_prompt_template_software_developer.txt.j2", "r", encoding="utf-8") as f:
+            prompt = f.read().strip()
+        return {"profile": "software developer", "profile_system_prompt": prompt}
+    return answer
+
     choices = [
         "helpful assistant",
         "developer",
@@ -77,21 +135,12 @@ def select_profile():
         ("highlighted", "bg:#00aaff #ffffff"),  # background for item under cursor
         ("question", "fg:#00aaff bold"),
     ])
-    try:
-        answer = questionary.select(
-            "Select a profile to use:",
-            choices=choices,
-            default=None,
-            style=custom_style
-        ).ask()
-    except KeyboardInterrupt:
-        print("\n[bold yellow]Profile selection cancelled by user (Ctrl-C). Exiting.[/bold yellow]")
-        sys.exit(130)
-
-    # Handle cases where the user presses Ctrl-C but `questionary` returns `None`
-    if answer is None:
-        print("\n[bold yellow]Profile selection cancelled by user (Ctrl-C). Exiting.[/bold yellow]")
-        sys.exit(130)
+    answer = questionary.select(
+        "Select a profile to use:",
+        choices=choices,
+        default=None,
+        style=custom_style
+    ).ask()
     if answer == "helpful assistant":
         return _handle_helpful_assistant()
     if answer == "using role...":

@@ -1,11 +1,16 @@
 import uuid
 import traceback
-from rich import pretty
+import re
+import json
+import math
+import time
 import os
+import logging
+from rich import pretty
 from janito.llm.driver import LLMDriver
 from janito.llm.driver_input import DriverInput
-import time
 from janito.driver_events import RequestFinished, RequestStatus, RateLimitRetry
+from janito.llm.message_parts import TextMessagePart, FunctionCallMessagePart
 
 # Safe import of openai SDK
 try:
@@ -88,7 +93,6 @@ class OpenAIModelDriver(LLMDriver):
         conversation = self.convert_history_to_api_messages(driver_input.conversation_history)
         request_id = getattr(config, "request_id", None)
         self._print_api_call_start(config)
-        import time
         client = self._instantiate_openai_client(config)
         api_kwargs = self._prepare_api_kwargs(config, conversation)
         max_retries = getattr(config, "max_retries", 3)
@@ -197,8 +201,6 @@ class OpenAIModelDriver(LLMDriver):
         ``retryDelay: '41s'`` string in JSON) and any number found after the word
         ``retryDelay``. Returns ``None`` if no delay could be parsed.
         """
-        import re, json, math
-
         try:
             # Some SDKs expose the raw response JSON on e.args[0]
             if hasattr(exception, "response") and hasattr(exception.response, "text"):
@@ -231,7 +233,6 @@ class OpenAIModelDriver(LLMDriver):
                 f"[ERROR] api_kwargs: {api_kwargs if 'api_kwargs' in locals() else 'N/A'}",
                 flush=True,
             )
-            import traceback
             print("[ERROR] Full stack trace:", flush=True)
             print(traceback.format_exc(), flush=True)
         raise
@@ -249,7 +250,6 @@ class OpenAIModelDriver(LLMDriver):
             if os.environ.get("OPENAI_DEBUG_HTTP", "0") == "1":
                 from http.client import HTTPConnection
                 HTTPConnection.debuglevel = 1
-                import logging
                 logging.basicConfig()
                 logging.getLogger().setLevel(logging.DEBUG)
                 requests_log = logging.getLogger("http.client")
@@ -263,8 +263,6 @@ class OpenAIModelDriver(LLMDriver):
             print(
                 f"[ERROR] Exception during OpenAI client instantiation: {e}", flush=True
             )
-            import traceback
-
             print(traceback.format_exc(), flush=True)
             raise
 
@@ -356,7 +354,6 @@ class OpenAIModelDriver(LLMDriver):
         Convert LLMConversationHistory to the list of dicts required by OpenAI's API.
         Handles 'tool_results' and 'tool_calls' roles for compliance.
         """
-        import json
         api_messages = []
         for msg in conversation_history.get_history():
             self._append_api_message(api_messages, msg)
@@ -374,7 +371,6 @@ class OpenAIModelDriver(LLMDriver):
             self._handle_other_roles(api_messages, msg, role, content)
 
     def _handle_tool_results(self, api_messages, content):
-        import json
         try:
             results = json.loads(content) if isinstance(content, str) else content
         except Exception:
@@ -396,7 +392,6 @@ class OpenAIModelDriver(LLMDriver):
                 })
 
     def _handle_tool_calls(self, api_messages, content):
-        import json
         try:
             tool_calls = json.loads(content) if isinstance(content, str) else content
         except Exception:
@@ -423,8 +418,6 @@ class OpenAIModelDriver(LLMDriver):
         Convert an OpenAI completion message object to a list of MessagePart objects.
         Handles text, tool calls, and can be extended for other types.
         """
-        from janito.llm.message_parts import TextMessagePart, FunctionCallMessagePart
-
         parts = []
         # Text content
         content = getattr(message, "content", None)
