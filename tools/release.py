@@ -152,7 +152,7 @@ def main():
         print_info("Build completed (--build-only specified). Skipping upload to PyPI.")
         return
     print_info("Publishing to PyPI...")
-    subprocess.run(["twine", "upload", "dist/*"], shell=True, check=True)
+    subprocess.run("twine upload dist/*", shell=True, check=True)
     print_info("Release process completed successfully.")
 
 
