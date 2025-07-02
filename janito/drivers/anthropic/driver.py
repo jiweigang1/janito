@@ -1,3 +1,7 @@
+import uuid
+import traceback
+import time
+import anthropic
 from janito.llm.driver import LLMDriver
 from janito.llm.driver_config import LLMDriverConfig
 from janito.driver_events import (
@@ -6,11 +10,9 @@ from janito.driver_events import (
     RequestStarted,
     RequestFinished,
     ResponseReceived,
+    RequestStatus,
 )
 from janito.llm.message_parts import TextMessagePart
-import uuid
-import traceback
-import time
 
 # Safe import of anthropic SDK
 try:
@@ -41,12 +43,11 @@ class AnthropicModelDriver(LLMDriver):
 
     def _create_client(self):
         try:
-            import anthropic
+            return anthropic.Anthropic(api_key=self.api_key)
         except ImportError:
             raise Exception(
                 "The 'anthropic' Python SDK is required. Please install via `pip install anthropic`."
             )
-        return anthropic.Anthropic(api_key=self.api_key)
 
     def _run_generation(
         self, messages_or_prompt, system_prompt=None, tools=None, **kwargs
