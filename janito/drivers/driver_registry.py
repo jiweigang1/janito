@@ -6,12 +6,10 @@ DriverRegistry: Maps driver string names to class objects for use by providers.
 from typing import Dict, Type
 
 # --- Import driver classes ---
-from janito.drivers.anthropic.driver import AnthropicModelDriver
 from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
 from janito.drivers.openai.driver import OpenAIModelDriver
 
 _DRIVER_REGISTRY: Dict[str, Type] = {
-    "AnthropicModelDriver": AnthropicModelDriver,
     "AzureOpenAIModelDriver": AzureOpenAIModelDriver,
     "OpenAIModelDriver": OpenAIModelDriver,
 }
