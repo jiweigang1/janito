@@ -35,3 +35,4 @@ class KeyBindingsFactory:
             buf.validate_and_handle()
 
         return bindings
+

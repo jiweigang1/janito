@@ -151,3 +151,4 @@ class ChatScriptRunner:
 
     # Convenience alias so tests can simply call *runner()*
     __call__ = run
+

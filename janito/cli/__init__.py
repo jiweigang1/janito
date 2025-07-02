@@ -7,3 +7,4 @@ __all__ = [
     "format_tokens",
     "format_generation_time",
 ]
+

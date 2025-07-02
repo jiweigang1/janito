@@ -22,3 +22,4 @@ chat_shell_style = Style.from_dict(
         "cmd-label": "bg:#ff9500 fg:#232323 bold",
     }
 )
+
