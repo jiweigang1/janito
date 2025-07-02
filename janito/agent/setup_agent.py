@@ -8,6 +8,7 @@ from janito.llm.agent import LLMAgent
 from janito.drivers.driver_registry import get_driver_class
 from queue import Queue
 from janito.platform_discovery import PlatformDiscovery
+import time
 
 
 def _load_template_content(profile, templates_dir):

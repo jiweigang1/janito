@@ -7,6 +7,7 @@ from __future__ import annotations
 from janito.cli.prompt_setup import setup_agent_and_prompt_handler
 import janito.tools  # Ensure all tools are registered
 from janito.cli.console import shared_console
+import time
 
 
 class PromptHandler:

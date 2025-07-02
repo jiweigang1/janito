@@ -18,6 +18,7 @@ from janito.cli.chat_mode.prompt_style import chat_shell_style
 from janito.cli.chat_mode.bindings import KeyBindingsFactory
 from janito.cli.chat_mode.shell.commands import handle_command
 from janito.cli.chat_mode.shell.autocomplete import ShellCommandCompleter
+import time
 
 # Shared prompt/agent factory
 from janito.cli.prompt_setup import setup_agent_and_prompt_handler

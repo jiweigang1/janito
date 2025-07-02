@@ -4,6 +4,7 @@ from rich import pretty
 import os
 from janito.llm.driver import LLMDriver
 from janito.llm.driver_input import DriverInput
+import time
 from janito.driver_events import RequestFinished, RequestStatus, RateLimitRetry
 
 # Safe import of openai SDK
