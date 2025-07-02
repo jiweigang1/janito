@@ -20,7 +20,7 @@ class AnthropicProvider(LLMProvider):
     name = "anthropic"
     maintainer = "Needs maintainer"
     MODEL_SPECS = MODEL_SPECS
-    DEFAULT_MODEL = "claude-3-opus-20240229"
+    DEFAULT_MODEL = "claude-3-7-sonnet-20250219"
 
     def __init__(
         self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
