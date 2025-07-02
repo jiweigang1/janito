@@ -67,7 +67,7 @@ janito -set provider=PROVIDER
 ```
 
 > [!WARNING]
-> Currently the supported providers are: `openai`, `google`, `azure_openai`. You can get more details with `janito --list-providers`.
+> Currently the supported providers are: `openai`, `google`, `anthropic`, `azure_openai`. You can get more details with `janito --list-providers`.
 
 5. for more advanced setup, continue reading.
 
@@ -188,7 +188,6 @@ janito -r -w -x "Run this code: print('Hello, world!')"
 ### Core CLI Options
 | Option                  | Description                                                                 |
 |------------------------|-----------------------------------------------------------------------------|
-
 | `--version`            | Show program version                                                        |
 | `--list-tools`         | List all registered tools                                                   |
 | `--list-providers`     | List all supported LLM providers                                            |
@@ -240,7 +239,7 @@ Once inside the interactive chat mode, you can use these slash commands:
 | Command             | Description                                  |
 |---------------------|----------------------------------------------|
 | `/verbose`          | Show current verbose mode status             |
-| `/verbose [on|off]` | Set verbose mode                             |
+| `/verbose [on\|off]` | Set verbose mode                             |
 
 ## Extending Janito
 
@@ -351,6 +350,7 @@ Each LLM provider has its own models, the best way to check what are the availab
 janito -p openai --list-models
 janito -p google --list-models
 janito -p azure_openai --list-models
+janito -p anthropic --list-models
 janito -p deepseek --list-models
 ```
 
