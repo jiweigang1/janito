@@ -64,7 +64,9 @@ def _handle_custom_system_prompt():
                 sanitized = sanitized.encode("utf-8", errors="replace").decode("utf-8")
             return {"profile": None, "profile_system_prompt": sanitized}
 
+
 def select_profile():
+    import sys
     choices = [
         "helpful assistant",
         "developer",
@@ -75,12 +77,21 @@ def select_profile():
         ("highlighted", "bg:#00aaff #ffffff"),  # background for item under cursor
         ("question", "fg:#00aaff bold"),
     ])
-    answer = questionary.select(
-        "Select a profile to use:",
-        choices=choices,
-        default=None,
-        style=custom_style
-    ).ask()
+    try:
+        answer = questionary.select(
+            "Select a profile to use:",
+            choices=choices,
+            default=None,
+            style=custom_style
+        ).ask()
+    except KeyboardInterrupt:
+        print("\n[bold yellow]Profile selection cancelled by user (Ctrl-C). Exiting.[/bold yellow]")
+        sys.exit(130)
+
+    # Handle cases where the user presses Ctrl-C but `questionary` returns `None`
+    if answer is None:
+        print("\n[bold yellow]Profile selection cancelled by user (Ctrl-C). Exiting.[/bold yellow]")
+        sys.exit(130)
     if answer == "helpful assistant":
         return _handle_helpful_assistant()
     if answer == "using role...":
