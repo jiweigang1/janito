@@ -31,7 +31,7 @@ def print_error(msg):
 def check_tool(tool):
     if tool == "build":
         try:
-            import importlib
+            import importlib.util
 
             if importlib.util.find_spec("build") is None:
                 print_error(
