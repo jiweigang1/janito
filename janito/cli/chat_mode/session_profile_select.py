@@ -90,7 +90,7 @@ def select_profile():
     choices = [
         "helpful assistant",
         "developer",
-        "software developer",
+        "plain_software_developer",
         "using role...",
         "full custom system prompt..."
     ]
@@ -118,11 +118,11 @@ def select_profile():
     elif answer in user_profiles:
         # Return the content of the user profile as a custom system prompt
         return {"profile": None, "profile_system_prompt": user_profiles[answer]}
-    elif answer == "software developer":
-        # Return the content of the built-in software developer profile prompt
-        with open("./janito/agent/templates/profiles/system_prompt_template_software_developer.txt.j2", "r", encoding="utf-8") as f:
+    elif answer == "plain_software_developer":
+        # Return the content of the built-in plain_software_developer profile prompt
+        with open("./janito/agent/templates/profiles/system_prompt_template_plain_software_developer.txt.j2", "r", encoding="utf-8") as f:
             prompt = f.read().strip()
-        return {"profile": "software developer", "profile_system_prompt": prompt}
+        return {"profile": "plain_software_developer", "profile_system_prompt": prompt}
     return answer
 
     choices = [

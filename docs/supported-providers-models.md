@@ -12,6 +12,7 @@ Janito is compatible with most OpenAI-compatible chat models, including but not 
 - Azure-hosted OpenAI models (with correct deployment name)
 - Google Gemini models (e.g., `gemini-2.5-flash`)
 - Anthropic Claude models
+- Moonshot AI models (e.g., `kimi-k2-0711-preview`)
 
 ## 🛠️ How to Select a Model
 
@@ -44,6 +45,10 @@ Janito is compatible with most OpenAI-compatible chat models, including but not 
 | claude-3-5-haiku-20241022 | Supported | N/A         | N/A        | N/A     | 8192         |          | Anthropic| [source](../janito/providers/anthropic/model_info.py) |
 | claude-3-5-sonnet-20241022 | Supported | N/A         | N/A        | N/A     | 8192         |          | Anthropic| [source](../janito/providers/anthropic/model_info.py) |
 | claude-3-haiku-20240307 | Supported | N/A         | N/A        | N/A     | 4096         |          | Anthropic| [source](../janito/providers/anthropic/model_info.py) |
+| kimi-k2-0711-preview    | Supported | 128000      | 127000     | N/A     | 8000         |          | MoonshotAI| [source](../janito/providers/moonshotai/model_info.py) |
+| kimi-k1-8k              | Supported | 8000        | 6000       | N/A     | 2000         |          | MoonshotAI| [source](../janito/providers/moonshotai/model_info.py) |
+| kimi-k1-32k             | Supported | 32000       | 28000      | N/A     | 4000         |          | MoonshotAI| [source](../janito/providers/moonshotai/model_info.py) |
+| kimi-k1-128k            | Supported | 128000      | 120000     | N/A     | 8000         |          | MoonshotAI| [source](../janito/providers/moonshotai/model_info.py) |
 
 **Context window:** 200 k tokens  
 **Max input:** 100 k tokens  
@@ -122,5 +127,23 @@ provider = OpenAIProvider(model_name="gpt-4o", config={"base_url": "https://api.
 
 **Usage:**
 - Use provider name `google` in CLI/config. Model selection as shown above.
+
+---
+
+### moonshotai
+
+**Description:** Moonshot AI models via OpenAI-compatible API endpoint.
+
+**Models:**
+- kimi-k2-0711-preview: Advanced reasoning model with 128k context window
+- kimi-k1-8k: Standard model with 8k context window
+- kimi-k1-32k: Standard model with 32k context window  
+- kimi-k1-128k: Standard model with 128k context window
+
+**Auth:**
+- Uses API key via credential manager.
+
+**Usage:**
+- Use provider name `moonshotai` in CLI/config. Model selection as shown above.
 
 ---

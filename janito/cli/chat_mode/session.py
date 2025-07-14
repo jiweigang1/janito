@@ -99,7 +99,7 @@ class ChatSession:
                     profile = "developer"
                 else:
                     profile = (
-                        "developer" if result == "software developer" else result
+                        "developer" if result == "plain_software_developer" else result
                     )
             except ImportError:
                 profile = "helpful assistant"

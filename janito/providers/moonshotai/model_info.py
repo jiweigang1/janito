@@ -1,4 +1,15 @@
-from janito.providers.openai.model_info import MODEL_SPECS
+from janito.llm.model import LLMModelInfo
 
-# MoonshotAI uses the same models as OpenAI for now (can be customized later)
-MOONSHOTAI_MODEL_SPECS = MODEL_SPECS
+MOONSHOTAI_MODEL_SPECS = {
+    "kimi-k2-0711-preview": LLMModelInfo(
+        name="kimi-k2-0711-preview",
+        context=128000,
+        max_input=100000,
+        max_cot="N/A",
+        max_response=4096,
+        thinking_supported=False,
+        default_temp=0.2,
+        open="moonshotai",
+        driver="OpenAIModelDriver",
+    ),
+}
