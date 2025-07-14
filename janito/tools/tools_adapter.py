@@ -3,6 +3,7 @@ from janito.tools.tool_events import ToolCallStarted, ToolCallFinished, ToolCall
 from janito.exceptions import ToolCallException
 from janito.tools.tool_base import ToolPermissions
 
+
 class ToolsAdapterBase:
     """
     Composable entry point for tools management and provisioning in LLM pipelines.
@@ -11,9 +12,7 @@ class ToolsAdapterBase:
     After refactor, also responsible for tool execution.
     """
 
-    def __init__(
-        self, tools=None, event_bus=None
-    ):
+    def __init__(self, tools=None, event_bus=None):
         self._tools = tools or []
         self._event_bus = event_bus  # event bus can be set on all adapters
         self.verbose_tools = False
@@ -32,12 +31,17 @@ class ToolsAdapterBase:
     def is_tool_allowed(self, tool):
         """Check if a tool is allowed based on current global AllowedPermissionsState."""
         from janito.tools.permissions import get_global_allowed_permissions
+
         allowed_permissions = get_global_allowed_permissions()
         perms = tool.permissions  # permissions are mandatory and type-checked
         # If all permissions are False, block all tools
-        if not (allowed_permissions.read or allowed_permissions.write or allowed_permissions.execute):
+        if not (
+            allowed_permissions.read
+            or allowed_permissions.write
+            or allowed_permissions.execute
+        ):
             return False
-        for perm in ['read', 'write', 'execute']:
+        for perm in ["read", "write", "execute"]:
             if getattr(perms, perm) and not getattr(allowed_permissions, perm):
                 return False
         return True
@@ -45,13 +49,19 @@ class ToolsAdapterBase:
     def get_tools(self):
         """Return the list of enabled tools managed by this provider, filtered by allowed permissions and disabled tools."""
         from janito.tools.disabled_tools import is_tool_disabled
-        tools = [tool for tool in self._tools 
-                if self.is_tool_allowed(tool) and not is_tool_disabled(getattr(tool, 'tool_name', str(tool)))]
+
+        tools = [
+            tool
+            for tool in self._tools
+            if self.is_tool_allowed(tool)
+            and not is_tool_disabled(getattr(tool, "tool_name", str(tool)))
+        ]
         return tools
 
     def set_allowed_permissions(self, allowed_permissions):
         """Set the allowed permissions at runtime. This now updates the global AllowedPermissionsState only."""
         from janito.tools.permissions import set_global_allowed_permissions
+
         set_global_allowed_permissions(allowed_permissions)
 
     def add_tool(self, tool):
@@ -136,15 +146,14 @@ class ToolsAdapterBase:
         if not accepts_kwargs:
             unexpected = [k for k in arguments.keys() if k not in params]
             if unexpected:
-                return (
-                    "Unexpected argument(s): " + ", ".join(sorted(unexpected))
-                )
+                return "Unexpected argument(s): " + ", ".join(sorted(unexpected))
 
         # Check for missing required arguments (ignoring *args / **kwargs / self)
         required_params = [
             name
             for name, p in params.items()
-            if p.kind in (
+            if p.kind
+            in (
                 inspect.Parameter.POSITIONAL_OR_KEYWORD,
                 inspect.Parameter.KEYWORD_ONLY,
             )
@@ -165,45 +174,63 @@ class ToolsAdapterBase:
         self._ensure_tool_exists(tool, tool_name, request_id, arguments)
         func = self._get_tool_callable(tool)
 
-        validation_error = self._validate_tool_arguments(tool, func, arguments, tool_name, request_id)
+        validation_error = self._validate_tool_arguments(
+            tool, func, arguments, tool_name, request_id
+        )
         if validation_error:
             return validation_error
 
         # --- SECURITY: Path restriction enforcement ---
-        if not getattr(self, 'unrestricted_paths', False):
-            workdir = getattr(self, 'workdir', None)
+        if not getattr(self, "unrestricted_paths", False):
+            workdir = getattr(self, "workdir", None)
             # Ensure workdir is always set; default to current working directory.
             if not workdir:
                 import os
+
                 workdir = os.getcwd()
-            from janito.tools.path_security import validate_paths_in_arguments, PathSecurityError
-            schema = getattr(tool, 'schema', None)
+            from janito.tools.path_security import (
+                validate_paths_in_arguments,
+                PathSecurityError,
+            )
+
+            schema = getattr(tool, "schema", None)
             try:
                 validate_paths_in_arguments(arguments, workdir, schema=schema)
             except PathSecurityError as sec_err:
                 # Publish both a ToolCallError and a user-facing ReportEvent for path security errors
-                self._publish_tool_call_error(tool_name, request_id, str(sec_err), arguments)
+                self._publish_tool_call_error(
+                    tool_name, request_id, str(sec_err), arguments
+                )
                 if self._event_bus:
-                    from janito.report_events import ReportEvent, ReportSubtype, ReportAction
+                    from janito.report_events import (
+                        ReportEvent,
+                        ReportSubtype,
+                        ReportAction,
+                    )
+
                     self._event_bus.publish(
                         ReportEvent(
                             subtype=ReportSubtype.ERROR,
                             message=f"[SECURITY] Path access denied: {sec_err}",
                             action=ReportAction.EXECUTE,
                             tool=tool_name,
-                            context={"arguments": arguments, "request_id": request_id}
+                            context={"arguments": arguments, "request_id": request_id},
                         )
                     )
                 return f"Security error: {sec_err}"
         # --- END SECURITY ---
 
         self._publish_tool_call_started(tool_name, request_id, arguments)
-        self._print_verbose(f"[tools-adapter] Executing tool: {tool_name} with arguments: {arguments}")
+        self._print_verbose(
+            f"[tools-adapter] Executing tool: {tool_name} with arguments: {arguments}"
+        )
         try:
             result = self.execute(tool, **(arguments or {}), **kwargs)
         except Exception as e:
             self._handle_execution_error(tool_name, request_id, e, arguments)
-        self._print_verbose(f"[tools-adapter] Tool execution finished: {tool_name} -> {result}")
+        self._print_verbose(
+            f"[tools-adapter] Tool execution finished: {tool_name} -> {result}"
+        )
         self._publish_tool_call_finished(tool_name, request_id, result)
         return result
 
@@ -214,9 +241,13 @@ class ToolsAdapterBase:
             return sig_error
         schema = getattr(tool, "schema", None)
         if schema and arguments is not None:
-            validation_error = self._validate_arguments_against_schema(arguments, schema)
+            validation_error = self._validate_arguments_against_schema(
+                arguments, schema
+            )
             if validation_error:
-                self._publish_tool_call_error(tool_name, request_id, validation_error, arguments)
+                self._publish_tool_call_error(
+                    tool_name, request_id, validation_error, arguments
+                )
                 return validation_error
         return None
 

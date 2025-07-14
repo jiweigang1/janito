@@ -20,6 +20,7 @@ class GetFileOutlineTool(ToolBase):
     Args:
         path (str): Path to the file to outline.
     """
+
     permissions = ToolPermissions(read=True)
     tool_name = "get_file_outline"
 

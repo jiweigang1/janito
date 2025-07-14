@@ -20,6 +20,7 @@ Public interface
 Both helpers raise :class:`PathSecurityError` if a path tries to escape the
 workspace.
 """
+
 from __future__ import annotations
 
 import os
@@ -46,7 +47,11 @@ class PathSecurityError(Exception):
 # ---------------------------------------------------------------------------
 
 
-def is_path_within_workdir(path: str, workdir: str | None) -> bool:  # noqa: D401 – we start with an imperative verb  # noqa: D401 – we start with an imperative verb
+def is_path_within_workdir(
+    path: str, workdir: str | None
+) -> (
+    bool
+):  # noqa: D401 – we start with an imperative verb  # noqa: D401 – we start with an imperative verb
     """Return *True* if *path* is located inside *workdir* (or equals it).
 
     Relative *path*s are **resolved relative to the *workdir***, *not* to the
@@ -84,6 +89,7 @@ def is_path_within_workdir(path: str, workdir: str | None) -> bool:  # noqa: D40
 
     # Additionally allow files located inside the system temporary directory.
     import tempfile
+
     abs_tempdir = os.path.abspath(tempfile.gettempdir())
     try:
         common_temp = os.path.commonpath([abs_tempdir, abs_path])
@@ -129,19 +135,17 @@ def _extract_path_keys_from_schema(schema: Mapping[str, Any]) -> set[str]:
     path_keys: set[str] = set()
     if schema is not None:
         for k, v in schema.get("properties", {}).items():
-            if (
-                v.get("format") == "path"
-                or (
-                    v.get("type") == "string"
-                    and (
-                        "path" in v.get("description", "").lower()
-                        or k.endswith("path")
-                        or k == "path"
-                    )
+            if v.get("format") == "path" or (
+                v.get("type") == "string"
+                and (
+                    "path" in v.get("description", "").lower()
+                    or k.endswith("path")
+                    or k == "path"
                 )
             ):
                 path_keys.add(k)
     return path_keys
+
 
 def _validate_argument_value(key: str, value: Any, workdir: str) -> None:
     """Validate a single argument value (string or list of strings) for path security."""
@@ -155,6 +159,7 @@ def _validate_argument_value(key: str, value: Any, workdir: str) -> None:
             if isinstance(item, str) and item.strip():
                 if not is_path_within_workdir(item, workdir):
                     _raise_outside_workspace_error(key, item, workdir)
+
 
 def validate_paths_in_arguments(
     arguments: Mapping[str, Any] | None,
@@ -190,7 +195,9 @@ def validate_paths_in_arguments(
 # ---------------------------------------------------------------------------
 
 
-def _raise_outside_workspace_error(key: str, path: str, workdir: str) -> None:  # noqa: D401
+def _raise_outside_workspace_error(
+    key: str, path: str, workdir: str
+) -> None:  # noqa: D401
     """Raise a consistent :class:`PathSecurityError` for *path*."""
     abs_workdir = os.path.abspath(workdir)
     attempted = (

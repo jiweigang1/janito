@@ -3,7 +3,7 @@ STATIC_PROVIDER_METADATA = {
     "openai": {},
     "moonshotai": {
         "maintainer": "João Pinto <lamego.pinto@gmail.com>",
-        "note": "MoonshotAI uses OpenAI-compatible API at https://api.moonshot.ai"
+        "note": "MoonshotAI uses OpenAI-compatible API at https://api.moonshot.ai",
     },
     "google": {
         "maintainer": "João Pinto <lamego.pinto@gmail.com>",
@@ -14,7 +14,6 @@ STATIC_PROVIDER_METADATA = {
     "anthropic": {
         "maintainer": "Alberto Minetti <alberto.minetti@gmail.com>",
     },
-
     "deepseek": {
         "maintainer": "João Pinto <lamego.pinto@gmail.com>",
     },

@@ -32,15 +32,11 @@ COMMAND_HANDLERS = {
         "janito.cli.chat_mode.shell.commands.conversation_restart",
         fromlist=["RestartShellHandler"],
     ).RestartShellHandler,
-
     "/view": ViewShellHandler,
     "/lang": LangShellHandler,
-
     "/prompt": PromptShellHandler,
     "/role": RoleShellHandler,
-
     "/history": HistoryShellHandler,
-
     "/tools": ToolsShellHandler,
     "/model": ModelShellHandler,
     "/multi": MultiShellHandler,

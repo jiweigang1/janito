@@ -82,7 +82,9 @@ class OpenAIModelDriver(LLMDriver):
         """Call the OpenAI-compatible chat completion endpoint with retry and error handling."""
         cancel_event = getattr(driver_input, "cancel_event", None)
         config = driver_input.config
-        conversation = self.convert_history_to_api_messages(driver_input.conversation_history)
+        conversation = self.convert_history_to_api_messages(
+            driver_input.conversation_history
+        )
         request_id = getattr(config, "request_id", None)
         self._print_api_call_start(config)
         client = self._instantiate_openai_client(config)
@@ -100,14 +102,18 @@ class OpenAIModelDriver(LLMDriver):
                 self._handle_api_success(config, result, request_id)
                 return result
             except Exception as e:
-                if self._handle_api_exception(e, config, api_kwargs, attempt, max_retries, request_id):
+                if self._handle_api_exception(
+                    e, config, api_kwargs, attempt, max_retries, request_id
+                ):
                     attempt += 1
                     continue
                 raise
 
     def _print_api_call_start(self, config):
         if getattr(config, "verbose_api", False):
-            tool_adapter_name = type(self.tools_adapter).__name__ if self.tools_adapter else None
+            tool_adapter_name = (
+                type(self.tools_adapter).__name__ if self.tools_adapter else None
+            )
             tool_names = []
             if self.tools_adapter and hasattr(self.tools_adapter, "list_tools"):
                 try:
@@ -148,17 +154,21 @@ class OpenAIModelDriver(LLMDriver):
             print("[OpenAI] API RESPONSE:", flush=True)
             pretty.pprint(result)
 
-    def _handle_api_exception(self, e, config, api_kwargs, attempt, max_retries, request_id):
+    def _handle_api_exception(
+        self, e, config, api_kwargs, attempt, max_retries, request_id
+    ):
         status_code = getattr(e, "status_code", None)
         err_str = str(e)
         lower_err = err_str.lower()
         is_insufficient_quota = (
-            "insufficient_quota" in lower_err or "exceeded your current quota" in lower_err
+            "insufficient_quota" in lower_err
+            or "exceeded your current quota" in lower_err
         )
         is_rate_limit = (
-            (status_code == 429 or "error code: 429" in lower_err or "resource_exhausted" in lower_err)
-            and not is_insufficient_quota
-        )
+            status_code == 429
+            or "error code: 429" in lower_err
+            or "resource_exhausted" in lower_err
+        ) and not is_insufficient_quota
         if not is_rate_limit or attempt > max_retries:
             self._handle_fatal_exception(e, config, api_kwargs)
         retry_delay = self._extract_retry_delay_seconds(e)
@@ -181,7 +191,9 @@ class OpenAIModelDriver(LLMDriver):
             )
         start_wait = time.time()
         while time.time() - start_wait < retry_delay:
-            if self._check_cancel(getattr(config, "cancel_event", None), request_id, before_call=False):
+            if self._check_cancel(
+                getattr(config, "cancel_event", None), request_id, before_call=False
+            ):
                 return False
             time.sleep(0.1)
         return True
@@ -200,7 +212,9 @@ class OpenAIModelDriver(LLMDriver):
             else:
                 payload = str(exception)
             # Look for 'retryDelay': '41s' or similar
-            m = re.search(r"retryDelay['\"]?\s*[:=]\s*['\"]?(\d+(?:\.\d+)?)(s)?", payload)
+            m = re.search(
+                r"retryDelay['\"]?\s*[:=]\s*['\"]?(\d+(?:\.\d+)?)(s)?", payload
+            )
             if m:
                 return float(m.group(1))
             # Fallback: generic number of seconds in the message
@@ -241,13 +255,17 @@ class OpenAIModelDriver(LLMDriver):
             # HTTP debug wrapper
             if os.environ.get("OPENAI_DEBUG_HTTP", "0") == "1":
                 from http.client import HTTPConnection
+
                 HTTPConnection.debuglevel = 1
                 logging.basicConfig()
                 logging.getLogger().setLevel(logging.DEBUG)
                 requests_log = logging.getLogger("http.client")
                 requests_log.setLevel(logging.DEBUG)
                 requests_log.propagate = True
-                print("[OpenAIModelDriver] HTTP debug enabled via OPENAI_DEBUG_HTTP=1", flush=True)
+                print(
+                    "[OpenAIModelDriver] HTTP debug enabled via OPENAI_DEBUG_HTTP=1",
+                    flush=True,
+                )
 
             client = openai.OpenAI(**client_kwargs)
             return client
@@ -369,26 +387,32 @@ class OpenAIModelDriver(LLMDriver):
             results = [content]
         for result in results:
             if isinstance(result, dict):
-                api_messages.append({
-                    "role": "tool",
-                    "content": result.get("content", ""),
-                    "name": result.get("name", ""),
-                    "tool_call_id": result.get("tool_call_id", ""),
-                })
+                api_messages.append(
+                    {
+                        "role": "tool",
+                        "content": result.get("content", ""),
+                        "name": result.get("name", ""),
+                        "tool_call_id": result.get("tool_call_id", ""),
+                    }
+                )
             else:
-                api_messages.append({
-                    "role": "tool",
-                    "content": str(result),
-                    "name": "",
-                    "tool_call_id": "",
-                })
+                api_messages.append(
+                    {
+                        "role": "tool",
+                        "content": str(result),
+                        "name": "",
+                        "tool_call_id": "",
+                    }
+                )
 
     def _handle_tool_calls(self, api_messages, content):
         try:
             tool_calls = json.loads(content) if isinstance(content, str) else content
         except Exception:
             tool_calls = []
-        api_messages.append({"role": "assistant", "content": "", "tool_calls": tool_calls})
+        api_messages.append(
+            {"role": "assistant", "content": "", "tool_calls": tool_calls}
+        )
 
     def _handle_other_roles(self, api_messages, msg, role, content):
         if role == "function":

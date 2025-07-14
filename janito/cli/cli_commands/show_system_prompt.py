@@ -14,6 +14,7 @@ import re
 
 def _compute_permission_string(args):
     from janito.tools.tool_base import ToolPermissions
+
     read = getattr(args, "read", False)
     write = getattr(args, "write", False)
     execute = getattr(args, "exec", False)
@@ -33,7 +34,7 @@ def _prepare_context(args, agent_role, allowed_permissions):
     context["role"] = agent_role or "developer"
     context["profile"] = getattr(args, "profile", None)
     context["allowed_permissions"] = allowed_permissions
-    if allowed_permissions and 'x' in allowed_permissions:
+    if allowed_permissions and "x" in allowed_permissions:
         pd = PlatformDiscovery()
         context["platform"] = pd.get_platform_name()
         context["python_version"] = pd.get_python_version()
@@ -65,8 +66,13 @@ def _load_template(profile, templates_dir):
 def _print_debug_info(debug_flag, template_filename, allowed_permissions, context):
     if debug_flag:
         from rich import print as rich_print
-        rich_print(f"[bold magenta][DEBUG][/bold magenta] Rendering system prompt template '[cyan]{template_filename}[/cyan]' with allowed_permissions: [yellow]{allowed_permissions}[/yellow]")
-        rich_print(f"[bold magenta][DEBUG][/bold magenta] Template context: [green]{context}[/green]")
+
+        rich_print(
+            f"[bold magenta][DEBUG][/bold magenta] Rendering system prompt template '[cyan]{template_filename}[/cyan]' with allowed_permissions: [yellow]{allowed_permissions}[/yellow]"
+        )
+        rich_print(
+            f"[bold magenta][DEBUG][/bold magenta] Template context: [green]{context}[/green]"
+        )
 
 
 def handle_show_system_prompt(args):
@@ -85,9 +91,12 @@ def handle_show_system_prompt(args):
 
     # Debug flag detection
     import sys
+
     debug_flag = False
     try:
-        debug_flag = (hasattr(sys, 'argv') and ('--debug' in sys.argv or '--verbose' in sys.argv or '-v' in sys.argv))
+        debug_flag = hasattr(sys, "argv") and (
+            "--debug" in sys.argv or "--verbose" in sys.argv or "-v" in sys.argv
+        )
     except Exception:
         pass
 
@@ -96,8 +105,10 @@ def handle_show_system_prompt(args):
     )
     profile = getattr(args, "profile", None)
     if not profile:
-        print("[janito] No profile specified. The main agent runs without a system prompt template.\n"
-              "Use --profile PROFILE to view a profile-specific system prompt.")
+        print(
+            "[janito] No profile specified. The main agent runs without a system prompt template.\n"
+            "Use --profile PROFILE to view a profile-specific system prompt."
+        )
         return
 
     template_filename, template_content = _load_template(profile, templates_dir)
@@ -117,9 +128,11 @@ def handle_show_system_prompt(args):
 
     template = Template(template_content)
     system_prompt = template.render(**context)
-    system_prompt = re.sub(r'\n{3,}', '\n\n', system_prompt)
+    system_prompt = re.sub(r"\n{3,}", "\n\n", system_prompt)
 
-    print(f"\n--- System Prompt (resolved, profile: {getattr(args, 'profile', 'main')}) ---\n")
+    print(
+        f"\n--- System Prompt (resolved, profile: {getattr(args, 'profile', 'main')}) ---\n"
+    )
     print(system_prompt)
     print("\n-------------------------------\n")
     if agent_role:

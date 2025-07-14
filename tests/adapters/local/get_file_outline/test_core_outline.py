@@ -3,16 +3,23 @@ import tempfile
 import pytest
 from janito.tools.adapters.local.get_file_outline.core import GetFileOutlineTool
 
+
 @pytest.fixture
 def outline_tool():
     return GetFileOutlineTool()
 
-@pytest.mark.parametrize("ext,content,expected_type", [
-    (".py", "def foo():\n    pass\n", "python"),
-    (".md", "# Heading 1\nSome text\n## Heading 2\n", "markdown"),
-])
+
+@pytest.mark.parametrize(
+    "ext,content,expected_type",
+    [
+        (".py", "def foo():\n    pass\n", "python"),
+        (".md", "# Heading 1\nSome text\n## Heading 2\n", "markdown"),
+    ],
+)
 def test_get_file_outline_supported_types(outline_tool, ext, content, expected_type):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=ext, mode="w", encoding="utf-8") as tmp:
+    with tempfile.NamedTemporaryFile(
+        delete=False, suffix=ext, mode="w", encoding="utf-8"
+    ) as tmp:
         tmp.write(content)
         tmp_path = tmp.name
     try:

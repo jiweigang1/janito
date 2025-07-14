@@ -49,12 +49,15 @@ def handle_show_config(args):
             console.print(
                 f"  [bold]{pname}[/bold]{' '+sel if sel else ''}: model = [magenta]{eff_model}[/magenta]{extra}"
             )
-    
+
     # Show disabled tools
     from janito.tools.disabled_tools import load_disabled_tools_from_config
+
     disabled_tools = load_disabled_tools_from_config()
     if disabled_tools:
-        console.print(f"\n[bold red]Disabled tools:[/bold red] {', '.join(sorted(disabled_tools))}")
+        console.print(
+            f"\n[bold red]Disabled tools:[/bold red] {', '.join(sorted(disabled_tools))}"
+        )
     else:
         console.print("\n[bold green]No tools are disabled[/bold green]")
     return

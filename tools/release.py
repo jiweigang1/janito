@@ -15,6 +15,7 @@ NC = "\033[0m"
 
 # NOTE: Version is now determined from the latest git tag (vX.Y.Z or X.Y.Z)
 
+
 def print_info(msg):
     print(f"{GREEN}[INFO]{NC} {msg}")
 
@@ -52,17 +53,31 @@ def check_tool(tool):
 def get_latest_version_tag():
     # Get the latest tag matching semantic versioning (vX.Y.Z or X.Y.Z)
     try:
-        tags = subprocess.check_output([
-            "git", "tag", "--list", "v[0-9]*.[0-9]*.[0-9]*", "--sort=-v:refname"
-        ]).decode().split()
+        tags = (
+            subprocess.check_output(
+                ["git", "tag", "--list", "v[0-9]*.[0-9]*.[0-9]*", "--sort=-v:refname"]
+            )
+            .decode()
+            .split()
+        )
         if not tags:
-            tags = subprocess.check_output([
-                "git", "tag", "--list", "[0-9]*.[0-9]*.[0-9]*", "--sort=-v:refname"
-            ]).decode().split()
+            tags = (
+                subprocess.check_output(
+                    [
+                        "git",
+                        "tag",
+                        "--list",
+                        "[0-9]*.[0-9]*.[0-9]*",
+                        "--sort=-v:refname",
+                    ]
+                )
+                .decode()
+                .split()
+            )
         if not tags:
             print_error("No version tags found in the repository.")
         latest_tag = tags[0]
-        version = latest_tag.lstrip('v')
+        version = latest_tag.lstrip("v")
         return version, latest_tag
     except Exception as e:
         print_error(f"Error getting latest version tag: {e}")
@@ -112,8 +127,6 @@ def check_version_on_pypi(pkg_name, project_version):
         )
 
 
-
-
 def check_tag_points_to_head(tag):
     current_commit = (
         subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
@@ -135,7 +148,10 @@ def main():
     # Check git status for uncommitted changes
     status = subprocess.check_output(["git", "status", "--porcelain"]).decode().strip()
     if status:
-        print_error("There are uncommitted changes in the working directory. Please commit or stash them before releasing.\n\nGit status output:\n" + status)
+        print_error(
+            "There are uncommitted changes in the working directory. Please commit or stash them before releasing.\n\nGit status output:\n"
+            + status
+        )
 
     project_version, tag = get_latest_version_tag()
     print_info(f"Project version from latest git tag: {project_version}")

@@ -4,6 +4,7 @@ both single–shot and chat modes can reuse.  Having one central place avoids th
 code duplication that previously existed in `chat_mode.session.ChatSession` and
 `single_shot_mode.handler.PromptHandler`.
 """
+
 from __future__ import annotations
 
 from janito.agent.setup_agent import create_configured_agent
@@ -21,7 +22,6 @@ def setup_agent_and_prompt_handler(
     role: Optional[str] = None,
     verbose_tools: bool = False,
     verbose_agent: bool = False,
-    
     allowed_permissions: Optional[list[str]] = None,
     profile: Optional[str] = None,
     profile_system_prompt: Optional[str] = None,
@@ -40,7 +40,6 @@ def setup_agent_and_prompt_handler(
         role=role,
         verbose_tools=verbose_tools,
         verbose_agent=verbose_agent,
-        
         allowed_permissions=allowed_permissions,
         profile=profile,
         profile_system_prompt=profile_system_prompt,

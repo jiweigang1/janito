@@ -21,6 +21,7 @@ class RemoveDirectoryTool(ToolBase):
             - "Directory removed: /path/to/dir"
             - "Error removing directory: <error message>"
     """
+
     permissions = ToolPermissions(write=True)
     tool_name = "remove_directory"
 

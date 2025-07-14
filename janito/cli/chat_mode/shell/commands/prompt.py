@@ -45,5 +45,3 @@ class RoleShellHandler(ShellCmdHandler):
         shared_console.print(
             f"[bold green]System role updated to:[/bold green] {new_role}"
         )
-
-

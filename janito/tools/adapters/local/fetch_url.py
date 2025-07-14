@@ -21,6 +21,7 @@ class FetchUrlTool(ToolBase):
             - "No lines found for the provided search strings."
             - "Warning: Empty URL provided. Operation skipped."
     """
+
     permissions = ToolPermissions(read=True)
     tool_name = "fetch_url"
 

@@ -15,6 +15,7 @@ class OpenUrlTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
+
     permissions = ToolPermissions(read=True)
     tool_name = "open_url"
 

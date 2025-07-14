@@ -1,7 +1,9 @@
 """Management of disabled tools configuration."""
 
+
 class DisabledToolsState:
     """Singleton to manage disabled tools configuration."""
+
     _instance = None
     _disabled_tools = set()
 
@@ -19,7 +21,9 @@ class DisabledToolsState:
     def set_disabled_tools(cls, tool_names):
         """Set the disabled tools from a list or set of tool names."""
         if isinstance(tool_names, str):
-            tool_names = [name.strip() for name in tool_names.split(',') if name.strip()]
+            tool_names = [
+                name.strip() for name in tool_names.split(",") if name.strip()
+            ]
         cls._disabled_tools = set(tool_names)
 
     @classmethod
@@ -37,22 +41,27 @@ class DisabledToolsState:
         """Remove a tool from the disabled list."""
         cls._disabled_tools.discard(tool_name)
 
+
 # Convenience functions
 def get_disabled_tools():
     """Get the current set of disabled tools."""
     return DisabledToolsState.get_disabled_tools()
 
+
 def set_disabled_tools(tool_names):
     """Set the disabled tools from a list, set, or comma-separated string."""
     DisabledToolsState.set_disabled_tools(tool_names)
+
 
 def is_tool_disabled(tool_name):
     """Check if a specific tool is disabled."""
     return DisabledToolsState.is_tool_disabled(tool_name)
 
+
 def load_disabled_tools_from_config():
     """Load disabled tools from global config."""
     from janito.config import config
+
     disabled_str = config.get("disabled_tools", "")
     if disabled_str:
         DisabledToolsState.set_disabled_tools(disabled_str)

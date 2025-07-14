@@ -25,6 +25,7 @@ class CreateFileTool(ToolBase):
 
     Note: Syntax validation is automatically performed after this operation.
     """
+
     permissions = ToolPermissions(write=True)
     tool_name = "create_file"
 

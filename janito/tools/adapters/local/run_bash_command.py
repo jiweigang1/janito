@@ -24,6 +24,7 @@ class RunBashCommandTool(ToolBase):
     Returns:
         str: File paths and line counts for stdout and stderr.
     """
+
     permissions = ToolPermissions(execute=True)
     tool_name = "run_bash_command"
 

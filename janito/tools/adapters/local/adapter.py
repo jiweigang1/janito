@@ -40,6 +40,7 @@ class LocalToolsAdapter(ToolsAdapter):
         # to UI components even if the caller did not supply a custom bus.
         if event_bus is None:
             from janito.event_bus.bus import event_bus as global_event_bus
+
             event_bus = global_event_bus
 
         super().__init__(tools=tools, event_bus=event_bus)
@@ -48,6 +49,7 @@ class LocalToolsAdapter(ToolsAdapter):
         self._tools: Dict[str, Dict[str, Any]] = {}
 
         import os
+
         self.workdir = workdir or os.getcwd()
         # Ensure *some* workdir is set – fallback to CWD.
         if not self.workdir:
@@ -94,12 +96,14 @@ class LocalToolsAdapter(ToolsAdapter):
     # ------------------------------------------------------------------
     def get_tool(self, name: str):
         from janito.tools.disabled_tools import is_tool_disabled
+
         if name in self._tools and not is_tool_disabled(name):
             return self._tools[name]["instance"]
         return None
 
     def list_tools(self):
         from janito.tools.disabled_tools import is_tool_disabled
+
         return [
             name
             for name, entry in self._tools.items()
@@ -108,18 +112,22 @@ class LocalToolsAdapter(ToolsAdapter):
 
     def get_tool_classes(self):
         from janito.tools.disabled_tools import is_tool_disabled
+
         return [
             entry["class"]
             for entry in self._tools.values()
-            if self.is_tool_allowed(entry["instance"]) and not is_tool_disabled(entry["instance"].tool_name)
+            if self.is_tool_allowed(entry["instance"])
+            and not is_tool_disabled(entry["instance"].tool_name)
         ]
 
     def get_tools(self):
         from janito.tools.disabled_tools import is_tool_disabled
+
         return [
             entry["instance"]
             for entry in self._tools.values()
-            if self.is_tool_allowed(entry["instance"]) and not is_tool_disabled(entry["instance"].tool_name)
+            if self.is_tool_allowed(entry["instance"])
+            and not is_tool_disabled(entry["instance"].tool_name)
         ]
 
     # ------------------------------------------------------------------
@@ -131,7 +139,9 @@ class LocalToolsAdapter(ToolsAdapter):
             raise TypeError(f"Tool '{tool}' must implement a callable 'run' method.")
         tool_name = getattr(tool, "tool_name", None)
         if not tool_name or not isinstance(tool_name, str):
-            raise ValueError(f"Tool '{tool}' must provide a 'tool_name' (str) attribute.")
+            raise ValueError(
+                f"Tool '{tool}' must provide a 'tool_name' (str) attribute."
+            )
         if tool_name in self._tools:
             raise ValueError(f"Tool '{tool_name}' is already registered.")
         self._tools[tool_name] = {
@@ -145,6 +155,7 @@ class LocalToolsAdapter(ToolsAdapter):
 # Decorator helper for quick registration of local tools
 # -------------------------------------------------------------------------
 
+
 def register_local_tool(tool=None):
     """Class decorator that registers the tool on the *singleton* adapter.
 
@@ -156,7 +167,7 @@ def register_local_tool(tool=None):
     """
 
     def decorator(cls):
-                # Register the tool on a *fresh* adapter instance to avoid circular
+        # Register the tool on a *fresh* adapter instance to avoid circular
         # import issues during package initialisation.  This keeps behaviour
         # identical to the original implementation while still allowing
         # immediate use via the singleton in janito.tools.adapters.local.

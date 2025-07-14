@@ -2,10 +2,13 @@ import subprocess
 import sys
 import re
 
+
 def test_cli_list_providers_runs_and_prints_table():
-    result = subprocess.run([
-        sys.executable, "-m", "janito.cli.main_cli", "--list-providers"
-    ], capture_output=True, text=True)
+    result = subprocess.run(
+        [sys.executable, "-m", "janito.cli.main_cli", "--list-providers"],
+        capture_output=True,
+        text=True,
+    )
     assert result.returncode == 0
     # Should print a table header or at least some provider names
     assert (

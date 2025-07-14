@@ -31,8 +31,10 @@ from janito.tools.permissions import get_global_allowed_permissions
 # Singleton tools adapter with all standard tools registered
 local_tools_adapter = LocalToolsAdapter(workdir=os.getcwd())
 
+
 def get_local_tools_adapter(workdir=None):
     return LocalToolsAdapter(workdir=workdir or os.getcwd())
+
 
 # Register tools
 for tool_class in [
@@ -63,4 +65,3 @@ for tool_class in [
     local_tools_adapter.register_tool(tool_class)
 
 # DEBUG: Print registered tools at startup
-

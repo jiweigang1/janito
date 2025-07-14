@@ -21,6 +21,7 @@ class PythonCommandRunTool(ToolBase):
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
     """
+
     permissions = ToolPermissions(execute=True)
     tool_name = "python_command_run"
 

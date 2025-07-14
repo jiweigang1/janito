@@ -13,11 +13,9 @@ def main(args=None):
     console.clear()
     from janito.version import __version__
 
-
     session = ChatSession(console, args=args)
     session.run()
 
 
 if __name__ == "__main__":
     main()
-

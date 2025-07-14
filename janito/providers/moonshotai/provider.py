@@ -6,13 +6,16 @@ from janito.tools import get_local_tools_adapter
 from janito.providers.registry import LLMProviderRegistry
 from .model_info import MOONSHOTAI_MODEL_SPECS
 
+
 class MoonshotAIProvider(LLMProvider):
     name = "moonshotai"
     maintainer = "João Pinto <lamego.pinto@gmail.com>"
     MODEL_SPECS = MOONSHOTAI_MODEL_SPECS
     DEFAULT_MODEL = "kimi-k2-0711-preview"
 
-    def __init__(self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None):
+    def __init__(
+        self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
+    ):
         if not self.available:
             self._tools_adapter = get_local_tools_adapter()
             self._driver = None
@@ -49,7 +52,9 @@ class MoonshotAIProvider(LLMProvider):
     @property
     def driver(self) -> OpenAIModelDriver:
         if not self.available:
-            raise ImportError(f"MoonshotAIProvider unavailable: {self.unavailable_reason}")
+            raise ImportError(
+                f"MoonshotAIProvider unavailable: {self.unavailable_reason}"
+            )
         return self._driver
 
     @property
@@ -78,5 +83,6 @@ class MoonshotAIProvider(LLMProvider):
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):
         self._tools_adapter.event_bus = event_bus
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
+
 
 LLMProviderRegistry.register(MoonshotAIProvider.name, MoonshotAIProvider)

@@ -18,6 +18,7 @@ class CreateDirectoryTool(ToolBase):
             - "5c5 Successfully created the directory at ..."
             - "5d7 Cannot create directory: ..."
     """
+
     permissions = ToolPermissions(write=True)
     tool_name = "create_directory"
 

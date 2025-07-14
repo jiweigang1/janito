@@ -1,5 +1,6 @@
 from janito.i18n import tr
 import re
+
 try:
     from lxml import etree
 except ImportError:

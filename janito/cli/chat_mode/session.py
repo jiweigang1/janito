@@ -25,6 +25,7 @@ from janito.cli.prompt_setup import setup_agent_and_prompt_handler
 
 import time
 
+
 class ChatShellState:
     def __init__(self, mem_history, conversation_history):
         self.mem_history = mem_history
@@ -35,7 +36,9 @@ class ChatShellState:
         self._stdout_path = None
         self._stderr_path = None
 
-        self._status = "starting"  # Tracks the current  status (updated by background thread/UI)
+        self._status = (
+            "starting"  # Tracks the current  status (updated by background thread/UI)
+        )
 
         self.last_usage_info = {}
         self.last_elapsed = None
@@ -44,6 +47,7 @@ class ChatShellState:
         self.agent = None
         self.main_agent = None
         self.main_enabled = False
+
 
 class ChatSession:
     def __init__(
@@ -70,18 +74,29 @@ class ChatSession:
         profile, role, profile_system_prompt = self._select_profile_and_role(args, role)
         conversation_history = self._create_conversation_history()
         self.agent, self._prompt_handler = self._setup_agent_and_prompt_handler(
-            args, provider_instance, llm_driver_config, role, verbose_tools, verbose_agent, allowed_permissions, profile, profile_system_prompt, conversation_history
+            args,
+            provider_instance,
+            llm_driver_config,
+            role,
+            verbose_tools,
+            verbose_agent,
+            allowed_permissions,
+            profile,
+            profile_system_prompt,
+            conversation_history,
         )
         self.shell_state = ChatShellState(self.mem_history, conversation_history)
         self.shell_state.agent = self.agent
         self._filter_execution_tools()
         from janito.perf_singleton import performance_collector
+
         self.performance_collector = performance_collector
         self.key_bindings = KeyBindingsFactory.create()
         self._prompt_handler.agent = self.agent
-        self._prompt_handler.conversation_history = self.shell_state.conversation_history
+        self._prompt_handler.conversation_history = (
+            self.shell_state.conversation_history
+        )
         self._support = False
-
 
     def _select_profile_and_role(self, args, role):
         profile = getattr(args, "profile", None) if args is not None else None
@@ -90,6 +105,7 @@ class ChatSession:
         if profile is None and role_arg is None:
             try:
                 from janito.cli.chat_mode.session_profile_select import select_profile
+
                 result = select_profile()
                 if isinstance(result, dict):
                     profile = result.get("profile")
@@ -111,9 +127,22 @@ class ChatSession:
 
     def _create_conversation_history(self):
         from janito.conversation_history import LLMConversationHistory
+
         return LLMConversationHistory()
 
-    def _setup_agent_and_prompt_handler(self, args, provider_instance, llm_driver_config, role, verbose_tools, verbose_agent, allowed_permissions, profile, profile_system_prompt, conversation_history):
+    def _setup_agent_and_prompt_handler(
+        self,
+        args,
+        provider_instance,
+        llm_driver_config,
+        role,
+        verbose_tools,
+        verbose_agent,
+        allowed_permissions,
+        profile,
+        profile_system_prompt,
+        conversation_history,
+    ):
         return setup_agent_and_prompt_handler(
             args=args,
             provider_instance=provider_instance,
@@ -129,14 +158,16 @@ class ChatSession:
 
     def _filter_execution_tools(self):
         try:
-            getattr(__import__('janito.tools', fromlist=['get_local_tools_adapter']), 'get_local_tools_adapter')()
+            getattr(
+                __import__("janito.tools", fromlist=["get_local_tools_adapter"]),
+                "get_local_tools_adapter",
+            )()
         except Exception as e:
-            self.console.print(f"[yellow]Warning: Could not filter execution tools at startup: {e}[/yellow]")
-
-
-            _thread = _start_and_watch(
-                self.shell_state, self._lock, get__port()
+            self.console.print(
+                f"[yellow]Warning: Could not filter execution tools at startup: {e}[/yellow]"
             )
+
+            _thread = _start_and_watch(self.shell_state, self._lock, get__port())
             self._thread = _thread
         else:
             self.shell_state._support = False
@@ -145,22 +176,29 @@ class ChatSession:
     def run(self):
         self.console.clear()
         from janito import __version__
+
+        self.console.print(f"[bold green]Janito Chat Mode v{__version__}[/bold green]")
         self.console.print(
-            f"[bold green]Janito Chat Mode v{__version__}[/bold green]"
+            "[green]/help for commands   /exit or Ctrl+C to quit[/green]"
         )
-        self.console.print("[green]/help for commands   /exit or Ctrl+C to quit[/green]")
         import os
+
         cwd = os.getcwd()
-        home = os.path.expanduser('~')
+        home = os.path.expanduser("~")
         if cwd.startswith(home):
-            cwd_display = '~' + cwd[len(home):]
+            cwd_display = "~" + cwd[len(home) :]
         else:
             cwd_display = cwd
         self.console.print(f"[green]Working Dir:[/green] {cwd_display}")
 
-        from janito.cli.chat_mode.shell.commands._priv_check import user_has_any_privileges
+        from janito.cli.chat_mode.shell.commands._priv_check import (
+            user_has_any_privileges,
+        )
+
         if not user_has_any_privileges():
-            self.console.print("[yellow]Note: You currently have no privileges enabled. If you need to interact with files or the system, enable permissions using /read on, /write on, or /execute on.[/yellow]")
+            self.console.print(
+                "[yellow]Note: You currently have no privileges enabled. If you need to interact with files or the system, enable permissions using /read on, /write on, or /execute on.[/yellow]"
+            )
 
         session = self._create_prompt_session()
         self._chat_loop(session)
@@ -195,6 +233,7 @@ class ChatSession:
     def _process_prompt(self, cmd_input):
         try:
             import time
+
             final_event = (
                 self._prompt_handler.agent.last_event
                 if hasattr(self._prompt_handler.agent, "last_event")
@@ -206,8 +245,11 @@ class ChatSession:
             elapsed = end_time - start_time
             self.msg_count += 1
             from janito.formatting_token import print_token_message_summary
+
             usage = self.performance_collector.get_last_request_usage()
-            print_token_message_summary(self.console, self.msg_count, usage, elapsed=elapsed)
+            print_token_message_summary(
+                self.console, self.msg_count, usage, elapsed=elapsed
+            )
             if final_event and hasattr(final_event, "metadata"):
                 exit_reason = (
                     final_event.metadata.get("exit_reason")
@@ -221,6 +263,7 @@ class ChatSession:
         except Exception as exc:
             self.console.print(f"[red]Exception in agent: {exc}[/red]")
             import traceback
+
             self.console.print(traceback.format_exc())
 
     def _create_prompt_session(self):

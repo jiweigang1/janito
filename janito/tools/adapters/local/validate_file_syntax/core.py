@@ -82,6 +82,7 @@ class ValidateFileSyntaxTool(ToolBase):
             - "⚠️ Warning: Syntax error: <error message>"
             - "⚠️ Warning: Unsupported file extension: <ext>"
     """
+
     permissions = ToolPermissions(read=True)
     tool_name = "validate_file_syntax"
 
@@ -96,7 +97,6 @@ class ValidateFileSyntaxTool(ToolBase):
         )
         result = validate_file_syntax(
             path,
-            
             report_warning=self.report_warning,
             report_success=self.report_success,
         )

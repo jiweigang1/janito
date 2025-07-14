@@ -27,17 +27,18 @@ def handle_set(args, config_mgr=None):
         print(f"Error parsing --set value: {e}")
         return True
 
+
 def _validate_set_arg_format(set_arg):
     if "=" not in set_arg:
-        print(
-            "Error: --set requires KEY=VALUE (e.g., --set provider=provider_name)."
-        )
+        print("Error: --set requires KEY=VALUE (e.g., --set provider=provider_name).")
         return False
     return True
+
 
 def _parse_set_arg(set_arg):
     key, value = set_arg.split("=", 1)
     return key.strip(), value.strip()
+
 
 def _dispatch_set_key(key, value):
     if key == "provider":
@@ -59,6 +60,7 @@ def _dispatch_set_key(key, value):
     if key == "tool_permissions":
         from janito.tools.permissions_parse import parse_permissions_string
         from janito.tools.permissions import set_global_allowed_permissions
+
         perms = parse_permissions_string(value)
         global_config.file_set("tool_permissions", value)
         set_global_allowed_permissions(perms)
@@ -66,6 +68,7 @@ def _dispatch_set_key(key, value):
         return True
     if key == "disabled_tools":
         from janito.tools.disabled_tools import set_disabled_tools
+
         set_disabled_tools(value)
         global_config.file_set("disabled_tools", value)
         print(f"Disabled tools set to '{value}'")

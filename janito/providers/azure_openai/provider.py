@@ -41,6 +41,7 @@ class AzureOpenAIProvider(LLMProvider):
             self._driver_config.extra["api_version"] = "2023-05-15"
         # Inject azure_deployment_name from config if present
         from janito.config import config as global_config
+
         deployment_name = global_config.get("azure_deployment_name")
         if deployment_name:
             self._driver_config.extra["azure_deployment_name"] = deployment_name
@@ -76,7 +77,10 @@ class AzureOpenAIProvider(LLMProvider):
         """
         if model_name is None:
             # Return all known specs, but note: only static ones are listed
-            return {name: model_info.to_dict() for name, model_info in self.MODEL_SPECS.items()}
+            return {
+                name: model_info.to_dict()
+                for name, model_info in self.MODEL_SPECS.items()
+            }
         if model_name in self.MODEL_SPECS:
             return self.MODEL_SPECS[model_name].to_dict()
         # Accept any deployment name as a valid model

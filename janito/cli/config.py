@@ -12,10 +12,3 @@ CONFIG_OPTIONS = {
     "template": "Template context dictionary for Agent Profile prompt rendering (nested)",
     "profile": "Agent Profile name (only 'base' is supported)",
 }
-
-
-
-
-
-
-

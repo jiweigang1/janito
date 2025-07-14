@@ -13,6 +13,7 @@ try:
 except ImportError:
     MODEL_SPECS = {}
 
+
 class GoogleProvider(LLMProvider):
     name = "google"
     maintainer = "João Pinto <lamego.pinto@gmail.com>"
@@ -33,19 +34,23 @@ class GoogleProvider(LLMProvider):
             self._tools_adapter = get_local_tools_adapter()
             self._driver_config = config or LLMDriverConfig(model=None)
             # Only set default if model is not set by CLI/config
-            if not getattr(self._driver_config, 'model', None):
+            if not getattr(self._driver_config, "model", None):
                 self._driver_config.model = self.DEFAULT_MODEL
             if not self._driver_config.api_key:
                 self._driver_config.api_key = self._api_key
             # Set the Gemini API endpoint for OpenAI compatibility
-            self._driver_config.base_url = "https://generativelanguage.googleapis.com/v1beta/openai/"
+            self._driver_config.base_url = (
+                "https://generativelanguage.googleapis.com/v1beta/openai/"
+            )
             self.fill_missing_device_info(self._driver_config)
             self._driver = None  # to be provided by factory/agent
 
     @property
     def driver(self) -> OpenAIModelDriver:
         if not self.available:
-            raise ImportError(f"GoogleOpenAIProvider unavailable: {self.unavailable_reason}")
+            raise ImportError(
+                f"GoogleOpenAIProvider unavailable: {self.unavailable_reason}"
+            )
         return self._driver
 
     @property

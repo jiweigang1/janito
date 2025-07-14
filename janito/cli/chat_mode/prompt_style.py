@@ -15,11 +15,8 @@ chat_shell_style = Style.from_dict(
         "tokens_in": "fg:#00af5f",
         "tokens_out": "fg:#01814a",
         "max-tokens": "fg:#888888",
-        
-        
         "key-toggle-on": "bg:#ffd700 fg:#232323 bold",
         "key-toggle-off": "bg:#444444 fg:#ffffff bold",
         "cmd-label": "bg:#ff9500 fg:#232323 bold",
     }
 )
-

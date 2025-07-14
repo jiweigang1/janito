@@ -11,6 +11,7 @@ class SearchOutlineTool(ToolBase):
     Returns:
         str: Outline search result or status message.
     """
+
     permissions = ToolPermissions(read=True)
     tool_name = "search_outline"
 

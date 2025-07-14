@@ -21,6 +21,7 @@ class CopyFileTool(ToolBase):
     Returns:
         str: Status string for each copy operation.
     """
+
     permissions = ToolPermissions(read=True, write=True)
     tool_name = "copy_file"
 

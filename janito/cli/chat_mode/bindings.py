@@ -5,6 +5,7 @@ Key bindings for Janito Chat CLI.
 from prompt_toolkit.key_binding import KeyBindings
 from janito.tools.permissions import get_global_allowed_permissions
 
+
 class KeyBindingsFactory:
     @staticmethod
     def create():
@@ -35,4 +36,3 @@ class KeyBindingsFactory:
             buf.validate_and_handle()
 
         return bindings
-

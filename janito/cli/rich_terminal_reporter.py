@@ -12,6 +12,7 @@ from janito.llm import message_parts
 
 import sys
 
+
 class RichTerminalReporter(EventHandlerBase):
     """
     Handles UI rendering for janito events using Rich.
@@ -31,6 +32,7 @@ class RichTerminalReporter(EventHandlerBase):
         import janito.report_events as report_events
 
         import janito.tools.tool_events as tool_events
+
         super().__init__(driver_events, report_events, tool_events)
         self._waiting_printed = False
 
@@ -53,7 +55,9 @@ class RichTerminalReporter(EventHandlerBase):
             model = getattr(event, "model_name", None)
         if not model:
             model = "?"
-        self.console.print(f"[bold cyan]Waiting for {provider} (model: {model})...[/bold cyan]", end="")
+        self.console.print(
+            f"[bold cyan]Waiting for {provider} (model: {model})...[/bold cyan]", end=""
+        )
 
     def on_ResponseReceived(self, event):
         parts = event.parts if hasattr(event, "parts") else None
@@ -70,7 +74,7 @@ class RichTerminalReporter(EventHandlerBase):
         """
         Clears the entire current line in the terminal and returns the cursor to column 1.
         """
-        sys.stdout.write('\033[2K\r')
+        sys.stdout.write("\033[2K\r")
         sys.stdout.flush()
 
     def on_RequestFinished(self, event):
@@ -118,9 +122,15 @@ class RichTerminalReporter(EventHandlerBase):
         action = getattr(event, "action", None)
         tool = getattr(event, "tool", None)
         context = getattr(event, "context", None)
-        if subtype == ReportSubtype.ERROR and msg and "[SECURITY] Path access denied" in msg:
+        if (
+            subtype == ReportSubtype.ERROR
+            and msg
+            and "[SECURITY] Path access denied" in msg
+        ):
             # Highlight security errors with a distinct style
-            self.console.print(Panel(f"{msg}", title="[red]SECURITY VIOLATION[/red]", style="bold red"))
+            self.console.print(
+                Panel(f"{msg}", title="[red]SECURITY VIOLATION[/red]", style="bold red")
+            )
             self.console.file.flush()
             return
 
@@ -135,7 +145,11 @@ class RichTerminalReporter(EventHandlerBase):
                 getattr(ReportAction, "WRITE", None),
                 getattr(ReportAction, "DELETE", None),
             )
-            style = "orange1" if getattr(event, "action", None) in modification_actions else "cyan"
+            style = (
+                "orange1"
+                if getattr(event, "action", None) in modification_actions
+                else "cyan"
+            )
             self.console.print(Text(msg, style=style), end="")
             self.console.file.flush()
         elif subtype in (

@@ -7,6 +7,7 @@ from janito.tools.adapters.local import (
 def get_local_tools_adapter(workdir=None, allowed_permissions=None):
     # Use set_verbose_tools on the returned adapter to set verbosity as needed
     import os
+
     if workdir is not None and not os.path.exists(workdir):
         os.makedirs(workdir, exist_ok=True)
     # Permissions are now managed globally; ignore allowed_permissions argument except for backward compatibility
@@ -16,6 +17,7 @@ def get_local_tools_adapter(workdir=None, allowed_permissions=None):
     if workdir is not None:
         try:
             import os
+
             if not os.path.exists(workdir):
                 os.makedirs(workdir, exist_ok=True)
             os.chdir(workdir)

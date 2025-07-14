@@ -38,5 +38,3 @@ def set_role(role):
     rc = RuntimeConfig()
     rc.role = role
     rc.save()
-
-

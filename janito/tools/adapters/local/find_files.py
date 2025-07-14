@@ -61,7 +61,9 @@ class FindFilesTool(ToolBase):
                     break
         return dir_output
 
-    def _handle_directory_path(self, directory, patterns, max_depth, include_gitignored):
+    def _handle_directory_path(
+        self, directory, patterns, max_depth, include_gitignored
+    ):
         dir_output = set()
         for root, dirs, files in walk_dir_with_gitignore(
             directory,
@@ -73,9 +75,7 @@ class FindFilesTool(ToolBase):
                     dir_output.update(self._match_directories(root, dirs, pat))
                 else:
                     dir_output.update(self._match_files(root, files, pat))
-                    dir_output.update(
-                        self._match_dirs_without_slash(root, dirs, pat)
-                    )
+                    dir_output.update(self._match_dirs_without_slash(root, dirs, pat))
         return dir_output
 
     def _report_search(self, pattern, disp_path, depth_msg):
@@ -131,9 +131,10 @@ class FindFilesTool(ToolBase):
             if os.path.isfile(directory):
                 dir_output = self._handle_path(directory, patterns)
             elif os.path.isdir(directory):
-                dir_output = self._handle_directory_path(directory, patterns, max_depth, include_gitignored)
+                dir_output = self._handle_directory_path(
+                    directory, patterns, max_depth, include_gitignored
+                )
             self._report_success(len(dir_output))
             results.extend(self._format_output(directory, dir_output))
         result = "\n".join(results)
         return result
-

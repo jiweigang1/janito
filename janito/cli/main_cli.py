@@ -21,7 +21,6 @@ definition = [
             "help": "Disable path security: allow tool arguments to use any file/directory path (DANGEROUS)",
         },
     ),
-
     (
         ["--profile"],
         {
@@ -140,9 +139,8 @@ definition = [
             "help": "Print the raw JSON response from the OpenAI API (if applicable)",
         },
     ),
-    
-
-    (["--effort"],
+    (
+        ["--effort"],
         {
             "choices": ["low", "medium", "high", "none"],
             "default": None,
@@ -170,11 +168,8 @@ MODIFIER_KEYS = [
     "profile",
     "system",
     "temperature",
-
     "verbose",
     "raw",
-
-
     "verbose_api",
     "verbose_tools",
     "exec",
@@ -205,12 +200,13 @@ class JanitoCLI:
         self._set_all_arg_defaults()
         # Support reading prompt from stdin if no user_prompt is given
         import sys
+
         if not sys.stdin.isatty():
             stdin_input = sys.stdin.read().strip()
             if stdin_input:
                 if self.args.user_prompt and len(self.args.user_prompt) > 0:
                     # Prefix the prompt argument to the stdin input
-                    combined = ' '.join(self.args.user_prompt) + ' ' + stdin_input
+                    combined = " ".join(self.args.user_prompt) + " " + stdin_input
                     self.args.user_prompt = [combined]
                 else:
                     self.args.user_prompt = [stdin_input]
@@ -281,7 +277,9 @@ class JanitoCLI:
             handle_getter(self.args)
             return
         # If running in single shot mode and --profile is not provided, default to 'developer' profile
-        if get_prompt_mode(self.args) == "single_shot" and not getattr(self.args, "profile", None):
+        if get_prompt_mode(self.args) == "single_shot" and not getattr(
+            self.args, "profile", None
+        ):
             self.args.profile = "developer"
         provider = self._get_provider_or_default()
         if provider is None:
@@ -302,14 +300,14 @@ class JanitoCLI:
         if run_mode == RunMode.RUN:
             self._maybe_print_verbose_run_mode()
             # DEBUG: Print exec_enabled propagation at main_cli
-            
+
             handle_runner(
                 self.args,
                 provider,
                 llm_driver_config,
                 agent_role,
                 verbose_tools=self.args.verbose_tools,
-                            )
+            )
         elif run_mode == RunMode.GET:
             handle_getter(self.args)
 

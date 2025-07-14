@@ -16,7 +16,9 @@ def handle_restart(shell_state=None):
         shell_state.agent.reset_conversation_history()
         # Reset system prompt to original template context if available
         if hasattr(shell_state.agent, "_original_template_vars"):
-            shell_state.agent._template_vars = shell_state.agent._original_template_vars.copy()
+            shell_state.agent._template_vars = (
+                shell_state.agent._original_template_vars.copy()
+            )
         shell_state.agent.refresh_system_prompt_from_template()
         # No need to print the system prompt after restart
 
@@ -47,27 +49,42 @@ def handle_restart(shell_state=None):
 
     # Restore tool permissions to the CLI default on restart
     try:
-        from janito.tools.permissions import set_global_allowed_permissions, get_default_allowed_permissions
+        from janito.tools.permissions import (
+            set_global_allowed_permissions,
+            get_default_allowed_permissions,
+        )
         import janito.tools
+
         default_perms = get_default_allowed_permissions()
         if default_perms is not None:
             set_global_allowed_permissions(default_perms)
             janito.tools.local_tools_adapter.set_allowed_permissions(default_perms)
             msg = None
-        
+
         else:
             from janito.tools.tool_base import ToolPermissions
-            set_global_allowed_permissions(ToolPermissions(read=False, write=False, execute=False))
-            janito.tools.local_tools_adapter.set_allowed_permissions(ToolPermissions(read=False, write=False, execute=False))
+
+            set_global_allowed_permissions(
+                ToolPermissions(read=False, write=False, execute=False)
+            )
+            janito.tools.local_tools_adapter.set_allowed_permissions(
+                ToolPermissions(read=False, write=False, execute=False)
+            )
             msg = "[green]All tool permissions have been set to OFF (read, write, execute = False).[/green]"
         # Refresh system prompt to reflect new permissions
-        if hasattr(shell_state, "agent") and shell_state.agent and hasattr(shell_state.agent, "refresh_system_prompt_from_template"):
+        if (
+            hasattr(shell_state, "agent")
+            and shell_state.agent
+            and hasattr(shell_state.agent, "refresh_system_prompt_from_template")
+        ):
             shell_state.agent.refresh_system_prompt_from_template()
         if msg:
             shared_console.print(msg)
 
     except Exception as e:
-        shared_console.print(f"[yellow]Warning: Failed to restore tool permissions: {e}[/yellow]")
+        shared_console.print(
+            f"[yellow]Warning: Failed to restore tool permissions: {e}[/yellow]"
+        )
 
     shared_console.print(
         "[bold green]Conversation history has been started (context reset).[/bold green]"

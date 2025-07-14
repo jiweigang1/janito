@@ -40,11 +40,12 @@ class ConfigManager:
             try:
                 from janito.tools.permissions_parse import parse_permissions_string
                 from janito.tools.permissions import set_global_allowed_permissions
+
                 perms = parse_permissions_string(perm_str)
                 set_global_allowed_permissions(perms)
             except Exception as e:
                 print(f"Warning: Failed to apply tool_permissions from config: {e}")
-        
+
         # Load disabled tools from config - skip during startup to avoid circular imports
         # This will be handled by the CLI when needed
 

@@ -21,6 +21,7 @@ class RemoveFileTool(ToolBase):
             - "			 Successfully removed the file at ..."
             - "			 Cannot remove file: ..."
     """
+
     permissions = ToolPermissions(write=True)
     tool_name = "remove_file"
 

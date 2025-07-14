@@ -20,7 +20,7 @@ def display_path(path):
     Returns:
         str: Display path, as an ANSI hyperlink.
     """
-    
+
     port = 8088
     if os.path.isabs(path):
         cwd = os.path.abspath(os.getcwd())

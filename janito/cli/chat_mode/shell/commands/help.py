@@ -2,6 +2,7 @@ from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 from janito.cli.console import shared_console
 import os
 
+
 class HelpShellHandler(ShellCmdHandler):
     help_text = "Show this help message"
 
@@ -16,4 +17,6 @@ class HelpShellHandler(ShellCmdHandler):
 
         # After help, print privilege info if user has no privileges
         if not user_has_any_privileges():
-            shared_console.print("[yellow]Note: You currently have no privileges enabled. If you need to interact with files or the system, enable permissions using /read on, /write on, or /execute on.[/yellow]")
+            shared_console.print(
+                "[yellow]Note: You currently have no privileges enabled. If you need to interact with files or the system, enable permissions using /read on, /write on, or /execute on.[/yellow]"
+            )

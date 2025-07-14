@@ -77,7 +77,7 @@ def prepare_llm_driver_config(args, modifiers):
                     f"Error: Model '{model}' is not available for provider '{provider}'."
                 )
                 # Optionally, print available models if possible
-                if hasattr(provider_instance, 'get_model_info'):
+                if hasattr(provider_instance, "get_model_info"):
                     available_models = [
                         m["name"]
                         for m in provider_instance.get_model_info().values()
@@ -97,7 +97,13 @@ def prepare_llm_driver_config(args, modifiers):
     return provider, llm_driver_config, agent_role
 
 
-def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=False, ):
+def handle_runner(
+    args,
+    provider,
+    llm_driver_config,
+    agent_role,
+    verbose_tools=False,
+):
     """
     Main runner for CLI execution. If exec_enabled is False, disables execution/run tools.
     """
@@ -107,23 +113,29 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
     # Patch: disable execution/run tools if not enabled
     import janito.tools
     from janito.tools.tool_base import ToolPermissions
+
     read = getattr(args, "read", False)
     write = getattr(args, "write", False)
     execute = getattr(args, "exec", False)
     from janito.tools.permissions import set_global_allowed_permissions
     from janito.tools.tool_base import ToolPermissions
+
     allowed_permissions = ToolPermissions(read=read, write=write, execute=execute)
     set_global_allowed_permissions(allowed_permissions)
     # Store the default permissions for later restoration (e.g., on /restart)
     from janito.tools.permissions import set_default_allowed_permissions
+
     set_default_allowed_permissions(allowed_permissions)
-    
+
     # Load disabled tools from config
     from janito.tools.disabled_tools import load_disabled_tools_from_config
+
     load_disabled_tools_from_config()
-    
+
     unrestricted_paths = getattr(args, "unrestricted_paths", False)
-    adapter = janito.tools.get_local_tools_adapter(workdir=getattr(args, "workdir", None))
+    adapter = janito.tools.get_local_tools_adapter(
+        workdir=getattr(args, "workdir", None)
+    )
     if unrestricted_paths:
         # Patch: disable path security enforcement for this adapter instance
         setattr(adapter, "unrestricted_paths", True)
@@ -133,7 +145,7 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
         print_verbose_info(
             "Allowed Tool Permissions",
             f"read={read}, write={write}, execute={execute}",
-            style="yellow"
+            style="yellow",
         )
 
     provider_instance = ProviderRegistry().get_instance(provider, llm_driver_config)
@@ -151,11 +163,12 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
         )
 
         # DEBUG: Print exec_enabled propagation at runner
-        
+
         handler = SingleShotPromptHandler(
-            args, provider_instance, llm_driver_config,
+            args,
+            provider_instance,
+            llm_driver_config,
             role=agent_role,
-            
             allowed_permissions=allowed_permissions,
         )
         handler.handle()
@@ -172,7 +185,6 @@ def handle_runner(args, provider, llm_driver_config, agent_role, verbose_tools=F
             args=args,
             verbose_tools=verbose_tools,
             verbose_agent=getattr(args, "verbose_agent", False),
-            
             allowed_permissions=allowed_permissions,
         )
         session.run()

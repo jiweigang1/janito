@@ -28,6 +28,7 @@ class ReplaceTextInFileTool(ToolBase):
             - "No changes made. [Warning: Search text not found in file] Please review the original file."
             - "Error replacing text: <error message>"
     """
+
     permissions = ToolPermissions(read=True, write=True)
     tool_name = "replace_text_in_file"
 
@@ -85,9 +86,9 @@ class ReplaceTextInFileTool(ToolBase):
                 line_delta_str,
                 replace_all,
             )
-            return self._format_final_msg(
-                path, warning, match_info, details
-            ) + (f"\n{validation_result}" if validation_result else "")
+            return self._format_final_msg(path, warning, match_info, details) + (
+                f"\n{validation_result}" if validation_result else ""
+            )
         except Exception as e:
             self.report_error(tr(" ❌ Error"), ReportAction.REPLACE)
             return tr("Error replacing text: {error}", error=e)

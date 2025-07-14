@@ -1,6 +1,7 @@
 from janito.cli.console import shared_console
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler
 
+
 class ToolsShellHandler(ShellCmdHandler):
     help_text = "List available tools"
 
@@ -27,7 +28,7 @@ class ToolsShellHandler(ShellCmdHandler):
         perm_groups = {}
         for tool in tools:
             inst = tool_instances.get(tool, None)
-            perms = getattr(inst, 'permissions', None)
+            perms = getattr(inst, "permissions", None)
             if not perms:
                 group = "unknown"
             else:
@@ -37,6 +38,7 @@ class ToolsShellHandler(ShellCmdHandler):
 
     def _print_tools_table(self, perm_groups):
         from rich.table import Table
+
         table = Table(title="Tools by Permission Class")
         table.add_column("Permission Type", style="cyan", no_wrap=True)
         table.add_column("Tools", style="magenta")
@@ -47,7 +49,7 @@ class ToolsShellHandler(ShellCmdHandler):
     def _find_exec_tools(self, registry):
         exec_tools = []
         for tool_instance in registry.get_tools():
-            perms = getattr(tool_instance, 'permissions', None)
+            perms = getattr(tool_instance, "permissions", None)
             if perms and perms.execute:
                 exec_tools.append(tool_instance.tool_name)
         return exec_tools
@@ -56,18 +58,23 @@ class ToolsShellHandler(ShellCmdHandler):
         try:
             import janito.tools  # Ensure all tools are registered
             from janito.tools.permissions import get_global_allowed_permissions
+
             registry = janito.tools.get_local_tools_adapter()
             tools = registry.list_tools()
             shared_console.print("Registered tools:")
             tool_instances = {t.tool_name: t for t in registry.get_tools()}
             if not tools:
-                shared_console.print("No tools are enabled under the current permission settings.")
+                shared_console.print(
+                    "No tools are enabled under the current permission settings."
+                )
                 return
             perm_groups = self._group_tools_by_permission(tools, tool_instances)
             self._print_tools_table(perm_groups)
             exec_tools = self._find_exec_tools(registry)
             perms = get_global_allowed_permissions()
             if not perms.execute and exec_tools:
-                shared_console.print("[yellow]⚠️  Warning: Execution tools (e.g., commands, code execution) are disabled. Use -x to enable them.[/yellow]")
+                shared_console.print(
+                    "[yellow]⚠️  Warning: Execution tools (e.g., commands, code execution) are disabled. Use -x to enable them.[/yellow]"
+                )
         except Exception as e:
             shared_console.print(f"[red]Error loading tools: {e}[/red]")

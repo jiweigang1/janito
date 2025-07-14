@@ -27,6 +27,7 @@ class AskUserTool(ToolBase):
             - "No"
             - "Some detailed answer..."
     """
+
     permissions = ToolPermissions(read=True)
     tool_name = "ask_user"
 

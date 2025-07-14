@@ -157,8 +157,10 @@ class ProviderRegistry:
             return None
         provider_class = LLMProviderRegistry.get(provider_name)
         if provider_class is None:
-            available = ', '.join(LLMProviderRegistry.list_providers())
-            print(f"Error: Provider '{provider_name}' is not recognized. Available providers: {available}.")
+            available = ", ".join(LLMProviderRegistry.list_providers())
+            print(
+                f"Error: Provider '{provider_name}' is not recognized. Available providers: {available}."
+            )
             return None
         return provider_class
 

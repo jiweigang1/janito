@@ -16,18 +16,26 @@ from .prompt_style import chat_shell_style
 Profile selection logic for Janito Chat CLI using questionary.
 """
 
+
 def _handle_helpful_assistant():
     return {"profile": "assistant", "profile_system_prompt": None}
+
 
 def _handle_using_role():
     role_name = questionary.text("Enter the role name:").ask()
     return f"role:{role_name}"
 
+
 def _get_toolbar(mode):
     if mode["multiline"]:
-        return HTML("<b>Multiline mode (Esc+Enter to submit). Type /single to switch.</b>")
+        return HTML(
+            "<b>Multiline mode (Esc+Enter to submit). Type /single to switch.</b>"
+        )
     else:
-        return HTML("<b>Single-line mode (Enter to submit). Type /multi for multiline.</b>")
+        return HTML(
+            "<b>Single-line mode (Enter to submit). Type /multi for multiline.</b>"
+        )
+
 
 def _handle_custom_system_prompt():
     mode = {"multiline": False}
@@ -92,21 +100,20 @@ def select_profile():
         "developer",
         "plain_software_developer",
         "using role...",
-        "full custom system prompt..."
+        "full custom system prompt...",
     ]
     # Add user profiles to choices
     if user_profiles:
         choices.extend(user_profiles.keys())
 
-    custom_style = Style([
-        ("highlighted", "bg:#00aaff #ffffff"),  # background for item under cursor
-        ("question", "fg:#00aaff bold"),
-    ])
+    custom_style = Style(
+        [
+            ("highlighted", "bg:#00aaff #ffffff"),  # background for item under cursor
+            ("question", "fg:#00aaff bold"),
+        ]
+    )
     answer = questionary.select(
-        "Select a profile to use:",
-        choices=choices,
-        default=None,
-        style=custom_style
+        "Select a profile to use:", choices=choices, default=None, style=custom_style
     ).ask()
 
     if answer == "helpful assistant":
@@ -120,7 +127,11 @@ def select_profile():
         return {"profile": None, "profile_system_prompt": user_profiles[answer]}
     elif answer == "plain_software_developer":
         # Return the content of the built-in plain_software_developer profile prompt
-        with open("./janito/agent/templates/profiles/system_prompt_template_plain_software_developer.txt.j2", "r", encoding="utf-8") as f:
+        with open(
+            "./janito/agent/templates/profiles/system_prompt_template_plain_software_developer.txt.j2",
+            "r",
+            encoding="utf-8",
+        ) as f:
             prompt = f.read().strip()
         return {"profile": "plain_software_developer", "profile_system_prompt": prompt}
     return answer
@@ -129,17 +140,16 @@ def select_profile():
         "helpful assistant",
         "developer",
         "using role...",
-        "full custom system prompt..."
+        "full custom system prompt...",
     ]
-    custom_style = Style([
-        ("highlighted", "bg:#00aaff #ffffff"),  # background for item under cursor
-        ("question", "fg:#00aaff bold"),
-    ])
+    custom_style = Style(
+        [
+            ("highlighted", "bg:#00aaff #ffffff"),  # background for item under cursor
+            ("question", "fg:#00aaff bold"),
+        ]
+    )
     answer = questionary.select(
-        "Select a profile to use:",
-        choices=choices,
-        default=None,
-        style=custom_style
+        "Select a profile to use:", choices=choices, default=None, style=custom_style
     ).ask()
     if answer == "helpful assistant":
         return _handle_helpful_assistant()

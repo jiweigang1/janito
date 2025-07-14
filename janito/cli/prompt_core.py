@@ -8,7 +8,12 @@ from janito.performance_collector import PerformanceCollector
 from rich.status import Status
 from rich.console import Console
 from typing import Any, Optional, Callable
-from janito.driver_events import RequestStarted, RequestFinished, RequestStatus, RateLimitRetry
+from janito.driver_events import (
+    RequestStarted,
+    RequestFinished,
+    RequestStatus,
+    RateLimitRetry,
+)
 from janito.tools.tool_events import ToolCallError
 import threading
 from janito.cli.verbose_output import print_verbose_header
@@ -56,7 +61,10 @@ class PromptHandler:
         if isinstance(inner_event, RequestFinished):
             if getattr(inner_event, "status", None) == "error":
                 return self._handle_request_finished_error(inner_event, status)
-            if getattr(inner_event, "status", None) in (RequestStatus.EMPTY_RESPONSE, RequestStatus.TIMEOUT):
+            if getattr(inner_event, "status", None) in (
+                RequestStatus.EMPTY_RESPONSE,
+                RequestStatus.TIMEOUT,
+            ):
                 return self._handle_empty_or_timeout(inner_event, status)
             status.update("[bold green]Received response![bold green]")
             return "break"
@@ -78,7 +86,9 @@ class PromptHandler:
         return None
 
     def _handle_rate_limit_retry(self, inner_event, status):
-        status.update(f"[yellow]Rate limited. Waiting {inner_event.retry_delay:.0f}s before retry (attempt {inner_event.attempt}).[yellow]")
+        status.update(
+            f"[yellow]Rate limited. Waiting {inner_event.retry_delay:.0f}s before retry (attempt {inner_event.attempt}).[yellow]"
+        )
         return None
 
     def _handle_request_finished_error(self, inner_event, status):
@@ -89,9 +99,7 @@ class PromptHandler:
             "Status 429" in error_msg
             and "Service tier capacity exceeded for this model" in error_msg
         ):
-            status.update(
-                "[yellow]Service tier capacity exceeded, retrying...[yellow]"
-            )
+            status.update("[yellow]Service tier capacity exceeded, retrying...[yellow]")
             return "break"
         status.update(f"[bold red]Error: {error_msg}[bold red]")
         self.console.print(f"[red]Error: {error_msg}[red]")
@@ -99,18 +107,12 @@ class PromptHandler:
 
     def _handle_tool_call_error(self, inner_event, status):
         error_msg = (
-            inner_event.error
-            if hasattr(inner_event, "error")
-            else "Unknown tool error"
+            inner_event.error if hasattr(inner_event, "error") else "Unknown tool error"
         )
         tool_name = (
-            inner_event.tool_name
-            if hasattr(inner_event, "tool_name")
-            else "unknown"
+            inner_event.tool_name if hasattr(inner_event, "tool_name") else "unknown"
         )
-        status.update(
-            f"[bold red]Tool Error in '{tool_name}': {error_msg}[bold red]"
-        )
+        status.update(f"[bold red]Tool Error in '{tool_name}': {error_msg}[bold red]")
         self.console.print(f"[red]Tool Error in '{tool_name}': {error_msg}[red]")
         return "break"
 
@@ -118,9 +120,7 @@ class PromptHandler:
         details = getattr(inner_event, "details", None) or {}
         block_reason = details.get("block_reason")
         block_msg = details.get("block_reason_message")
-        msg = details.get(
-            "message", "LLM returned an empty or incomplete response."
-        )
+        msg = details.get("message", "LLM returned an empty or incomplete response.")
         driver_name = getattr(inner_event, "driver_name", "unknown driver")
         if block_reason or block_msg:
             status.update(
@@ -221,6 +221,7 @@ class PromptHandler:
             self.console.print("[red]Interrupted by the user.[/red]")
             try:
                 from janito.driver_events import RequestFinished, RequestStatus
+
                 # Record a synthetic "cancelled" final event so that downstream
                 # handlers (e.g. single_shot_mode.handler._post_prompt_actions)
                 # can reliably detect that the prompt was interrupted by the

@@ -10,7 +10,7 @@ MODEL_SPECS = {
         max_cot=24576,
         thinking_supported=True,
     ),
-        "gemini-2.5-pro": LLMModelInfo(
+    "gemini-2.5-pro": LLMModelInfo(
         name="gemini-2.5-pro",
         other={"description": "Google Gemini 2.5 Pro (OpenAI-compatible endpoint)"},
         open="google",
@@ -21,7 +21,9 @@ MODEL_SPECS = {
     ),
     "gemini-2.5-flash-lite-preview-06-17": LLMModelInfo(
         name="gemini-2.5-flash-lite-preview-06-17",
-        other={"description": "Google Gemini 2.5 Flash-Lite Preview (OpenAI-compatible endpoint)"},
+        other={
+            "description": "Google Gemini 2.5 Flash-Lite Preview (OpenAI-compatible endpoint)"
+        },
         open="google",
         driver="OpenAIModelDriver",
         max_response=64000,

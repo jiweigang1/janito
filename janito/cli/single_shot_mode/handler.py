@@ -11,12 +11,19 @@ import time
 
 
 class PromptHandler:
-    def __init__(self, args, provider_instance, llm_driver_config, role=None,  allowed_permissions=None):
+    def __init__(
+        self,
+        args,
+        provider_instance,
+        llm_driver_config,
+        role=None,
+        allowed_permissions=None,
+    ):
         self.args = args
         self.provider_instance = provider_instance
         self.llm_driver_config = llm_driver_config
         self.role = role
-                # Instantiate agent together with prompt handler using the shared helper
+        # Instantiate agent together with prompt handler using the shared helper
         self.agent, self.generic_handler = setup_agent_and_prompt_handler(
             args=args,
             provider_instance=provider_instance,
@@ -24,7 +31,6 @@ class PromptHandler:
             role=role,
             verbose_tools=getattr(args, "verbose_tools", False),
             verbose_agent=getattr(args, "verbose_agent", False),
-            
             allowed_permissions=allowed_permissions,
             profile=getattr(args, "profile", None),
         )
@@ -43,6 +49,7 @@ class PromptHandler:
                 "[yellow]Warning: Some characters in your input were not valid UTF-8 and have been replaced.[/yellow]"
             )
         import time
+
         try:
             start_time = time.time()
             self.generic_handler.handle_prompt(
@@ -67,12 +74,14 @@ class PromptHandler:
         import sys
         from janito.formatting_token import print_token_message_summary
         from janito.perf_singleton import performance_collector
+
         usage = performance_collector.get_last_request_usage()
         # If running in stdin mode, do not print token usage
         if sys.stdin.isatty():
-            print_token_message_summary(shared_console, msg_count=1, usage=usage, elapsed=elapsed)
+            print_token_message_summary(
+                shared_console, msg_count=1, usage=usage, elapsed=elapsed
+            )
         self._cleanup_driver_and_console()
-
 
     def _cleanup_driver_and_console(self):
         if hasattr(self.agent, "join_driver"):

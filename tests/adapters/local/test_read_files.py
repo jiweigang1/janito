@@ -2,9 +2,11 @@ import os
 import pytest
 from janito.tools.adapters.local.read_files import ReadFilesTool
 
+
 @pytest.fixture
 def read_files_tool():
     return ReadFilesTool()
+
 
 def test_read_files_tool(tmp_path, read_files_tool):
     # Create some test files

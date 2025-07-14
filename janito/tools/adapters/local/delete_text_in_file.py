@@ -19,6 +19,7 @@ class DeleteTextInFileTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
+
     permissions = ToolPermissions(read=True, write=True)
     tool_name = "delete_text_in_file"
 
@@ -62,7 +63,7 @@ class DeleteTextInFileTool(ToolBase):
             return tr(
                 "Deleted {count} block(s) between markers in {path}. ",
                 count=deleted_blocks,
-                path=path
+                path=path,
             ) + (f"\n{validation_result}" if validation_result else "")
         except Exception as e:
             self.report_error(tr(" ❌ Error: {error}", error=e), ReportAction.REPLACE)

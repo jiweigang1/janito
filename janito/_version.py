@@ -53,6 +53,3 @@ except ImportError:  # pragma: no cover – not available in editable installs
         return "unknown"
 
     __version__ = _resolve_version()
-
-
-

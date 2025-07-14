@@ -16,6 +16,7 @@ from janito.providers.registry import LLMProviderRegistry
 from .model_info import MODEL_SPECS
 from janito.drivers.openai.driver import OpenAIModelDriver
 
+
 class AnthropicProvider(LLMProvider):
     name = "anthropic"
     maintainer = "Needs maintainer"
@@ -30,7 +31,7 @@ class AnthropicProvider(LLMProvider):
         self._api_key = self.auth_manager.get_credentials(type(self).name)
         self._tools_adapter = get_local_tools_adapter()
         self._driver_config = config or LLMDriverConfig(model=None)
-        if not getattr(self._driver_config, 'model', None):
+        if not getattr(self._driver_config, "model", None):
             self._driver_config.model = self.DEFAULT_MODEL
         if not self._driver_config.api_key:
             self._driver_config.api_key = self._api_key
@@ -42,7 +43,9 @@ class AnthropicProvider(LLMProvider):
     @property
     def driver(self) -> OpenAIModelDriver:
         if not self.available:
-            raise ImportError(f"AnthropicProvider unavailable: {self.unavailable_reason}")
+            raise ImportError(
+                f"AnthropicProvider unavailable: {self.unavailable_reason}"
+            )
         return self._driver
 
     @property

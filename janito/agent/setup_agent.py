@@ -17,12 +17,12 @@ from janito.platform_discovery import PlatformDiscovery
 from janito.tools.tool_base import ToolPermissions
 from janito.tools.permissions import get_global_allowed_permissions
 
+
 def _load_template_content(profile, templates_dir):
     """
     Loads the template content for the given profile from the specified directory or package resources.
     If the profile template is not found in the default locations, tries to load from the user profiles directory ~/.janito/profiles.
     """
-
 
     template_filename = f"system_prompt_template_{profile}.txt.j2"
     template_path = templates_dir / template_filename
@@ -68,7 +68,7 @@ def _prepare_template_context(role, profile, allowed_permissions):
         allowed_permissions = perm_str or None
     context["allowed_permissions"] = allowed_permissions
     # Inject platform info if execute permission is present
-    if allowed_permissions and 'x' in allowed_permissions:
+    if allowed_permissions and "x" in allowed_permissions:
         pd = PlatformDiscovery()
         context["platform"] = pd.get_platform_name()
         context["python_version"] = pd.get_python_version()
@@ -76,7 +76,18 @@ def _prepare_template_context(role, profile, allowed_permissions):
     return context
 
 
-def _create_agent(provider_instance, tools_provider, role, system_prompt, input_queue, output_queue, verbose_agent, context, template_path, profile):
+def _create_agent(
+    provider_instance,
+    tools_provider,
+    role,
+    system_prompt,
+    input_queue,
+    output_queue,
+    verbose_agent,
+    context,
+    template_path,
+    profile,
+):
     """
     Creates and returns an LLMAgent instance with the provided parameters.
     """
@@ -159,17 +170,23 @@ def setup_agent(
     # Debug output if requested
     debug_flag = False
     try:
-        debug_flag = (hasattr(sys, 'argv') and ('--debug' in sys.argv or '--verbose' in sys.argv or '-v' in sys.argv))
+        debug_flag = hasattr(sys, "argv") and (
+            "--debug" in sys.argv or "--verbose" in sys.argv or "-v" in sys.argv
+        )
     except Exception:
         pass
     if debug_flag:
-        rich_print(f"[bold magenta][DEBUG][/bold magenta] Rendering system prompt template '[cyan]{template_path.name}[/cyan]' with allowed_permissions: [yellow]{context.get('allowed_permissions')}[/yellow]")
-        rich_print(f"[bold magenta][DEBUG][/bold magenta] Template context: [green]{context}[/green]")
+        rich_print(
+            f"[bold magenta][DEBUG][/bold magenta] Rendering system prompt template '[cyan]{template_path.name}[/cyan]' with allowed_permissions: [yellow]{context.get('allowed_permissions')}[/yellow]"
+        )
+        rich_print(
+            f"[bold magenta][DEBUG][/bold magenta] Template context: [green]{context}[/green]"
+        )
     start_render = time.time()
     rendered_prompt = template.render(**context)
     end_render = time.time()
     # Merge multiple empty lines into a single empty line
-    rendered_prompt = re.sub(r'\n{3,}', '\n\n', rendered_prompt)
+    rendered_prompt = re.sub(r"\n{3,}", "\n\n", rendered_prompt)
 
     return _create_agent(
         provider_instance,

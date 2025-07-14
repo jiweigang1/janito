@@ -123,5 +123,4 @@ MODEL_SPECS = {
         open="openai",
         driver="OpenAIModelDriver",
     ),
-
 }

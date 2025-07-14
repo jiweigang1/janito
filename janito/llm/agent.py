@@ -97,6 +97,7 @@ class LLMAgent:
             # Refresh allowed_permissions in context before rendering
             from janito.tools.permissions import get_global_allowed_permissions
             from janito.tools.tool_base import ToolPermissions
+
             perms = get_global_allowed_permissions()
             if isinstance(perms, ToolPermissions):
                 perm_str = ""
@@ -213,7 +214,6 @@ class LLMAgent:
             ]:
                 return (event, False)
 
-
     def _get_event_from_output_queue(self, poll_timeout):
         try:
             return self.output_queue.get(timeout=poll_timeout)
@@ -306,6 +306,7 @@ class LLMAgent:
             config = self.llm_provider.driver_config
         loop_count = 1
         import threading
+
         cancel_event = threading.Event()
         while True:
             self._print_verbose_chat_loop(loop_count)
@@ -317,7 +318,9 @@ class LLMAgent:
                 cancel_event.set()
                 raise
             if getattr(self, "verbose_agent", False):
-                print(f"[agent] [DEBUG] Returned from _process_next_response: result={result}, added_tool_results={added_tool_results}")
+                print(
+                    f"[agent] [DEBUG] Returned from _process_next_response: result={result}, added_tool_results={added_tool_results}"
+                )
             if self._should_exit_chat_loop(result, added_tool_results):
                 return result
             loop_count += 1
@@ -332,11 +335,15 @@ class LLMAgent:
     def _should_exit_chat_loop(self, result, added_tool_results):
         if result is None:
             if getattr(self, "verbose_agent", False):
-                print("[agent] [INFO] Exiting chat loop: _process_next_response returned None result (likely timeout or error). Returning (None, False).")
+                print(
+                    "[agent] [INFO] Exiting chat loop: _process_next_response returned None result (likely timeout or error). Returning (None, False)."
+                )
             return True
         if not added_tool_results:
             if getattr(self, "verbose_agent", False):
-                print(f"[agent] [INFO] Exiting chat loop: _process_next_response returned added_tool_results=False (final response or no more tool calls). Returning result: {result}")
+                print(
+                    f"[agent] [INFO] Exiting chat loop: _process_next_response returned added_tool_results=False (final response or no more tool calls). Returning result: {result}"
+                )
             return True
         return False
 
@@ -434,7 +441,9 @@ class LLMAgent:
         config.model = model_name
         config.temperature = self._safe_float(getattr(model_spec, "default_temp", None))
         config.max_tokens = self._safe_int(getattr(model_spec, "max_response", None))
-        config.max_completion_tokens = self._safe_int(getattr(model_spec, "max_cot", None))
+        config.max_completion_tokens = self._safe_int(
+            getattr(model_spec, "max_cot", None)
+        )
         config.top_p = None
         config.presence_penalty = None
         config.frequency_penalty = None

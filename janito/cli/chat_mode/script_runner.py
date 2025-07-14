@@ -23,6 +23,7 @@ Typical usage
 The ``ChatScriptRunner`` purposefully replaces the internal call to the agent
 with a real agent call by default. If you want to use a stub, you must modify the runner implementation.
 """
+
 from __future__ import annotations
 
 from types import MethodType
@@ -41,7 +42,6 @@ auth_warning = (
     "[yellow]ChatScriptRunner is executing in stubbed-agent mode; no calls to an "
     "external LLM provider will be made.[/yellow]"
 )
-
 
 
 class ChatScriptRunner:
@@ -81,6 +81,7 @@ class ChatScriptRunner:
         # is incompatible with headless test runs.
         if "args" not in chat_session_kwargs or chat_session_kwargs["args"] is None:
             from types import SimpleNamespace
+
             chat_session_kwargs["args"] = SimpleNamespace(
                 profile="developer",
                 provider=self.provider,
@@ -94,6 +95,7 @@ class ChatScriptRunner:
         # 1) Patch *ChatSession._create_prompt_session* to do nothing – the
         #    interactive session object is irrelevant for scripted runs.
         from types import MethodType as _MT
+
         if "_original_create_prompt_session" not in ChatSession.__dict__:
             ChatSession._original_create_prompt_session = ChatSession._create_prompt_session  # type: ignore[attr-defined]
         ChatSession._create_prompt_session = _MT(lambda _self: None, ChatSession)  # type: ignore[method-assign]
@@ -101,17 +103,20 @@ class ChatScriptRunner:
         # Resolve provider instance now so that ChatSession uses a ready agent
         provider_instance = ProviderRegistry().get_instance(self.provider)
         if provider_instance is None:
-            raise RuntimeError(f"Provider '{self.provider}' is not available on this system.")
+            raise RuntimeError(
+                f"Provider '{self.provider}' is not available on this system."
+            )
         driver_config = LLMDriverConfig(model=self.model)
         chat_session_kwargs.setdefault("provider_instance", provider_instance)
         chat_session_kwargs.setdefault("llm_driver_config", driver_config)
 
         self.chat_session = ChatSession(console=self.console, **chat_session_kwargs)
 
-
         # Monkey-patch the *ChatSession._handle_input* method so that it pops
         # from our in-memory queue instead of reading from stdin.
-        def _script_handle_input(this: ChatSession, _prompt_session_unused):  # noqa: D401
+        def _script_handle_input(
+            this: ChatSession, _prompt_session_unused
+        ):  # noqa: D401
             if not self._input_queue:
                 # Signal normal shutdown
                 this._handle_exit()
@@ -151,4 +156,3 @@ class ChatScriptRunner:
 
     # Convenience alias so tests can simply call *runner()*
     __call__ = run
-

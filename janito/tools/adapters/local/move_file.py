@@ -20,6 +20,7 @@ class MoveFileTool(ToolBase):
     Returns:
         str: Status message indicating the result.
     """
+
     permissions = ToolPermissions(read=True, write=True)
     tool_name = "move_file"
 
