@@ -12,15 +12,7 @@ from janito.llm.driver_input import DriverInput
 from janito.driver_events import RequestFinished, RequestStatus, RateLimitRetry
 from janito.llm.message_parts import TextMessagePart, FunctionCallMessagePart
 
-# Safe import of openai SDK
-try:
-    import openai
-
-    DRIVER_AVAILABLE = True
-    DRIVER_UNAVAILABLE_REASON = None
-except ImportError:
-    DRIVER_AVAILABLE = False
-    DRIVER_UNAVAILABLE_REASON = "Missing dependency: openai (pip install openai)"
+import openai
 
 
 class OpenAIModelDriver(LLMDriver):

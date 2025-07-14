@@ -1,14 +1,6 @@
 from janito.drivers.openai.driver import OpenAIModelDriver
 
-# Safe import of AzureOpenAI SDK
-try:
-    from openai import AzureOpenAI
-
-    DRIVER_AVAILABLE = True
-    DRIVER_UNAVAILABLE_REASON = None
-except ImportError:
-    DRIVER_AVAILABLE = False
-    DRIVER_UNAVAILABLE_REASON = "Missing dependency: openai (pip install openai)"
+from openai import AzureOpenAI
 
 from janito.llm.driver_config import LLMDriverConfig
 
