@@ -20,5 +20,6 @@ Janito is a lightweight language model client focused on software development ac
 
 - [What Is a Language Model Client?](concepts/language-model-clients.md) — Thin vs. Thick Clients explained
 - [Configuring Janito for DeepSeek](deepseek-setup.md) — How to set up and use DeepSeek models
+- [Configuring Janito for MoonshotAI](moonshotai-setup.md) — How to set up and use MoonshotAI models
 - **Concepts & Terminology:** See the [concepts](concepts/index.md) section for more foundational explanations.
 
