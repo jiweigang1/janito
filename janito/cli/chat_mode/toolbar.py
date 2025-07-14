@@ -37,9 +37,7 @@ def _get_status(shell_state):
         return None
     if _status == "starting" or _status is None:
         return _status
-    live_status = getattr(shell_state, "_live_status", None)
-    if live_status is not None:
-        return live_status
+
     return _status
 
 def _get_agent_info(agent):
@@ -55,14 +53,7 @@ def _get_permissions():
     except Exception:
         return None
 
-def _get_termweb_status_line(this__status, _port):
-    if this__status == "online" and _port:
-        return "\n<> Termweb </>Online"
-    elif this__status == "starting":
-        return "\n<> Termweb </>Starting"
-    elif this__status == "offline":
-        return "\n<> Termweb </>Offline"
-    return ""
+
 
 def get_toolbar_func(perf: PerformanceCollector, msg_count: int, shell_state):
     from prompt_toolkit.application.current import get_app
@@ -76,8 +67,8 @@ def get_toolbar_func(perf: PerformanceCollector, msg_count: int, shell_state):
         permissions = _get_permissions()
         bindings_line = assemble_bindings_line(width, permissions)
         toolbar_text = first_line + "\n" + bindings_line
-        _port = getattr(shell_state, "_port", None)
-        toolbar_text += _get_termweb_status_line(this__status, _port)
+
+
         return HTML(toolbar_text)
     return get_toolbar
 

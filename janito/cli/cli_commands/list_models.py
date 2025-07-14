@@ -32,4 +32,4 @@ def handle_list_models(args, provider_instance):
                 print(f"- {m}")
     except Exception as e:
         print(f"Error listing models for provider '{provider_name}': {e}")
-    sys.exit(0)
+    return

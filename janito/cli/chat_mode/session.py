@@ -30,11 +30,11 @@ class ChatShellState:
         self.mem_history = mem_history
         self.conversation_history = conversation_history
         self.paste_mode = False
-        self._port = None
+
         self._pid = None
         self._stdout_path = None
         self._stderr_path = None
-        self.livereload_stderr_path = None
+
         self._status = "starting"  # Tracks the current  status (updated by background thread/UI)
 
         self.last_usage_info = {}
@@ -81,7 +81,7 @@ class ChatSession:
         self._prompt_handler.agent = self.agent
         self._prompt_handler.conversation_history = self.shell_state.conversation_history
         self._support = False
-        self._maybe_enable_web_support(args)
+
 
     def _select_profile_and_role(self, args, role):
         profile = getattr(args, "profile", None) if args is not None else None
@@ -133,16 +133,7 @@ class ChatSession:
         except Exception as e:
             self.console.print(f"[yellow]Warning: Could not filter execution tools at startup: {e}[/yellow]")
 
-    def _maybe_enable_web_support(self, args):
-        if args and getattr(args, "web", False):
-            self._support = True
-            self.shell_state._support = self._support
-            from janito.cli._starter import _start_and_watch
-            from janito.cli.config import get__port
-            import threading
-            from rich.console import Console
-            Console().print("[yellow]Starting  in background...[/yellow]")
-            self._lock = threading.Lock()
+
             _thread = _start_and_watch(
                 self.shell_state, self._lock, get__port()
             )

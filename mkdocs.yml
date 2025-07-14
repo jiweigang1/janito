@@ -31,6 +31,7 @@ nav:
   - Reference:
       - Configuration: guides/configuration.md
       - CLI Options: reference/cli-options.md
+      - Disabling Tools: guides/disabled-tools.md
       - API Reference: reference/api.md
   - Supported Providers & Models: supported-providers-models.md
   - DeepSeek Setup: deepseek-setup.md

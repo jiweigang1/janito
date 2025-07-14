@@ -15,11 +15,11 @@ from janito.tools.adapters.local.adapter import register_local_tool as register_
 @register_tool
 class SearchTextTool(ToolBase):
     """
-    Search for a text pattern (regex or plain string) in all files within one or more directories or file paths and return matching lines or counts. Respects .gitignore.
+    Search for a text query in all files within one or more directories or file paths and return matching lines or counts. Respects .gitignore.
     Args:
         paths (str): String of one or more paths (space-separated) to search in. Each path can be a directory or a file.
-        pattern (str): Regex pattern or plain text substring to search for in files. Must not be empty. Tries regex first, falls back to substring if regex is invalid.
-        is_regex (bool): If True, treat pattern as a regular expression. If False, treat as plain text (default).
+        query (str): Text or regular expression to search for in files. Must not be empty. When use_regex=True, this is treated as a regex pattern; otherwise as plain text.
+        use_regex (bool): If True, treat query as a regular expression. If False, treat as plain text (default).
         case_sensitive (bool): If False, perform a case-insensitive search. Default is True (case sensitive).
         max_depth (int, optional): Maximum directory depth to search. If 0 (default), search is recursive with no depth limit. If >0, limits recursion to that depth. Setting max_depth=1 disables recursion (only top-level directory). Ignored for file paths.
         max_results (int, optional): Maximum number of results to return. Defaults to 100. 0 means no limit.
@@ -35,7 +35,7 @@ class SearchTextTool(ToolBase):
     def _handle_file(
         self,
         search_path,
-        pattern,
+        query,
         regex,
         use_regex,
         case_sensitive,
@@ -46,7 +46,7 @@ class SearchTextTool(ToolBase):
         if count_only:
             match_count, dir_limit_reached, _ = read_file_lines(
                 search_path,
-                pattern,
+                query,
                 regex,
                 use_regex,
                 case_sensitive,
@@ -59,7 +59,7 @@ class SearchTextTool(ToolBase):
         else:
             dir_output, dir_limit_reached, match_count_list = read_file_lines(
                 search_path,
-                pattern,
+                query,
                 regex,
                 use_regex,
                 case_sensitive,
@@ -77,7 +77,7 @@ class SearchTextTool(ToolBase):
     def _handle_path(
         self,
         search_path,
-        pattern,
+        query,
         regex,
         use_regex,
         case_sensitive,
@@ -87,9 +87,9 @@ class SearchTextTool(ToolBase):
         count_only,
     ):
         info_str = tr(
-            "🔍 Search {search_type} '{pattern}' in '{disp_path}'",
+            "🔍 Search {search_type} '{query}' in '{disp_path}'",
             search_type=("regex" if use_regex else "text"),
-            pattern=pattern,
+            query=query,
             disp_path=display_path(search_path),
         )
         if max_depth > 0:
@@ -100,7 +100,7 @@ class SearchTextTool(ToolBase):
         if os.path.isfile(search_path):
             dir_output, dir_limit_reached, per_file_counts = self._handle_file(
                 search_path,
-                pattern,
+                query,
                 regex,
                 use_regex,
                 case_sensitive,
@@ -112,7 +112,7 @@ class SearchTextTool(ToolBase):
             if count_only:
                 per_file_counts, dir_limit_reached, _ = traverse_directory(
                     search_path,
-                    pattern,
+                    query,
                     regex,
                     use_regex,
                     case_sensitive,
@@ -125,7 +125,7 @@ class SearchTextTool(ToolBase):
             else:
                 dir_output, dir_limit_reached, per_file_counts = traverse_directory(
                     search_path,
-                    pattern,
+                    query,
                     regex,
                     use_regex,
                     case_sensitive,
@@ -154,15 +154,15 @@ class SearchTextTool(ToolBase):
     def run(
         self,
         paths: str,
-        pattern: str,
-        is_regex: bool = False,
+        query: str,
+        use_regex: bool = False,
         case_sensitive: bool = False,
         max_depth: int = 0,
         max_results: int = 100,
         count_only: bool = False,
     ) -> str:
         regex, use_regex, error_msg = prepare_pattern(
-            pattern, is_regex, case_sensitive, self.report_error, self.report_warning
+            query, use_regex, case_sensitive, self.report_error, self.report_warning
         )
         if error_msg:
             return error_msg
@@ -173,7 +173,7 @@ class SearchTextTool(ToolBase):
             info_str, dir_output, dir_limit_reached, per_file_counts = (
                 self._handle_path(
                     search_path,
-                    pattern,
+                    query,
                     regex,
                     use_regex,
                     case_sensitive,
@@ -186,7 +186,7 @@ class SearchTextTool(ToolBase):
             if count_only:
                 all_per_file_counts.extend(per_file_counts)
             result_str = format_result(
-                pattern,
+                query,
                 use_regex,
                 dir_output,
                 dir_limit_reached,

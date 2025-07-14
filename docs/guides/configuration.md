@@ -34,6 +34,25 @@ Show the current configuration with:
 janito --show-config
 ```
 
+## Advanced Configuration
+
+### Disabling Tools
+
+You can selectively disable specific tools to customize your workflow or enhance security:
+
+```bash
+# Disable a single tool
+janito --set disabled_tools=ask_user
+
+# Disable multiple tools
+janito --set disabled_tools="ask_user,python_code_run"
+
+# View disabled tools
+janito --show-config
+```
+
+See the [Disabling Tools Guide](disabled-tools.md) for complete details.
+
 ## More Information
 
 - See [CLI Options Reference](../reference/cli-options.md) for all configuration flags.

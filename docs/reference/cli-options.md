@@ -36,7 +36,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 | `-t TEMPERATURE`, `--temperature TEMPERATURE` | Set the temperature |
 | `-v`, `--verbose` | Print extra information before answering |
 | `-R`, `--raw` | Print the raw JSON response from the OpenAI API (if applicable) |
-| `--web` | Enable the builtin lightweight web file viewer for terminal links (disabled by default) |
+
 
 | `--effort {low, medium, high, none}` | Set the reasoning effort for models that support it (low, medium, high, none) |
 | `-e`, `--event-log` | Enable event logging to the system bus |
@@ -82,3 +82,18 @@ The `--effort` option allows you to set the reasoning effort for models that sup
 - `none`: Disables special reasoning effort (model default)
 
 > **Note:** Not all models or providers support this option. If unsupported, the option may be ignored.
+
+## 🔧 Configuration Keys
+
+The `--set` command supports the following configuration keys:
+
+| Key | Description | Example |
+|-----|-------------|---------|
+| `provider` | Set the default provider | `--set provider=openai` |
+| `model` | Set the default model | `--set model=gpt-4.1` |
+| `max_tokens` | Set maximum tokens | `--set max_tokens=4000` |
+| `base_url` | Set custom API base URL | `--set base_url=https://api.example.com` |
+| `tool_permissions` | Set tool permission level | `--set tool_permissions=rwe` |
+| `disabled_tools` | Disable specific tools | `--set disabled_tools=ask_user,python_code_run` |
+
+For more details on disabling tools, see the [Disabling Tools Guide](../guides/disabled-tools.md).

@@ -140,22 +140,8 @@ definition = [
             "help": "Print the raw JSON response from the OpenAI API (if applicable)",
         },
     ),
-    (
-        ["--web"],
-        {
-            "action": "store_true",
-            "default": False,
-            "help": "Enable the builtin lightweight web file viewer for terminal links (disabled by default)",
-        },
-    ),
-    (
-        ["---port"],
-        {
-            "type": int,
-            "default": 8088,
-            "help": "Port for the  server (default: 8088)",
-        },
-    ),
+    
+
     (["--effort"],
         {
             "choices": ["low", "medium", "high", "none"],
@@ -187,8 +173,8 @@ MODIFIER_KEYS = [
 
     "verbose",
     "raw",
-    "web",
-    "_port",
+
+
     "verbose_api",
     "verbose_tools",
     "exec",

@@ -1,6 +1,9 @@
 from janito.i18n import tr
 import re
-from lxml import etree
+try:
+    from lxml import etree
+except ImportError:
+    etree = None
 
 
 def validate_html(path: str) -> str:
@@ -48,6 +51,9 @@ def _find_js_outside_script(html_content):
 
 def _parse_html_and_collect_errors(path):
     lxml_error = None
+    if etree is None:
+        lxml_error = tr("⚠️ lxml not installed. Cannot validate HTML.")
+        return lxml_error
     try:
         parser = etree.HTMLParser(recover=False)
         with open(path, "rb") as f:

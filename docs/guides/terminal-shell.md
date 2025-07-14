@@ -10,7 +10,7 @@ The interactive shell lets you have a continuous conversation with Janito, just 
 - 📋 Copy code snippets easily
 - 💡 Context-aware suggestions (where supported)
 - 💾 Conversation state is saved/restored between sessions
-- 🖱️ **Clickable file links**: Click on file names in responses to open them in a web viewer for detailed inspection and actions (see below)
+
 
 --- 
 
@@ -39,16 +39,7 @@ You can use these commands at any time (prefix with `/` or just type the name):
 | `/execute [on|off] | /read [on|off] | /write [on|off]`       | Enable or disable code/shell execution tools at runtime          |
 | `/tools`               | List all registered tools and show which are enabled/disabled     |
 
-## 🖱️ Clickable File Links
 
-When Janito references files in its responses, the file names may appear as clickable links in supported terminals or web-based shells. To enable this, start Janito with the `--web` flag. Clicking these links will open the file in your browser for inspection.
-
-- **What you can do:**
-  - View file contents in your browser
-  - Access additional actions (e.g., copy, download, or inspect details)
-  - Navigate project files more efficiently during reviews or debugging
-
-This feature enhances productivity by bridging the terminal and browser, making it easy to inspect and act on files referenced in your conversations.
 
 ## 💻 Usage Example
 

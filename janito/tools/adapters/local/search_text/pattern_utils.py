@@ -42,7 +42,7 @@ def prepare_pattern(pattern, is_regex, case_sensitive, report_error, report_warn
 
 
 def format_result(
-    pattern, use_regex, output, limit_reached, count_only=False, per_file_counts=None
+    query, use_regex, output, limit_reached, count_only=False, per_file_counts=None
 ):
     # Ensure output is always a list for joining
     if output is None or not isinstance(output, (list, tuple)):

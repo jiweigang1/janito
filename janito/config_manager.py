@@ -44,6 +44,9 @@ class ConfigManager:
                 set_global_allowed_permissions(perms)
             except Exception as e:
                 print(f"Warning: Failed to apply tool_permissions from config: {e}")
+        
+        # Load disabled tools from config - skip during startup to avoid circular imports
+        # This will be handled by the CLI when needed
 
     def _load_file_config(self):
         if self.config_path.exists():

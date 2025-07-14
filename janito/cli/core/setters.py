@@ -64,8 +64,14 @@ def _dispatch_set_key(key, value):
         set_global_allowed_permissions(perms)
         print(f"Tool permissions set to '{value}' (parsed: {perms})")
         return True
+    if key == "disabled_tools":
+        from janito.tools.disabled_tools import set_disabled_tools
+        set_disabled_tools(value)
+        global_config.file_set("disabled_tools", value)
+        print(f"Disabled tools set to '{value}'")
+        return True
     print(
-        f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, azure_deployment_name, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url, tool_permissions"
+        f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, azure_deployment_name, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url, tool_permissions, disabled_tools"
     )
     return True
 
@@ -124,7 +130,7 @@ def _handle_set_provider_level_setting(key, value):
             )
             return True
     print(
-        f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url"
+        f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url, tool_permissions, disabled_tools"
     )
     return True
 

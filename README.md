@@ -234,8 +234,6 @@ Once inside the interactive chat mode, you can use these slash commands:
 | `/tools`             | List available tools                         |
 | `/-status`           | Show status of server                       |
 | `/-logs`             | Show last lines of logs                     |
-| `/livelogs`          | Show live updates from server log file     |
-| `/edit <filename>`   | Open file in browser-based editor          |
 | `/write [on\|off]`   | Enable or disable write tool permissions   |
 | `/read [on\|off]`    | Enable or disable read tool permissions    |
 | `/execute [on\|off]` | Enable or disable execute tool permissions |

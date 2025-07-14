@@ -1,7 +1,7 @@
 from .base import ShellCmdHandler
 from .history_view import ViewShellHandler
 from .lang import LangShellHandler
-from .livelogs import LivelogsShellHandler
+
 from .prompt import PromptShellHandler, RoleShellHandler
 from .multi import MultiShellHandler
 from .model import ModelShellHandler
@@ -35,7 +35,7 @@ COMMAND_HANDLERS = {
 
     "/view": ViewShellHandler,
     "/lang": LangShellHandler,
-    "/livelogs": LivelogsShellHandler,
+
     "/prompt": PromptShellHandler,
     "/role": RoleShellHandler,
 

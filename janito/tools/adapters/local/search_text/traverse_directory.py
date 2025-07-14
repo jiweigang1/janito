@@ -26,7 +26,7 @@ def filter_dirs(dirs, root, gitignore_filter):
 def process_file_count_only(
     path,
     per_file_counts,
-    pattern,
+    query,
     regex,
     use_regex,
     case_sensitive,
@@ -35,7 +35,7 @@ def process_file_count_only(
 ):
     match_count, file_limit_reached, _ = read_file_lines(
         path,
-        pattern,
+        query,
         regex,
         use_regex,
         case_sensitive,
@@ -52,7 +52,7 @@ def process_file_collect(
     path,
     dir_output,
     per_file_counts,
-    pattern,
+    query,
     regex,
     use_regex,
     case_sensitive,
@@ -61,7 +61,7 @@ def process_file_collect(
 ):
     actual_match_count, file_limit_reached, file_lines_output = read_file_lines(
         path,
-        pattern,
+        query,
         regex,
         use_regex,
         case_sensitive,
@@ -86,7 +86,7 @@ def should_limit_depth(root, search_path, max_depth, dirs):
 
 def traverse_directory(
     search_path,
-    pattern,
+    query,
     regex,
     use_regex,
     case_sensitive,
@@ -111,7 +111,7 @@ def traverse_directory(
                 file_limit_reached = process_file_count_only(
                     path,
                     per_file_counts,
-                    pattern,
+                    query,
                     regex,
                     use_regex,
                     case_sensitive,
@@ -126,7 +126,7 @@ def traverse_directory(
                     path,
                     dir_output,
                     per_file_counts,
-                    pattern,
+                    query,
                     regex,
                     use_regex,
                     case_sensitive,

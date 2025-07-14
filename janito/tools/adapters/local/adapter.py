@@ -93,27 +93,33 @@ class LocalToolsAdapter(ToolsAdapter):
     # Lookup helpers used by ToolsAdapterBase
     # ------------------------------------------------------------------
     def get_tool(self, name: str):
-        return self._tools[name]["instance"] if name in self._tools else None
+        from janito.tools.disabled_tools import is_tool_disabled
+        if name in self._tools and not is_tool_disabled(name):
+            return self._tools[name]["instance"]
+        return None
 
     def list_tools(self):
+        from janito.tools.disabled_tools import is_tool_disabled
         return [
             name
             for name, entry in self._tools.items()
-            if self.is_tool_allowed(entry["instance"])
+            if self.is_tool_allowed(entry["instance"]) and not is_tool_disabled(name)
         ]
 
     def get_tool_classes(self):
+        from janito.tools.disabled_tools import is_tool_disabled
         return [
             entry["class"]
             for entry in self._tools.values()
-            if self.is_tool_allowed(entry["instance"])
+            if self.is_tool_allowed(entry["instance"]) and not is_tool_disabled(entry["instance"].tool_name)
         ]
 
     def get_tools(self):
+        from janito.tools.disabled_tools import is_tool_disabled
         return [
             entry["instance"]
             for entry in self._tools.values()
-            if self.is_tool_allowed(entry["instance"])
+            if self.is_tool_allowed(entry["instance"]) and not is_tool_disabled(entry["instance"].tool_name)
         ]
 
     # ------------------------------------------------------------------

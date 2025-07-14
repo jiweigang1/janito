@@ -43,8 +43,10 @@ class ToolsAdapterBase:
         return True
 
     def get_tools(self):
-        """Return the list of enabled tools managed by this provider, filtered by allowed permissions."""
-        tools = [tool for tool in self._tools if self.is_tool_allowed(tool)]
+        """Return the list of enabled tools managed by this provider, filtered by allowed permissions and disabled tools."""
+        from janito.tools.disabled_tools import is_tool_disabled
+        tools = [tool for tool in self._tools 
+                if self.is_tool_allowed(tool) and not is_tool_disabled(getattr(tool, 'tool_name', str(tool)))]
         return tools
 
     def set_allowed_permissions(self, allowed_permissions):
