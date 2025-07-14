@@ -1,5 +1,7 @@
 # Janito
 
+[![PyPI version](https://badge.fury.io/py/janito.svg)](https://badge.fury.io/py/janito)
+
 Janito is a command-line interface (CLI) tool for managing and interacting with Large Language Model (LLM) providers. It enables you to configure API keys, select providers and models, and submit prompts to various LLMs from your terminal. Janito is designed for extensibility, supporting multiple providers and a wide range of tools for automation and productivity.
 
 ## Features
