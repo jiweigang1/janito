@@ -55,7 +55,7 @@ class MoveFileTool(ToolBase):
                     disp_src=disp_src,
                     disp_dest=disp_dest,
                 ),
-                ReportAction.CREATE,
+                ReportAction.UPDATE,
             )
             shutil.move(src, dest)
             self.report_success(tr("✅ Move complete."))
@@ -106,7 +106,7 @@ class MoveFileTool(ToolBase):
                         "❗ Destination '{disp_dest}' exists and overwrite is False.",
                         disp_dest=disp_dest,
                     ),
-                    ReportAction.MOVE,
+                    ReportAction.UPDATE,
                 )
                 return None, tr(
                     "❗ Destination '{disp_dest}' already exists and overwrite is False.",
@@ -121,7 +121,7 @@ class MoveFileTool(ToolBase):
             except Exception as e:
                 self.report_error(
                     tr("❌ Error removing destination before move: {error}", error=e),
-                    ReportAction.MOVE,
+                    ReportAction.UPDATE,
                 )
                 return None, tr(
                     "❌ Error removing destination before move: {error}", error=e
