@@ -76,7 +76,7 @@ janito -set provider=PROVIDER
 
 ## Usage
 
-After installation, use the `janito` command in your terminal.
+After installation, use the `janito` command in your terminal with the syntax: `janito [options] [prompt]`
 
 Janito supports both general-purpose and specialized assistance through the use of **profiles**. Profiles allow you to select a specific system prompt template and behavior for the agent, enabling workflows tailored to different roles or tasks (e.g., developer, writer, data analyst), or to use Janito as a generic AI assistant.
 
@@ -204,7 +204,7 @@ janito -r -w -x "Run this code: print('Hello, world!')"
 | `-v`, `--verbose`      | Print extra information before answering                                    |
 | `-R`, `--raw`          | Print raw JSON response from API                                            |
 | `-e`, `--event-log`    | Log events to console as they occur                                         |
-| `"user_prompt"`        | Prompt to submit for the non interactive mode (e.g. `janito "What is the capital of France?"`) |
+| `prompt`        | Prompt to submit for the non interactive mode (e.g. `janito "What is the capital of France?"`) |
 
 ### 🧩 Extended Chat Mode Commands
 Once inside the interactive chat mode, you can use these slash commands:

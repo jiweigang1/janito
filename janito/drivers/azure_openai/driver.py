@@ -20,20 +20,10 @@ class AzureOpenAIModelDriver(OpenAIModelDriver):
         if hasattr(super(), "start"):
             return super().start(*args, **kwargs)
 
-    available = DRIVER_AVAILABLE
-    unavailable_reason = DRIVER_UNAVAILABLE_REASON
-
-    @classmethod
-    def is_available(cls):
-        return cls.available
-
     required_config = {"base_url"}  # Update key as used in your config logic
 
     def __init__(self, tools_adapter=None, provider_name=None):
-        if not self.available:
-            raise ImportError(
-                f"AzureOpenAIModelDriver unavailable: {self.unavailable_reason}"
-            )
+
         # Ensure proper parent initialization
         super().__init__(tools_adapter=tools_adapter, provider_name=provider_name)
         self.azure_endpoint = None

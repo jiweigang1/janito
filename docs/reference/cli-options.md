@@ -2,6 +2,8 @@
 
 This page documents all command-line options for Janito, as shown by `janito --help`. These options temporarily override configuration for a single session and do not persist changes to config files.
 
+**Syntax:** `janito [options] [prompt]`
+
 ## 💡 Overview
 
 These options are useful for one-off runs, scripting, or experimentation. They take precedence over config files for the current invocation only.
@@ -10,7 +12,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 
 | Option | Description |
 |--------|-------------|
-| `user_prompt` | Prompt to submit (positional argument) |
+| `prompt` | Prompt to submit (optional positional argument) |
 | `-h`, `--help` | Show this help message and exit |
 | `--verbose-api` | Print API calls and responses of LLM driver APIs for debugging/tracing. |
 | `--verbose-tools` | Print info messages for tool execution in tools adapter. |
@@ -45,6 +47,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 ## 👨‍💻 Usage Example
 
 ```sh
+janito [options] [prompt]
 janito -p openai -m gpt-3.5-turbo "Your prompt here"
 janito -p google -m gemini-2.5-flash "Your prompt here"
 janito --list-tools

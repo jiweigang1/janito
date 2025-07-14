@@ -25,8 +25,6 @@ class OpenAIModelDriver(LLMDriver):
     """
     OpenAI LLM driver (threaded, queue-based, stateless). Uses input/output queues accessible via instance attributes.
     """
-    available = DRIVER_AVAILABLE
-    unavailable_reason = DRIVER_UNAVAILABLE_REASON
 
     def __init__(self, tools_adapter=None, provider_name=None):
         super().__init__(tools_adapter=tools_adapter, provider_name=provider_name)
