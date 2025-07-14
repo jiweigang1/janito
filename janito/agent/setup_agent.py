@@ -22,9 +22,48 @@ def _load_template_content(profile, templates_dir):
     """
     Loads the template content for the given profile from the specified directory or package resources.
     If the profile template is not found in the default locations, tries to load from the user profiles directory ~/.janito/profiles.
+
+    Spaces in the profile name are converted to underscores to align with the file-naming convention (e.g. "Developer with Python Tools" ➜ "Developer_with_Python_Tools").
+    """
+    # Sanitize profile for filename resolution (convert whitespace to underscores)
+    sanitized_profile = re.sub(r"\s+", "_", profile.strip()) if profile else profile
+
+    template_filename = f"system_prompt_template_{sanitized_profile}.txt.j2"
+    template_path = templates_dir / template_filename
+
+    # 1) Check local templates directory
+    if template_path.exists():
+        with open(template_path, "r", encoding="utf-8") as file:
+            return file.read(), template_path
+
+    # 2) Try package resources fallback
+    try:
+        with importlib.resources.files("janito.agent.templates.profiles").joinpath(template_filename).open("r", encoding="utf-8") as file:
+            return file.read(), template_path
+    except (FileNotFoundError, ModuleNotFoundError, AttributeError):
+        pass
+
+    # 3) Finally, look in the user profiles directory (~/.janito/profiles)
+    user_profiles_dir = Path(os.path.expanduser("~/.janito/profiles"))
+    user_template_path = user_profiles_dir / template_filename
+    if user_template_path.exists():
+        with open(user_template_path, "r", encoding="utf-8") as file:
+            return file.read(), user_template_path
+
+    # If nothing matched, raise an informative error
+    raise FileNotFoundError(
+        f"[janito] Could not find profile-specific template '{template_filename}' in {template_path} nor in janito.agent.templates.profiles package nor in user profiles directory {user_template_path}."
+    )
+    # Replace spaces in profile name with underscores for filename resolution
+    sanitized_profile = re.sub(r"\\s+", "_", profile.strip())  if profile else profile
+    """
+    Loads the template content for the given profile from the specified directory or package resources.
+    If the profile template is not found in the default locations, tries to load from the user profiles directory ~/.janito/profiles.
     """
 
-    template_filename = f"system_prompt_template_{profile}.txt.j2"
+    # Sanitize profile name by replacing spaces with underscores to match filename conventions
+    sanitized_profile = re.sub(r"\\s+", "_", profile.strip())
+    template_filename = f"system_prompt_template_{sanitized_profile}.txt.j2"
     template_path = templates_dir / template_filename
     if template_path.exists():
         with open(template_path, "r", encoding="utf-8") as file:
@@ -121,12 +160,16 @@ def setup_agent(
     allowed_permissions=None,
     profile=None,
     profile_system_prompt=None,
+    no_tools_mode=False,
 ):
     """
     Creates an agent. A system prompt is rendered from a template only when a profile is specified.
     """
-    tools_provider = get_local_tools_adapter()
-    tools_provider.set_verbose_tools(verbose_tools)
+    if no_tools_mode:
+        tools_provider = None
+    else:
+        tools_provider = get_local_tools_adapter()
+        tools_provider.set_verbose_tools(verbose_tools)
 
     # If zero_mode is enabled or no profile is given we skip the system prompt.
     if zero_mode or (profile is None and profile_system_prompt is None):
@@ -214,6 +257,7 @@ def create_configured_agent(
     allowed_permissions=None,
     profile=None,
     profile_system_prompt=None,
+    no_tools_mode=False,
 ):
     """
     Normalizes agent setup for all CLI modes.
@@ -235,6 +279,9 @@ def create_configured_agent(
     driver = None
     if hasattr(provider_instance, "create_driver"):
         driver = provider_instance.create_driver()
+        # Ensure no tools are passed to the driver when --no-tools flag is active
+        if no_tools_mode:
+            driver.tools_adapter = None
         driver.start()  # Ensure the driver background thread is started
         input_queue = getattr(driver, "input_queue", None)
         output_queue = getattr(driver, "output_queue", None)
@@ -252,6 +299,7 @@ def create_configured_agent(
         allowed_permissions=allowed_permissions,
         profile=profile,
         profile_system_prompt=profile_system_prompt,
+        no_tools_mode=no_tools_mode,
     )
     if driver is not None:
         agent.driver = driver  # Attach driver to agent for thread management

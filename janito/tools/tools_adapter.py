@@ -67,8 +67,7 @@ class ToolsAdapterBase:
     def add_tool(self, tool):
         self._tools.append(tool)
 
-    def clear_tools(self):
-        self._tools = []
+
 
     def _validate_arguments_against_schema(self, arguments: dict, schema: dict):
         properties = schema.get("properties", {})

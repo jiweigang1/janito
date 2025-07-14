@@ -47,6 +47,7 @@ class ChatShellState:
         self.agent = None
         self.main_agent = None
         self.main_enabled = False
+        self.no_tools_mode = False
 
 
 class ChatSession:
@@ -71,7 +72,13 @@ class ChatSession:
         self.provider_instance = provider_instance
         self.llm_driver_config = llm_driver_config
 
-        profile, role, profile_system_prompt = self._select_profile_and_role(args, role)
+        profile, role, profile_system_prompt, no_tools_mode = self._select_profile_and_role(args, role)
+        # Propagate no_tools_mode flag to downstream components via args
+        if args is not None and not hasattr(args, 'no_tools_mode'):
+            try:
+                setattr(args, 'no_tools_mode', no_tools_mode)
+            except Exception:
+                pass
         conversation_history = self._create_conversation_history()
         self.agent, self._prompt_handler = self._setup_agent_and_prompt_handler(
             args,
@@ -87,6 +94,8 @@ class ChatSession:
         )
         self.shell_state = ChatShellState(self.mem_history, conversation_history)
         self.shell_state.agent = self.agent
+        # Set no_tools_mode if present
+        self.shell_state.no_tools_mode = bool(no_tools_mode)
         self._filter_execution_tools()
         from janito.perf_singleton import performance_collector
 
@@ -102,6 +111,7 @@ class ChatSession:
         profile = getattr(args, "profile", None) if args is not None else None
         role_arg = getattr(args, "role", None) if args is not None else None
         profile_system_prompt = None
+        no_tools_mode = False
         if profile is None and role_arg is None:
             try:
                 from janito.cli.chat_mode.session_profile_select import select_profile
@@ -110,20 +120,21 @@ class ChatSession:
                 if isinstance(result, dict):
                     profile = result.get("profile")
                     profile_system_prompt = result.get("profile_system_prompt")
+                    no_tools_mode = result.get("no_tools_mode", False)
                 elif isinstance(result, str) and result.startswith("role:"):
                     role = result[len("role:") :].strip()
-                    profile = "developer"
+                    profile = "Developer with Python Tools"
                 else:
                     profile = (
-                        "developer" if result == "plain_software_developer" else result
+                        "Developer with Python Tools" if result == "Developer" else result
                     )
             except ImportError:
-                profile = "helpful assistant"
+                profile = "Raw Model Session (no tools, no context)"
         if role_arg is not None:
             role = role_arg
             if profile is None:
-                profile = "developer"
-        return profile, role, profile_system_prompt
+                profile = "Developer with Python Tools"
+        return profile, role, profile_system_prompt, no_tools_mode
 
     def _create_conversation_history(self):
         from janito.conversation_history import LLMConversationHistory

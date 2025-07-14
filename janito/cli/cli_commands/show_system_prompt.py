@@ -44,7 +44,8 @@ def _prepare_context(args, agent_role, allowed_permissions):
 
 def _load_template(profile, templates_dir):
     if profile:
-        template_filename = f"system_prompt_template_{profile}.txt.j2"
+        sanitized_profile = re.sub(r"\\s+", "_", profile.strip())
+        template_filename = f"system_prompt_template_{sanitized_profile}.txt.j2"
         template_path = templates_dir / template_filename
     else:
         return None, None
