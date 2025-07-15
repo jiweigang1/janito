@@ -9,7 +9,8 @@ from .model_info import MOONSHOTAI_MODEL_SPECS
 
 class MoonshotAIProvider(LLMProvider):
     name = "moonshotai"
-    maintainer = "João Pinto <lamego.pinto@gmail.com>"
+    NAME = "moonshotai"
+    MAINTAINER = "João Pinto <lamego.pinto@gmail.com>"
     MODEL_SPECS = MOONSHOTAI_MODEL_SPECS
     DEFAULT_MODEL = "kimi-k2-0711-preview"
 
@@ -85,4 +86,4 @@ class MoonshotAIProvider(LLMProvider):
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
 
 
-LLMProviderRegistry.register(MoonshotAIProvider.name, MoonshotAIProvider)
+LLMProviderRegistry.register(MoonshotAIProvider.NAME, MoonshotAIProvider)

@@ -14,7 +14,8 @@ unavailable_reason = OpenAIModelDriver.unavailable_reason
 
 class OpenAIProvider(LLMProvider):
     name = "openai"
-    maintainer = "João Pinto <lamego.pinto@gmail.com>"
+    NAME = "openai"
+    MAINTAINER = "João Pinto <lamego.pinto@gmail.com>"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "gpt-4.1"  # Options: gpt-4.1, gpt-4o, o3-mini, o4-mini,
 
@@ -29,7 +30,7 @@ class OpenAIProvider(LLMProvider):
             self._driver = None
         else:
             self.auth_manager = auth_manager or LLMAuthManager()
-            self._api_key = self.auth_manager.get_credentials(type(self).name)
+            self._api_key = self.auth_manager.get_credentials(type(self).NAME)
             self._tools_adapter = get_local_tools_adapter()
             self._driver_config = config or LLMDriverConfig(model=None)
             if not self._driver_config.model:
@@ -75,7 +76,7 @@ class OpenAIProvider(LLMProvider):
         Creates and returns a new OpenAIModelDriver instance with input/output queues.
         """
         driver = OpenAIModelDriver(
-            tools_adapter=self._tools_adapter, provider_name=self.name
+            tools_adapter=self._tools_adapter, provider_name=self.NAME
         )
         driver.config = self._driver_config
         # NOTE: The caller is responsible for calling driver.start() if background processing is needed.
@@ -106,4 +107,4 @@ class OpenAIProvider(LLMProvider):
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
 
 
-LLMProviderRegistry.register(OpenAIProvider.name, OpenAIProvider)
+LLMProviderRegistry.register(OpenAIProvider.NAME, OpenAIProvider)

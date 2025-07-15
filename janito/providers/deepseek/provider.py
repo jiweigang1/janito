@@ -12,9 +12,10 @@ available = OpenAIModelDriver.available
 unavailable_reason = OpenAIModelDriver.unavailable_reason
 
 
-class DeepseekProvider(LLMProvider):
+class DeepSeekProvider(LLMProvider):
     name = "deepseek"
-    maintainer = "Needs maintainer"
+    NAME = "deepseek"
+    MAINTAINER = "João Pinto <lamego.pinto@gmail.com>"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "deepseek-chat"  # Options: deepseek-chat, deepseek-reasoner
 
@@ -28,7 +29,7 @@ class DeepseekProvider(LLMProvider):
             self._driver = None
         else:
             self.auth_manager = auth_manager or LLMAuthManager()
-            self._api_key = self.auth_manager.get_credentials(type(self).name)
+            self._api_key = self.auth_manager.get_credentials(type(self).NAME)
             self._tools_adapter = get_local_tools_adapter()
             self._driver_config = config or LLMDriverConfig(model=None)
             if not self._driver_config.model:
@@ -91,4 +92,4 @@ class DeepseekProvider(LLMProvider):
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
 
 
-LLMProviderRegistry.register(DeepseekProvider.name, DeepseekProvider)
+LLMProviderRegistry.register(DeepSeekProvider.NAME, DeepSeekProvider)

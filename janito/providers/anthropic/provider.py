@@ -4,22 +4,14 @@ from janito.llm.auth import LLMAuthManager
 from janito.llm.driver_config import LLMDriverConfig
 from janito.tools import get_local_tools_adapter
 from janito.providers.registry import LLMProviderRegistry
-
-from .model_info import MODEL_SPECS
-
-from janito.llm.provider import LLMProvider
-from janito.llm.model import LLMModelInfo
-from janito.llm.auth import LLMAuthManager
-from janito.llm.driver_config import LLMDriverConfig
-from janito.tools import get_local_tools_adapter
-from janito.providers.registry import LLMProviderRegistry
 from .model_info import MODEL_SPECS
 from janito.drivers.openai.driver import OpenAIModelDriver
 
 
 class AnthropicProvider(LLMProvider):
     name = "anthropic"
-    maintainer = "Needs maintainer"
+    NAME = "anthropic"
+    MAINTAINER = "Alberto Minetti <alberto.minetti@gmail.com>"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "claude-3-7-sonnet-20250219"
 
@@ -28,7 +20,7 @@ class AnthropicProvider(LLMProvider):
     ):
         self._tools_adapter = get_local_tools_adapter()
         self.auth_manager = auth_manager or LLMAuthManager()
-        self._api_key = self.auth_manager.get_credentials(type(self).name)
+        self._api_key = self.auth_manager.get_credentials(type(self).NAME)
         self._tools_adapter = get_local_tools_adapter()
         self._driver_config = config or LLMDriverConfig(model=None)
         if not getattr(self._driver_config, "model", None):
@@ -80,4 +72,4 @@ class AnthropicProvider(LLMProvider):
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
 
 
-LLMProviderRegistry.register(AnthropicProvider.name, AnthropicProvider)
+LLMProviderRegistry.register(AnthropicProvider.NAME, AnthropicProvider)

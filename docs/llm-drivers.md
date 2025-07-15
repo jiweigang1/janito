@@ -2,7 +2,7 @@
 
 ## Overview
 
-The driver layer described below is intended to provide a unified, event-driven interface for interacting with various Large Language Model (LLM) providers (such as OpenAI, Google Gemini, MistralAI, etc.). However, as of this writing, the actual driver code (including the LLMDriver base class and its subclasses) is not present in this directory. The following describes the intended architecture and requirements, but no implementation is currently available here.
+The driver layer described below is intended to provide a unified, event-driven interface for interacting with various Large Language Model (LLM) providers (such as OpenAI, Google Gemini, etc.). However, as of this writing, the actual driver code (including the LLMDriver base class and its subclasses) is not present in this directory. The following describes the intended architecture and requirements, but no implementation is currently available here.
 
 ## Key Concepts
 

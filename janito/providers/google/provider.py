@@ -16,7 +16,8 @@ except ImportError:
 
 class GoogleProvider(LLMProvider):
     name = "google"
-    maintainer = "João Pinto <lamego.pinto@gmail.com>"
+    NAME = "google"
+    MAINTAINER = "João Pinto <lamego.pinto@gmail.com>"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "gemini-2.5-flash"  # Default Gemini model
 
@@ -85,4 +86,4 @@ class GoogleProvider(LLMProvider):
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
 
 
-LLMProviderRegistry.register(GoogleProvider.name, GoogleProvider)
+LLMProviderRegistry.register(GoogleProvider.NAME, GoogleProvider)

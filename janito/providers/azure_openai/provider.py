@@ -16,7 +16,8 @@ maintainer = "João Pinto <lamego.pinto@gmail.com>"
 
 class AzureOpenAIProvider(LLMProvider):
     name = "azure_openai"
-    maintainer = "João Pinto <lamego.pinto@gmail.com>"
+    NAME = "azure_openai"
+    MAINTAINER = "João Pinto <lamego.pinto@gmail.com>"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "azure_openai_deployment"
 
@@ -30,7 +31,7 @@ class AzureOpenAIProvider(LLMProvider):
             self._driver = None
             return
         self._auth_manager = auth_manager or LLMAuthManager()
-        self._api_key = self._auth_manager.get_credentials(type(self).name)
+        self._api_key = self._auth_manager.get_credentials(type(self).NAME)
         self._tools_adapter = get_local_tools_adapter()
         self._driver_config = config or LLMDriverConfig(model=None)
         if not self._driver_config.model:
@@ -124,4 +125,4 @@ class AzureOpenAIProvider(LLMProvider):
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
 
 
-LLMProviderRegistry.register(AzureOpenAIProvider.name, AzureOpenAIProvider)
+LLMProviderRegistry.register(AzureOpenAIProvider.NAME, AzureOpenAIProvider)
