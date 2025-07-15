@@ -172,7 +172,7 @@ class LLMAgent:
         )
 
     def _process_next_response(
-        self, poll_timeout: float = 1.0, max_wait_time: float = 300.0
+        self, poll_timeout: float = 1.0, max_wait_time: float = 600.0
     ):
         """
         Wait for a single event from the output queue (with timeout), process it, and return the result.
