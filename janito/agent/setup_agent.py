@@ -23,7 +23,7 @@ def _load_template_content(profile, templates_dir):
     Loads the template content for the given profile from the specified directory or package resources.
     If the profile template is not found in the default locations, tries to load from the user profiles directory ~/.janito/profiles.
 
-    Spaces in the profile name are converted to underscores to align with the file-naming convention (e.g. "Developer with Python Tools" ➜ "Developer_with_Python_Tools").
+    Spaces in the profile name are converted to underscores to align with the file-naming convention (e.g. "Developer with Python Tools" ➜ "Developer_with_Python_Tools" (matches: system_prompt_template_Developer_with_Python_Tools.txt.j2)).
     """
     # Sanitize profile for filename resolution (convert whitespace to underscores)
     sanitized_profile = re.sub(r"\s+", "_", profile.strip()) if profile else profile
@@ -38,7 +38,9 @@ def _load_template_content(profile, templates_dir):
 
     # 2) Try package resources fallback
     try:
-        with importlib.resources.files("janito.agent.templates.profiles").joinpath(template_filename).open("r", encoding="utf-8") as file:
+        with importlib.resources.files("janito.agent.templates.profiles").joinpath(
+            template_filename
+        ).open("r", encoding="utf-8") as file:
             return file.read(), template_path
     except (FileNotFoundError, ModuleNotFoundError, AttributeError):
         pass
@@ -55,7 +57,7 @@ def _load_template_content(profile, templates_dir):
         f"[janito] Could not find profile-specific template '{template_filename}' in {template_path} nor in janito.agent.templates.profiles package nor in user profiles directory {user_template_path}."
     )
     # Replace spaces in profile name with underscores for filename resolution
-    sanitized_profile = re.sub(r"\\s+", "_", profile.strip())  if profile else profile
+    sanitized_profile = re.sub(r"\\s+", "_", profile.strip()) if profile else profile
     """
     Loads the template content for the given profile from the specified directory or package resources.
     If the profile template is not found in the default locations, tries to load from the user profiles directory ~/.janito/profiles.

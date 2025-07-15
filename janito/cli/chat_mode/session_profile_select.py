@@ -18,7 +18,11 @@ Profile selection logic for Janito Chat CLI using questionary.
 
 
 def _handle_raw_model_session_no_tools():
-    return {"profile": "model_conversation_without_tools_or_context", "profile_system_prompt": None, "no_tools_mode": True}  # Raw Model Session (no tools, no context)
+    return {
+        "profile": "model_conversation_without_tools_or_context",
+        "profile_system_prompt": None,
+        "no_tools_mode": True,
+    }  # Raw Model Session (no tools, no context)
 
 
 def _handle_using_role():
@@ -38,6 +42,9 @@ def _get_toolbar(mode):
 
 
 def _handle_custom_system_prompt():
+    print(
+        "\n[Custom System Prompt]\nPlease enter the message that will be used as the model system prompt. This will define how the AI behaves for this session.\nYou can use /multi for multiline mode, and /single to return to single-line mode.\n"
+    )
     mode = {"multiline": False}
     bindings = KeyBindings()
 
@@ -60,7 +67,13 @@ def _handle_custom_system_prompt():
     )
     prompt_icon = HTML("<inputline>📝 </inputline>")
     while True:
-        response = session.prompt(prompt_icon)
+        try:
+            response = session.prompt(prompt_icon)
+        except KeyboardInterrupt:
+            print("[Custom System Prompt] Exited by the user.")
+            import sys
+
+            sys.exit(0)
         if not mode["multiline"] and response.strip() == "/multi":
             mode["multiline"] = True
             session.multiline = True
@@ -96,11 +109,10 @@ def _load_user_profiles():
 def select_profile():
     user_profiles = _load_user_profiles()
     choices = [
-        "Raw Model Session (no tools, no context)",
         "Developer with Python Tools",
         "Developer",
-        "using role...",
-        "full custom system prompt...",
+        "Custom system prompt...",
+        "Raw Model Session (no tools, no context)",
     ]
     # Add user profiles to choices
     if user_profiles:
@@ -118,13 +130,12 @@ def select_profile():
 
     if not answer:
         import sys
+
         sys.exit(0)
 
     if answer == "Raw Model Session (no tools, no context)":
         return _handle_raw_model_session_no_tools()
-    if answer == "using role...":
-        return _handle_using_role()
-    elif answer == "full custom system prompt...":
+    elif answer == "Custom system prompt...":
         return _handle_custom_system_prompt()
     elif answer in user_profiles:
         # Return the content of the user profile as a custom system prompt
@@ -134,11 +145,13 @@ def select_profile():
         from pathlib import Path
         from jinja2 import Template
         from janito.agent.setup_agent import _prepare_template_context
-        
-        template_path = Path("./janito/agent/templates/profiles/system_prompt_template_Developer.txt.j2")
+
+        template_path = Path(
+            "./janito/agent/templates/profiles/system_prompt_template_Developer.txt.j2"
+        )
         with open(template_path, "r", encoding="utf-8") as f:
             template_content = f.read()
-        
+
         template = Template(template_content)
         context = _prepare_template_context("developer", "Developer", None)
         prompt = template.render(**context)
