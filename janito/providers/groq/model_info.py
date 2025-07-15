@@ -1,0 +1,46 @@
+# Groq provider model specifications
+from janito.llm.model import LLMModelInfo
+
+MODEL_SPECS = {
+    "moonshotai/kimi-k2-instruct": LLMModelInfo(
+        name="moonshotai/kimi-k2-instruct",
+        context=128000,
+        max_input=122880,
+        max_cot="N/A",
+        max_response=4096,
+        thinking_supported=False,
+        default_temp=0.2,
+        open="groq",
+        driver="GroqModelDriver",
+        other={
+            "description": "Kimi K2 Instruct model by Moonshot AI",
+            "supports_tools": True,
+            "supports_streaming": True,
+            "supports_vision": False,
+            "supports_system_prompt": True,
+            "supports_temperature": True,
+            "supports_top_p": True,
+            "supports_frequency_penalty": True,
+            "supports_presence_penalty": True,
+            "supports_stop_sequences": True,
+            "supports_max_tokens": True,
+            "supports_seed": False,
+            "supports_json_mode": True,
+            "supports_logprobs": False,
+            "supports_top_logprobs": False,
+            "supports_response_format": True,
+            "supports_n": False,
+            "supports_best_of": False,
+            "supports_echo": False,
+            "supports_logit_bias": False,
+            "supports_user": False,
+            "supports_assistant": False,
+            "supports_system": False,
+            "supports_functions": True,
+            "supports_tool_calls": True,
+            "supports_parallel_tool_calls": True,
+            "supports_stream_options": False,
+            "supports_include_usage": False,
+        },
+    )
+}

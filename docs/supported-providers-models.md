@@ -49,6 +49,7 @@ Janito is compatible with most OpenAI-compatible chat models, including but not 
 | kimi-k1-8k              | Supported | 8000        | 6000       | N/A     | 2000         |          | MoonshotAI| [source](../janito/providers/moonshotai/model_info.py) |
 | kimi-k1-32k             | Supported | 32000       | 28000      | N/A     | 4000         |          | MoonshotAI| [source](../janito/providers/moonshotai/model_info.py) |
 | kimi-k1-128k            | Supported | 128000      | 120000     | N/A     | 8000         |          | MoonshotAI| [source](../janito/providers/moonshotai/model_info.py) |
+| moonshotai/kimi-k2-instruct | Supported | 128000      | 122880     | N/A     | 4096         |          | Groq     | [source](../janito/providers/groq/model_info.py) |
 
 **Context window:** 200 k tokens  
 **Max input:** 100 k tokens  
@@ -147,3 +148,16 @@ provider = OpenAIProvider(model_name="gpt-4o", config={"base_url": "https://api.
 - Use provider name `moonshotai` in CLI/config. Model selection as shown above.
 
 ---
+
+### groq
+
+**Description:** Groq AI models via OpenAI-compatible API endpoint.
+
+**Models:**
+- moonshotai/kimi-k2-instruct: Kimi K2 Instruct model by Moonshot AI, hosted via Groq
+
+**Auth:**
+- Uses API key via credential manager.
+
+**Usage:**
+- Use provider name `groq` in CLI/config. Model selection as shown above.

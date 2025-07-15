@@ -94,6 +94,8 @@ class ProviderRegistry:
             elif hasattr(model_info_mod, "MOONSHOTAI_MODEL_SPECS"):
                 model_specs = model_info_mod.MOONSHOTAI_MODEL_SPECS
 
+            if provider_name == "groq":
+                return "<any> (must be provided)"
             if model_specs:
                 return ", ".join(model_specs.keys())
             return "-"
