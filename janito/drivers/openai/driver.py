@@ -74,6 +74,8 @@ class OpenAIModelDriver(LLMDriver):
                 api_kwargs[p] = v
         api_kwargs["messages"] = conversation
         api_kwargs["stream"] = False
+        if self.tools_adapter and self.tools_adapter.get_tool_classes():
+            api_kwargs["parallel_tool_calls"] = True
         return api_kwargs
 
     def _call_api(self, driver_input: DriverInput):
