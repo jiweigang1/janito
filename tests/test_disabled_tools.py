@@ -8,6 +8,9 @@ import sys
 from pathlib import Path
 
 
+import pytest
+
+
 def test_disabled_tools_cli():
     """Test the --set disabled_tools=... CLI functionality."""
     print("Testing disabled tools CLI functionality...")
@@ -26,29 +29,25 @@ def test_disabled_tools_cli():
         text=True,
     )
 
-    if result.returncode != 0:
-        print(f"ERROR: Failed to set disabled tools: {result.stderr}")
-        return False
-
+    assert result.returncode == 0, f"Failed to set disabled tools: {result.stderr}"
     print("✓ Successfully set disabled tools")
 
-    # Test 2: Show config to verify disabled tools
-    print("\n2. Testing --show-config shows disabled tools")
+    # Test 2: Show config to verify disabled tools and config file path
+    print("\n2. Testing --show-config shows disabled tools and config file path")
     result = subprocess.run(
         [sys.executable, "-m", "janito", "--show-config"],
         capture_output=True,
         text=True,
     )
 
-    if "Disabled tools:" not in result.stdout:
-        print("ERROR: Disabled tools not shown in config")
-        return False
-
-    if "create_file" not in result.stdout or "read_files" not in result.stdout:
-        print("ERROR: Expected disabled tools not found in config")
-        return False
-
-    print("✓ Disabled tools correctly shown in config")
+    assert (
+        "Config file:" in result.stdout
+    ), "Config file path not shown in config output"
+    assert "Disabled tools:" in result.stdout, "Disabled tools not shown in config"
+    assert (
+        "create_file" in result.stdout and "read_files" in result.stdout
+    ), "Expected disabled tools not found in config"
+    print("✓ Disabled tools and config file path correctly shown in config")
 
     # Test 3: List tools should exclude disabled ones
     print("\n3. Testing --list-tools excludes disabled tools")
@@ -56,10 +55,9 @@ def test_disabled_tools_cli():
         [sys.executable, "-m", "janito", "--list-tools"], capture_output=True, text=True
     )
 
-    if "create_file" in result.stdout or "read_files" in result.stdout:
-        print("ERROR: Disabled tools still appear in --list-tools")
-        return False
-
+    assert (
+        "create_file" not in result.stdout and "read_files" not in result.stdout
+    ), "Disabled tools still appear in --list-tools"
     print("✓ Disabled tools correctly excluded from --list-tools")
 
     # Test 4: Clear disabled tools
@@ -70,10 +68,7 @@ def test_disabled_tools_cli():
         text=True,
     )
 
-    if result.returncode != 0:
-        print(f"ERROR: Failed to clear disabled tools: {result.stderr}")
-        return False
-
+    assert result.returncode == 0, f"Failed to clear disabled tools: {result.stderr}"
     print("✓ Successfully cleared disabled tools")
 
     # Test 5: Verify tools are available again
@@ -82,13 +77,10 @@ def test_disabled_tools_cli():
         [sys.executable, "-m", "janito", "--list-tools"], capture_output=True, text=True
     )
 
-    if "create_file" not in result.stdout or "read_files" not in result.stdout:
-        print("ERROR: Tools not restored after clearing disabled list")
-        return False
-
+    assert (
+        "create_file" in result.stdout and "read_files" in result.stdout
+    ), "Tools not restored after clearing disabled list"
     print("✓ Tools correctly restored after clearing disabled list")
-
-    return True
 
 
 if __name__ == "__main__":
