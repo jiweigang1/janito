@@ -171,14 +171,7 @@ janito -r -w -x "Run this code: print('Hello, world!')"
   janito -p google -m gemini-2.5-flash "Your prompt here"
   ```
 
-- **Set Provider-Specific Config (for the selected provider)**
-  ```bash
-  # syntax: janito --set PROVIDER.KEY=VALUE
-  # example: set the default model for openai provider
-  janito --set openai.model=gpt-4o
 
-  ```
-  > **Note:** Use `--set PROVIDER.key=value` for provider-specific settings (e.g., `openai.max_tokens`, `openai.base_url`).
 
 - **Enable Event Logging**
   ```bash

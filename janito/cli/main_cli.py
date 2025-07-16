@@ -113,7 +113,7 @@ definition = [
             "help": "Set API key for the provider (requires -p PROVIDER)",
         },
     ),
-    (["--set"], {"metavar": "[PROVIDER_NAME.]KEY=VALUE", "help": "Set a config key"}),
+    (["--set"], {"metavar": "KEY=VALUE", "help": "Set a config key"}),
     (["-s", "--system"], {"metavar": "SYSTEM_PROMPT", "help": "Set a system prompt"}),
     (
         ["-S", "--show-system"],

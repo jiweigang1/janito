@@ -29,7 +29,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 | `--list-providers` | List supported LLM providers |
 | `-l`, `--list-models` | List all supported models |
 | `--set-api-key API_KEY` | Set API key for the provider (requires -p PROVIDER) |
-| `--set [PROVIDER_NAME.]KEY=VALUE` | Set a config key |
+| `--set KEY=VALUE` | Set a config key |
 | `-s SYSTEM_PROMPT`, `--system SYSTEM_PROMPT` | Set a system prompt |
 | `-S`, `--show-system` | Show the resolved system prompt for the main agent |
 

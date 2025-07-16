@@ -45,8 +45,6 @@ def _dispatch_set_key(key, value):
         return _handle_set_config_provider(value)
     if key == "model":
         return _handle_set_global_model(value)
-    if "." in key and key.endswith(".model"):
-        return _handle_set_provider_model(key, value)
     if key == "max_tokens":
         return _handle_set_max_tokens(value)
     if key == "base_url":
@@ -55,8 +53,6 @@ def _dispatch_set_key(key, value):
         global_config.file_set("azure_deployment_name", value)
         print(f"Azure deployment name set to '{value}'.")
         return True
-    if ".max_tokens" in key or ".base_url" in key:
-        return _handle_set_provider_level_setting(key, value)
     if key == "tool_permissions":
         from janito.tools.permissions_parse import parse_permissions_string
         from janito.tools.permissions import set_global_allowed_permissions
@@ -74,7 +70,7 @@ def _dispatch_set_key(key, value):
         print(f"Disabled tools set to '{value}'")
         return True
     print(
-        f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, azure_deployment_name, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url, tool_permissions, disabled_tools"
+        f"Error: Unknown config key '{key}'. Supported: provider, model, max_tokens, base_url, azure_deployment_name, tool_permissions, disabled_tools"
     )
     return True
 
@@ -96,48 +92,6 @@ def _handle_set_base_url(value):
     return True
 
 
-def _handle_set_provider_level_setting(key, value):
-    parts = key.split(".")
-    if len(parts) == 2:
-        provider, par_key = parts
-        if par_key == "max_tokens":
-            try:
-                ival = int(value)
-            except Exception:
-                print("Error: max_tokens must be set to an integer value.")
-                return True
-            global_config.set_provider_config(provider, "max_tokens", ival)
-            print(f"max_tokens for provider '{provider}' set to {ival}.")
-            return True
-        if par_key == "base_url":
-            global_config.set_provider_config(provider, "base_url", value)
-            print(f"base_url for provider '{provider}' set to {value}.")
-            return True
-    elif len(parts) == 3:
-        provider, model, mk = parts
-        if mk == "max_tokens":
-            try:
-                ival = int(value)
-            except Exception:
-                print("Error: max_tokens must be set to an integer value.")
-                return True
-            global_config.set_provider_model_config(provider, model, "max_tokens", ival)
-            print(
-                f"max_tokens for provider '{provider}', model '{model}' set to {ival}."
-            )
-            return True
-        if mk == "base_url":
-            global_config.set_provider_model_config(provider, model, "base_url", value)
-            print(
-                f"base_url for provider '{provider}', model '{model}' set to {value}."
-            )
-            return True
-    print(
-        f"Error: Unknown config key '{key}'. Supported: provider, model, <provider>.model, max_tokens, base_url, <provider>.max_tokens, <provider>.base_url, <provider>.<model>.max_tokens, <provider>.<model>.base_url, tool_permissions, disabled_tools"
-    )
-    return True
-
-
 def _handle_set_config_provider(value):
     try:
         supported = ProviderRegistry().get_provider(value)
@@ -150,32 +104,6 @@ def _handle_set_config_provider(value):
 
     set_config_provider(value)
     print(f"Provider set to '{value}'.")
-    return True
-
-
-def _handle_set_provider_model(key, value):
-    provider_name, suffix = key.rsplit(".", 1)
-    if suffix != "model":
-        print(
-            f"Error: Only <provider>.model is supported for provider-specific model override. Not: '{key}'"
-        )
-        return True
-    try:
-        provider_cls = ProviderRegistry().get_provider(provider_name)
-        provider_instance = provider_cls()
-    except Exception:
-        print(
-            f"Error: Provider '{provider_name}' is not supported. Run '--list-providers' to see the supported list."
-        )
-        return True
-    model_info = provider_instance.get_model_info(value)
-    if not model_info:
-        print(
-            f"Error: Model '{value}' is not defined for provider '{provider_name}'. Run '-p {provider_name} -l' to see models."
-        )
-        return True
-    global_config.set_provider_config(provider_name, "model", value)
-    print(f"Default model for provider '{provider_name}' set to '{value}'.")
     return True
 
 

@@ -19,7 +19,7 @@ Janito supports models hosted on Azure OpenAI in addition to OpenAI-compatible e
 3. **(Optional) Set API version:**
    If you need a specific API version, set `azure_openai_api_version` (default: `2023-05-15`).
    ```bash
-   janito --set-local-config azure_openai_api_version=2023-05-15
+   janito --set azure_openai_api_version=2023-05-15
    ```
 
 ## Example Configuration
