@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.8.0] - 2025-07-16
+### Added
+- **Groq provider**: New provider with support for moonshotai/kimi-k2-instruct model.
+- **Parallel tool calls**: Enabled for OpenAI provider when tools are available.
+- **No-tools mode**: New CLI option to disable all tool usage.
+- **Disabled tools functionality**: Support for selectively disabling specific tools.
+
+### Changed
+- **Configuration system**: Simplified by removing provider-specific settings.
+- **Max wait time**: Increased from 300s to 600s in LLMAgent for better handling of long-running operations.
+- **Custom system prompt UX**: Improved profile selection flow and user experience.
+- **OpenAI dependency**: Updated to require openai>=1.68.0.
+- **Code formatting**: Applied black formatting across the codebase.
+
+### Removed
+- **MistralAI provider**: Completely removed from the codebase.
+- **Provider-specific settings**: Simplified configuration system.
+
+### Documentation
+- Updated MoonshotAI setup guide with platform.moonshot.ai domain.
+- Improved CLI usage documentation and fixed syntax highlighting.
+- Removed broken references to model_info.py files in supported-providers-models.md.
+- Added comprehensive documentation updates across the project.
+
 ## [2.5.0] - 2025-07-01
 ### Added
 - Show working directory in chat mode startup message.
