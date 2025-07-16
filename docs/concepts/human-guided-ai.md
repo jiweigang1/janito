@@ -74,6 +74,12 @@ Adopting Human-Guided AI as a guiding philosophy empowers researchers, policymak
 
 ---
 
+## Security & Safety Considerations
+
+Although AI instruments amplify human capability, they can, like any other tool, be mis-used to cause harm. The Human-Guided AI principle therefore makes **no claim of providing additional, intrinsic technical safeguards beyond those that already apply at the point of use**. Ultimate responsibility for secure, lawful, and ethical operation lies with each user. Every deployment must adhere to the laws, regulations, and policies that govern the user’s jurisdiction and domain.
+
+---
+
 ## Conclusion
 
 The **Human-Guided AI principle** reframes artificial intelligence not as an independent mind but as a suite of instruments and tools—each a testament to human ingenuity and responsibility. As we harness these capabilities, we must remember:
