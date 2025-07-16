@@ -17,7 +17,7 @@ class LLMProvider(ABC):
     Abstract base class for Large Language Model (LLM) providers.
 
     Provider Usage and Driver Communication Flow:
-      1. Provider class is selected (e.g., OpenAIProvider, MistralProvider).
+      1. Provider class is selected (e.g., OpenAIProvider).
       2. An instance of the provider is created. This instance is bound to a specific configuration (LLMDriverConfig) containing model, credentials, etc.
       3. All drivers created by that provider instance are associated with the bound config.
       4. To communicate with an LLM, call create_driver() on the provider instance, which yields a driver configured for the attached config. Every driver created via this method inherits the provider's configuration.

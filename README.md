@@ -7,7 +7,7 @@ Janito is a command-line interface (CLI) tool for managing and interacting with 
 ## Features
 
 - 🔑 Manage API keys and provider configurations
-- 🤖 Interact with multiple LLM providers (OpenAI, Google Gemini, Mistral, DeepSeek, and more)
+- 🤖 Interact with multiple LLM providers (OpenAI, Google Gemini, DeepSeek, and more)
 - 🛠️ List and use a variety of registered tools
 - 📝 Submit prompts and receive responses directly from the CLI
 - 📋 List available models for each provider
