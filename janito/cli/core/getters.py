@@ -6,10 +6,17 @@ from janito.cli.cli_commands.list_providers import handle_list_providers
 from janito.cli.cli_commands.list_models import handle_list_models
 from janito.cli.cli_commands.list_tools import handle_list_tools
 from janito.cli.cli_commands.show_config import handle_show_config
+from janito.cli.cli_commands.list_config import handle_list_config
 from functools import partial
 from janito.provider_registry import ProviderRegistry
 
-GETTER_KEYS = ["show_config", "list_providers", "list_models", "list_tools"]
+GETTER_KEYS = [
+    "show_config",
+    "list_providers",
+    "list_models",
+    "list_tools",
+    "list_config",
+]
 
 
 def handle_getter(args, config_mgr=None):
@@ -29,6 +36,7 @@ def handle_getter(args, config_mgr=None):
         "list_models": partial(handle_list_models, args, provider_instance),
         "list_tools": partial(handle_list_tools, args),
         "show_config": partial(handle_show_config, args),
+        "list_config": partial(handle_list_config, args),
     }
     for arg in GETTER_KEYS:
         if getattr(args, arg, False) and arg in GETTER_DISPATCH:

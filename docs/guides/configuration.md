@@ -16,9 +16,23 @@ janito -p openai -m gpt-3.5-turbo "Your prompt here"
 - Use `-m MODEL_NAME` to select a model for the provider.
 - See [CLI Options](../reference/cli-options.md) for the full list of flags.
 
-## 3. Configuration File
+## 2. Using Custom Configuration Files
 
-Janito uses a `config.json` file located in the `.janito` directory under your home folder for persistent settings.
+You can use the `-c NAME` or `--config NAME` option to load and save configuration from a custom file:
+
+```bash
+janito -c myproject "Prompt for my project"
+```
+
+This will use the config file at:
+- Windows: `C:\Users\<YourUser>\.janito\configs\myproject.json`
+- Linux/macOS: `/home/<youruser>/.janito/configs/myproject.json`
+
+If the file does not exist, it will be created automatically when you save settings.
+
+## 3. Default Configuration File
+
+By default, Janito uses a `config.json` file located in the `.janito` directory under your home folder for persistent settings.
 
 **Path:**
 
@@ -33,6 +47,8 @@ Show the current configuration with:
 ```bash
 janito --show-config
 ```
+
+This will display the config file path at the top. If you use `-c NAME`, this will show the configuration for that custom file and its path.
 
 ## Advanced Configuration
 

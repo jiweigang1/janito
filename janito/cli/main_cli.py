@@ -99,6 +99,10 @@ definition = [
     (["--list-tools"], {"action": "store_true", "help": "List all registered tools"}),
     (["--show-config"], {"action": "store_true", "help": "Show the current config"}),
     (
+        ["--list-config"],
+        {"action": "store_true", "help": "List all configuration files"},
+    ),
+    (
         ["--list-providers"],
         {"action": "store_true", "help": "List supported LLM providers"},
     ),
@@ -159,6 +163,13 @@ definition = [
             "help": "Print debug info on event subscribe/submit methods",
         },
     ),
+    (
+        ["-c", "--config"],
+        {
+            "metavar": "NAME",
+            "help": "Use custom configuration file ~/.janito/configs/NAME.json instead of default config.json",
+        },
+    ),
 ]
 
 MODIFIER_KEYS = [
@@ -177,7 +188,13 @@ MODIFIER_KEYS = [
     "write",
 ]
 SETTER_KEYS = ["set", "set_provider", "set_api_key", "unset"]
-GETTER_KEYS = ["show_config", "list_providers", "list_models", "list_tools"]
+GETTER_KEYS = [
+    "show_config",
+    "list_providers",
+    "list_models",
+    "list_tools",
+    "list_config",
+]
 
 
 class RunMode(enum.Enum):
@@ -198,6 +215,29 @@ class JanitoCLI:
         self._define_args()
         self.args = self.parser.parse_args()
         self._set_all_arg_defaults()
+        # Support custom config file via -c/--config
+        if getattr(self.args, "config", None):
+            from janito import config as global_config
+            from janito.config_manager import ConfigManager
+            import sys
+            import importlib
+
+            config_name = self.args.config
+            # Re-initialize the global config singleton
+            new_config = ConfigManager(config_name=config_name)
+            # Ensure the config path is updated when the singleton already existed
+            from pathlib import Path
+
+            new_config.config_path = (
+                Path.home() / ".janito" / "configs" / f"{config_name}.json"
+            )
+            # Reload config from the selected file
+            new_config._load_file_config()
+            # Patch the global singleton reference
+            import janito.config as config_module
+
+            config_module.config = new_config
+            sys.modules["janito.config"].config = new_config
         # Support reading prompt from stdin if no user_prompt is given
         import sys
 
@@ -271,7 +311,10 @@ class JanitoCLI:
                 return
         # Special handling: provider is not required for list_providers, list_tools, show_config
         if run_mode == RunMode.GET and (
-            self.args.list_providers or self.args.list_tools or self.args.show_config
+            self.args.list_providers
+            or self.args.list_tools
+            or self.args.show_config
+            or self.args.list_config
         ):
             self._maybe_print_verbose_provider_model()
             handle_getter(self.args)

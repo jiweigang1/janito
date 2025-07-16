@@ -74,8 +74,9 @@ class OpenAIModelDriver(LLMDriver):
                 api_kwargs[p] = v
         api_kwargs["messages"] = conversation
         api_kwargs["stream"] = False
-        if self.tools_adapter and self.tools_adapter.get_tool_classes():
-            api_kwargs["parallel_tool_calls"] = True
+        # Always return the prepared kwargs, even if no tools are registered. The
+        # OpenAI Python SDK expects a **mapping** – passing *None* will raise
+        # ``TypeError: argument after ** must be a mapping, not NoneType``.
         return api_kwargs
 
     def _call_api(self, driver_input: DriverInput):

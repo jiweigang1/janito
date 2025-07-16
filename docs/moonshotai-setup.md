@@ -48,7 +48,7 @@ janito -p moonshotai -m kimi-k1-32k "Your prompt here"
 
 ## 5. Verify Your Configuration
 
-Show your current configuration:
+Show your current configuration (the config file path will be shown at the top):
 
 ```bash
 janito --show-config

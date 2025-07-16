@@ -38,7 +38,6 @@ MODEL_SPECS = {
             "supports_system": False,
             "supports_functions": True,
             "supports_tool_calls": True,
-            "supports_parallel_tool_calls": True,
             "supports_stream_options": False,
             "supports_include_usage": False,
         },

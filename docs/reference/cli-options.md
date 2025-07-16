@@ -1,6 +1,6 @@
 # 🏁 Janito CLI Options
 
-This page documents all command-line options for Janito, as shown by `janito --help`. These options temporarily override configuration for a single session and do not persist changes to config files.
+This page documents all command-line options for Janito, as shown by `janito --help`. These options temporarily override configuration for a single session and do not persist changes to config files unless you use `--set` or a custom config file with `-c`.
 
 **Syntax:** `janito [options] [prompt]`
 
@@ -14,6 +14,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 |--------|-------------|
 | `prompt` | Prompt to submit (optional positional argument) |
 | `-h`, `--help` | Show this help message and exit |
+| `-c NAME`, `--config NAME` | Use custom configuration file `~/.janito/configs/NAME.json` instead of the default config.json |
 | `--verbose-api` | Print API calls and responses of LLM driver APIs for debugging/tracing. |
 | `--verbose-tools` | Print info messages for tool execution in tools adapter. |
 | `--verbose-agent` | Print info messages for agent event and message part handling. |
@@ -25,21 +26,19 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 | `--unset KEY` | Unset (remove) a config key |
 | `--version` | Show program's version number and exit |
 | `--list-tools` | List all registered tools |
-| `--show-config` | Show the current config |
+| `--show-config` | Show the current config and config file path |
+| `--list-config` | List all config files (default and custom) |
 | `--list-providers` | List supported LLM providers |
 | `-l`, `--list-models` | List all supported models |
 | `--set-api-key API_KEY` | Set API key for the provider (requires -p PROVIDER) |
 | `--set KEY=VALUE` | Set a config key |
 | `-s SYSTEM_PROMPT`, `--system SYSTEM_PROMPT` | Set a system prompt |
 | `-S`, `--show-system` | Show the resolved system prompt for the main agent |
-
 | `-p PROVIDER`, `--provider PROVIDER` | Select the provider |
 | `-m MODEL`, `--model MODEL` | Select the model |
 | `-t TEMPERATURE`, `--temperature TEMPERATURE` | Set the temperature |
 | `-v`, `--verbose` | Print extra information before answering |
 | `-R`, `--raw` | Print the raw JSON response from the OpenAI API (if applicable) |
-
-
 | `--effort {low, medium, high, none}` | Set the reasoning effort for models that support it (low, medium, high, none) |
 | `-e`, `--event-log` | Enable event logging to the system bus |
 | `--event-debug` | Print debug info on event subscribe/submit methods |
@@ -49,7 +48,7 @@ These options are useful for one-off runs, scripting, or experimentation. They t
 ```sh
 janito [options] [prompt]
 janito -p openai -m gpt-3.5-turbo "Your prompt here"
-janito -p google -m gemini-2.5-flash "Your prompt here"
+janito -c myproject -p openai "Prompt for my project (uses ~/.janito/configs/myproject.json)"
 janito --list-tools
 janito --web  # Enable clickable file links via web viewer
 janito -u -x --read --write "Run a tool with unrestricted paths (DANGEROUS)"
@@ -96,7 +95,7 @@ The `--set` command supports the following configuration keys:
 | `model` | Set the default model | `--set model=gpt-4.1` |
 | `max_tokens` | Set maximum tokens | `--set max_tokens=4000` |
 | `base_url` | Set custom API base URL | `--set base_url=https://api.example.com` |
-| `tool_permissions` | Set tool permission level | `--set tool_permissions=rwe` |
+| `tool_permissions` | Set tool permission level | `--set tool_permissions=rwx` |
 | `disabled_tools` | Disable specific tools | `--set disabled_tools=ask_user,python_code_run` |
 
 For more details on disabling tools, see the [Disabling Tools Guide](../guides/disabled-tools.md).

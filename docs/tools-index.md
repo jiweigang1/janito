@@ -62,7 +62,7 @@ janito --set disabled_tools=ask_user
 # Disable code execution
 janito --set disabled_tools=python_code_run,run_powershell_command
 
-# View current disabled tools
+# View current disabled tools and config file path
 janito --show-config
 ```
 

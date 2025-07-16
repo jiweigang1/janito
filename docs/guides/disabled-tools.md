@@ -25,7 +25,7 @@ janito --set disabled_tools=""
 
 ### Via Configuration File
 
-Edit your `config.json` file (located in `~/.janito/config.json`) and add the `disabled_tools` key:
+Edit your configuration file (by default `~/.janito/config.json`, or a custom file if using `-c NAME` such as `~/.janito/configs/NAME.json`) and add the `disabled_tools` key:
 
 ```json
 {
@@ -35,6 +35,8 @@ Edit your `config.json` file (located in `~/.janito/config.json`) and add the `d
 }
 ```
 
+If you use `-c NAME`, the disabled tools will be saved and loaded from that custom config file.
+
 ## Viewing Disabled Tools
 
 Check which tools are currently disabled:
@@ -43,8 +45,9 @@ Check which tools are currently disabled:
 janito --show-config
 ```
 
-This will display a section showing your disabled tools, for example:
+This will display the config file path and a section showing your disabled tools, for example:
 ```
+Config file: /home/youruser/.janito/config.json
 Disabled tools: ask_user, python_code_run
 ```
 
@@ -116,6 +119,6 @@ Use the exact tool names as shown in `janito --list-tools`. Common tool names in
 
 ### Configuration Not Persisting
 
-- Verify the config file path: `janito --show-config` shows the location
-- Check file permissions for your `~/.janito/config.json` file
+- Verify the config file path: `janito --show-config` shows the config file location at the top (if using `-c NAME`, it will show the custom config file)
+- Check file permissions for your config file
 - Ensure no syntax errors in the JSON configuration

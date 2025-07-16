@@ -20,13 +20,22 @@ class ConfigManager:
                 cls._instance = super(ConfigManager, cls).__new__(cls)
         return cls._instance
 
-    def __init__(self, config_path=None, defaults=None, runtime_overrides=None):
+    def __init__(
+        self, config_path=None, defaults=None, runtime_overrides=None, config_name=None
+    ):
         # Lazy single-init
         if hasattr(self, "_initialized") and self._initialized:
             return
         self._initialized = True
 
-        self.config_path = Path(config_path or Path.home() / ".janito" / "config.json")
+        if config_name:
+            self.config_path = (
+                Path.home() / ".janito" / "configs" / f"{config_name}.json"
+            )
+        else:
+            self.config_path = Path(
+                config_path or Path.home() / ".janito" / "config.json"
+            )
         self.defaults = dict(defaults) if defaults else {}
         self.file_config = {}
         self.runtime_overrides = dict(runtime_overrides) if runtime_overrides else {}
