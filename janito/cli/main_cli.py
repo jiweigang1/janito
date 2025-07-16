@@ -103,6 +103,10 @@ definition = [
         {"action": "store_true", "help": "List all configuration files"},
     ),
     (
+        ["--list-profiles"],
+        {"action": "store_true", "help": "List available system prompt profiles"},
+    ),
+    (
         ["--list-providers"],
         {"action": "store_true", "help": "List supported LLM providers"},
     ),
@@ -191,6 +195,7 @@ SETTER_KEYS = ["set", "set_provider", "set_api_key", "unset"]
 GETTER_KEYS = [
     "show_config",
     "list_providers",
+    "list_profiles",
     "list_models",
     "list_tools",
     "list_config",
@@ -313,6 +318,7 @@ class JanitoCLI:
         if run_mode == RunMode.GET and (
             self.args.list_providers
             or self.args.list_tools
+            or self.args.list_profiles
             or self.args.show_config
             or self.args.list_config
         ):

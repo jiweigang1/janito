@@ -13,6 +13,7 @@ from janito.provider_registry import ProviderRegistry
 GETTER_KEYS = [
     "show_config",
     "list_providers",
+    "list_profiles",
     "list_models",
     "list_tools",
     "list_config",
@@ -31,10 +32,14 @@ def handle_getter(args, config_mgr=None):
             )
             sys.exit(1)
         provider_instance = ProviderRegistry().get_instance(provider)
+    # Lazy import to avoid overhead unless needed
+    from janito.cli.cli_commands.list_profiles import handle_list_profiles
+
     GETTER_DISPATCH = {
         "list_providers": partial(handle_list_providers, args),
         "list_models": partial(handle_list_models, args, provider_instance),
         "list_tools": partial(handle_list_tools, args),
+        "list_profiles": partial(handle_list_profiles, args),
         "show_config": partial(handle_show_config, args),
         "list_config": partial(handle_list_config, args),
     }

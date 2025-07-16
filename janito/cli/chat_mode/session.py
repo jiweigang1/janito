@@ -72,11 +72,13 @@ class ChatSession:
         self.provider_instance = provider_instance
         self.llm_driver_config = llm_driver_config
 
-        profile, role, profile_system_prompt, no_tools_mode = self._select_profile_and_role(args, role)
+        profile, role, profile_system_prompt, no_tools_mode = (
+            self._select_profile_and_role(args, role)
+        )
         # Propagate no_tools_mode flag to downstream components via args
-        if args is not None and not hasattr(args, 'no_tools_mode'):
+        if args is not None and not hasattr(args, "no_tools_mode"):
             try:
-                setattr(args, 'no_tools_mode', no_tools_mode)
+                setattr(args, "no_tools_mode", no_tools_mode)
             except Exception:
                 pass
         conversation_history = self._create_conversation_history()
@@ -126,7 +128,9 @@ class ChatSession:
                     profile = "Developer with Python Tools"
                 else:
                     profile = (
-                        "Developer with Python Tools" if result == "Developer" else result
+                        "Developer with Python Tools"
+                        if result == "Developer"
+                        else result
                     )
             except ImportError:
                 profile = "Raw Model Session (no tools, no context)"
@@ -200,13 +204,27 @@ class ChatSession:
             cwd_display = "~" + cwd[len(home) :]
         else:
             cwd_display = cwd
-        self.console.print(f"[green]Working Dir:[/green] {cwd_display}")
+        from janito.cli.chat_mode.shell.commands._priv_status import (
+            get_privilege_status_message,
+        )
+
+        priv_status = get_privilege_status_message()
+        self.console.print(
+            f"[green]Working Dir:[/green] {cwd_display}  |  {priv_status}"
+        )
 
         from janito.cli.chat_mode.shell.commands._priv_check import (
             user_has_any_privileges,
         )
 
-        if not user_has_any_privileges():
+        perms = __import__(
+            "janito.tools.permissions", fromlist=["get_global_allowed_permissions"]
+        ).get_global_allowed_permissions()
+        if perms.execute:
+            self.console.print(
+                "[bold red]Commands/Code execution is enabled -  Be cautious[/bold red]"
+            )
+        if not (perms.read or perms.write or perms.execute):
             self.console.print(
                 "[yellow]Note: You currently have no privileges enabled. If you need to interact with files or the system, enable permissions using /read on, /write on, or /execute on.[/yellow]"
             )
