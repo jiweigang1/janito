@@ -41,6 +41,7 @@ nav:
       - Overview: concepts/index.md
       - What Is a Language Model Client?: concepts/language-model-clients.md
       - Prompt Analysis Style: concepts/analysis-style.md
+      - Human-Guided AI Principle: concepts/human-guided-ai.md
   - About:
       - Why Janito?: about/why.md
       - Janito vs Web Chat Agents: about/vs-webchats.md

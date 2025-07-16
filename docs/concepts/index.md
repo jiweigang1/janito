@@ -9,4 +9,6 @@ This section collects foundational explanations, terminology, and conventions us
 - [Prompt Analysis Style](analysis-style.md)
 - [Prompt Design Style](prompt-design-style.md)
 
+- [Human-Guided AI Principle](human-guided-ai.md)
+
 *More topics will be added here as the documentation evolves.*
