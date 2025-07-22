@@ -15,7 +15,7 @@ unavailable_reason = OpenAIModelDriver.unavailable_reason
 class OpenAIProvider(LLMProvider):
     name = "openai"
     NAME = "openai"
-    MAINTAINER = "João Pinto <lamego.pinto@gmail.com>"
+    MAINTAINER = "João Pinto <janito@ikignosis.org>"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "gpt-4.1"  # Options: gpt-4.1, gpt-4o, o3-mini, o4-mini,
 

@@ -17,7 +17,7 @@ except ImportError:
 class GoogleProvider(LLMProvider):
     name = "google"
     NAME = "google"
-    MAINTAINER = "João Pinto <lamego.pinto@gmail.com>"
+    MAINTAINER = "João Pinto <janito@ikignosis.org>"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "gemini-2.5-flash"  # Default Gemini model
 

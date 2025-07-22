@@ -15,7 +15,7 @@ unavailable_reason = OpenAIModelDriver.unavailable_reason
 class DeepSeekProvider(LLMProvider):
     name = "deepseek"
     NAME = "deepseek"
-    MAINTAINER = "João Pinto <lamego.pinto@gmail.com>"
+    MAINTAINER = "João Pinto <janito@ikignosis.org>"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "deepseek-chat"  # Options: deepseek-chat, deepseek-reasoner
 

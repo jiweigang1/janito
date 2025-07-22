@@ -2,7 +2,7 @@ site_name: Janito
 site_name: Janito
 site_url: https://joaompinto.github.io/janito/
 docs_dir: docs
-repo_url: https://github.com/janito-dev/janito
+repo_url: https://github.com/ikignosis/janito
 repo_name: GitHub
 nav:
   - Home: index.md

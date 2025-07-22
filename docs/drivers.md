@@ -53,7 +53,7 @@ See `janito/drivers/openai/driver.py` for a complete example. Highlights:
 - Handles cancellation and error reporting robustly.
 
 ## References
-- Base class: [`janito/llm/driver.py`](https://github.com/janito-dev/janito/tree/main/janito/llm/driver.py)
-- OpenAI driver: [`janito/drivers/openai/driver.py`](https://github.com/janito-dev/janito/tree/main/janito/drivers/openai/driver.py)
-- Driver events: [`janito/driver_events.py`](https://github.com/janito-dev/janito/tree/main/janito/driver_events.py)
+- Base class: [`janito/llm/driver.py`](git@github.com:ikignosis/janito.git/tree/main/janito/llm/driver.py)
+- OpenAI driver: [`janito/drivers/openai/driver.py`](git@github.com:ikignosis/janito.git/tree/main/janito/drivers/openai/driver.py)
+- Driver events: [`janito/driver_events.py`](git@github.com:ikignosis/janito.git/tree/main/janito/driver_events.py)
 

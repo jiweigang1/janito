@@ -29,7 +29,7 @@ Janito is a command-line interface (CLI) tool for managing and interacting with 
 Janito is a Python package. Since this is a development version, you can install it directly from GitHub:
 
 ```bash
-pip install git+https://github.com/janito-dev/janito.git
+pip install git+git@github.com:ikignosis/janito.git
 ```
 
 ### First launch and quick setup
@@ -275,7 +275,7 @@ For more information, see the documentation in the `docs/` directory or run `jan
 
 ## 📖 Detailed Documentation
 
-Full and up-to-date documentation is available at: https://janito-dev.github.io/janito/
+Full and up-to-date documentation is available at: https://ikignosis.github.io/janito/
 
 ---
 
@@ -356,7 +356,7 @@ janito -p deepseek --list-models
 ## Ask Me Anything
 
 <div align="center">
-  <a href="https://github.com/janito-dev/janito" title="Ask Me Anything">
+  <a href="git@github.com:ikignosis/janito.git" title="Ask Me Anything">
     <img width="250" src="docs/imgs/ama.png" alt="Ask Me Anything">
   </a>
 </div

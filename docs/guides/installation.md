@@ -17,7 +17,7 @@ pip install janito
 
 ### From GitHub (Development Version)
 ```bash
-pip install git+https://github.com/janito-dev/janito.git
+pip install git+git@github.com:ikignosis/janito.git
 ```
 
 > For development setup and contributing, see [Developing & Extending](developing.md).

@@ -11,13 +11,13 @@ from janito.drivers.azure_openai.driver import AzureOpenAIModelDriver
 
 available = AzureOpenAIModelDriver.available
 unavailable_reason = AzureOpenAIModelDriver.unavailable_reason
-maintainer = "João Pinto <lamego.pinto@gmail.com>"
+maintainer = "João Pinto <janito@ikignosis.org>"
 
 
 class AzureOpenAIProvider(LLMProvider):
     name = "azure_openai"
     NAME = "azure_openai"
-    MAINTAINER = "João Pinto <lamego.pinto@gmail.com>"
+    MAINTAINER = "João Pinto <janito@ikignosis.org>"
     MODEL_SPECS = MODEL_SPECS
     DEFAULT_MODEL = "azure_openai_deployment"
 

@@ -10,7 +10,7 @@ from .model_info import MOONSHOTAI_MODEL_SPECS
 class MoonshotAIProvider(LLMProvider):
     name = "moonshotai"
     NAME = "moonshotai"
-    MAINTAINER = "João Pinto <lamego.pinto@gmail.com>"
+    MAINTAINER = "João Pinto <janito@ikignosis.org>"
     MODEL_SPECS = MOONSHOTAI_MODEL_SPECS
     DEFAULT_MODEL = "kimi-k2-0711-preview"
 
