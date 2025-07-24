@@ -1,4 +1,4 @@
-# Janito
+# Janito, control you context
 
 [![PyPI version](https://badge.fury.io/py/janito.svg)](https://badge.fury.io/py/janito)
 
