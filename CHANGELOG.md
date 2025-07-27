@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+### Changed
+- Updated project URLs, author email, and documentation for migration to ikignosis organization.
+- Updated repository links in documentation and configuration files to point to ikignosis GitHub organization.
+- Changed maintainer email in provider modules to janito@ikignosis.org.
+- Updated homepage and repo_url in pyproject.toml and mkdocs.yml to new organization URLs.
+
+### Added
+- Added CNAME file for docs.ikignosis.org custom domain.
+- Added CLI command to list available system prompt profiles (`list_profiles.py`).
+- Added privilege status message utility (`_priv_status.py`).
+
+### Style
+- Fixed formatting in CLI command and privilege status modules.
+
 ## [2.8.0] - 2025-07-16
 ### Added
 - **Groq provider**: New provider with support for moonshotai/kimi-k2-instruct model.
