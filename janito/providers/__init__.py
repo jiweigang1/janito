@@ -5,4 +5,4 @@ import janito.providers.azure_openai.provider
 import janito.providers.anthropic.provider
 import janito.providers.deepseek.provider
 import janito.providers.moonshotai.provider
-import janito.providers.groq.provider
+import janito.providers.alibaba.provider

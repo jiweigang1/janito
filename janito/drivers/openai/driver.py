@@ -246,6 +246,13 @@ class OpenAIModelDriver(LLMDriver):
 
     def _instantiate_openai_client(self, config):
         try:
+            if not config.api_key:
+                provider_name = getattr(self, 'provider_name', 'OpenAI-compatible')
+                print(f"[ERROR] No API key found for provider '{provider_name}'. Please set the API key using:")
+                print(f"  janito --set-api-key YOUR_API_KEY -p {provider_name.lower()}")
+                print(f"Or set the {provider_name.upper()}_API_KEY environment variable.")
+                raise ValueError(f"API key is required for provider '{provider_name}'")
+
             api_key_display = str(config.api_key)
             if api_key_display and len(api_key_display) > 8:
                 api_key_display = api_key_display[:4] + "..." + api_key_display[-4:]

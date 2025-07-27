@@ -12,12 +12,12 @@ available = OpenAIModelDriver.available
 unavailable_reason = OpenAIModelDriver.unavailable_reason
 
 
-class DeepSeekProvider(LLMProvider):
-    name = "deepseek"
-    NAME = "deepseek"
+class AlibabaProvider(LLMProvider):
+    name = "alibaba"
+    NAME = "alibaba"
     MAINTAINER = "João Pinto <janito@ikignosis.org>"
     MODEL_SPECS = MODEL_SPECS
-    DEFAULT_MODEL = "deepseek-chat"  # Options: deepseek-chat, deepseek-reasoner
+    DEFAULT_MODEL = "qwen-turbo"  # Options: qwen-turbo, qwen-plus, qwen-max
 
     def __init__(
         self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
@@ -25,6 +25,10 @@ class DeepSeekProvider(LLMProvider):
         # Always set a tools adapter so that even if the driver is unavailable,
         # generic code paths that expect provider.execute_tool() continue to work.
         self._tools_adapter = get_local_tools_adapter()
+        
+        # Always initialize _driver_config to avoid AttributeError
+        self._driver_config = config or LLMDriverConfig(model=None)
+        
         if not self.available:
             self._driver = None
         else:
@@ -33,25 +37,22 @@ class DeepSeekProvider(LLMProvider):
             if not self._api_key:
                 print(f"[ERROR] No API key found for provider '{self.name}'. Please set the API key using:")
                 print(f"  janito --set-api-key YOUR_API_KEY -p {self.name}")
-                print(f"Or set the DEEPSEEK_API_KEY environment variable.")
-                return
+                print(f"Or set the ALIBABA_API_KEY environment variable.")
             
-            self._tools_adapter = get_local_tools_adapter()
-            self._driver_config = config or LLMDriverConfig(model=None)
             if not self._driver_config.model:
                 self._driver_config.model = self.DEFAULT_MODEL
             if not self._driver_config.api_key:
                 self._driver_config.api_key = self._api_key
-            # Set DeepSeek public endpoint as default base_url if not provided
+            # Set Alibaba international endpoint as default base_url if not provided
             if not getattr(self._driver_config, "base_url", None):
-                self._driver_config.base_url = "https://api.deepseek.com/v1"
+                self._driver_config.base_url = "https://dashscope-intl.aliyuncs.com/compatible-mode/v1"
             self.fill_missing_device_info(self._driver_config)
             self._driver = None  # to be provided by factory/agent
 
     @property
     def driver(self) -> OpenAIModelDriver:
         if not self.available:
-            raise ImportError(f"OpenAIProvider unavailable: {self.unavailable_reason}")
+            raise ImportError(f"AlibabaProvider unavailable: {self.unavailable_reason}")
         return self._driver
 
     @property
@@ -69,7 +70,7 @@ class DeepSeekProvider(LLMProvider):
         driver = OpenAIModelDriver(
             tools_adapter=self._tools_adapter, provider_name=self.name
         )
-        driver.config = self._driver_config
+        driver.config = self.driver_config
         # NOTE: The caller is responsible for calling driver.start() if background processing is needed.
         return driver
 
@@ -98,4 +99,4 @@ class DeepSeekProvider(LLMProvider):
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
 
 
-LLMProviderRegistry.register(DeepSeekProvider.NAME, DeepSeekProvider)
+LLMProviderRegistry.register(AlibabaProvider.NAME, AlibabaProvider)

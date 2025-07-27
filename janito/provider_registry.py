@@ -93,10 +93,10 @@ class ProviderRegistry:
                 model_specs = model_info_mod.MODEL_SPECS
             elif hasattr(model_info_mod, "MOONSHOTAI_MODEL_SPECS"):
                 model_specs = model_info_mod.MOONSHOTAI_MODEL_SPECS
-
-            if provider_name == "groq":
-                return "<any> (must be provided)"
             if model_specs:
+                if provider_name == "moonshotai":
+                    # Show all MoonshotAI model keys (e.g., kimi-k2-0711-preview)
+                    return ", ".join(model_specs.keys())
                 return ", ".join(model_specs.keys())
             return "-"
         except Exception as e:

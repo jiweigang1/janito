@@ -19,7 +19,6 @@ All notable changes to this project will be documented in this file.
 
 ## [2.8.0] - 2025-07-16
 ### Added
-- **Groq provider**: New provider with support for moonshotai/kimi-k2-instruct model.
 - **Parallel tool calls**: Enabled for OpenAI provider when tools are available.
 - **No-tools mode**: New CLI option to disable all tool usage.
 - **Disabled tools functionality**: Support for selectively disabling specific tools.
