@@ -52,8 +52,8 @@ class ChatScriptRunner:
         inputs: List[str],
         *,
         console: Optional[Console] = None,
-        provider: str = "openai",
-        model: str = "gpt-4.1",
+        provider: str = "moonshotai",
+        model: str = "kimi-k1-8k",
         use_real_agent: bool = True,
         **chat_session_kwargs,
     ) -> None:
