@@ -3,19 +3,23 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
-### Changed
-- Updated project URLs, author email, and documentation for migration to ikignosis organization.
-- Updated repository links in documentation and configuration files to point to ikignosis GitHub organization.
-- Changed maintainer email in provider modules to janito@ikignosis.org.
-- Updated homepage and repo_url in pyproject.toml and mkdocs.yml to new organization URLs.
 
+## [2.9.0] - 2025-07-16
 ### Added
-- Added CNAME file for docs.ikignosis.org custom domain.
-- Added CLI command to list available system prompt profiles (`list_profiles.py`).
-- Added privilege status message utility (`_priv_status.py`).
+- Added new `kimi-k2-turbo-preview` model to MoonshotAI provider
+- Added visual indicators for default models in provider registry with star icons
 
-### Style
-- Fixed formatting in CLI command and privilege status modules.
+### Changed
+- Updated default MoonshotAI model from `kimi-k2-0711-preview` to `kimi-k2-turbo-preview`
+- Updated all documentation to reflect new MoonshotAI model names and recommendations
+- Updated project URLs, author email, and documentation for migration to ikignosis organization
+- Updated repository links in documentation and configuration files to point to ikignosis GitHub organization
+- Changed maintainer email in provider modules to janito@ikignosis.org
+- Updated homepage and repo_url in pyproject.toml and mkdocs.yml to new organization URLs
+
+### Fixed
+- Fixed duplicate entries in supported providers documentation
+- Fixed formatting in CLI command and privilege status modules
 
 ## [2.8.0] - 2025-07-16
 ### Added

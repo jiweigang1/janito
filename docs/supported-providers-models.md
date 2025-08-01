@@ -18,8 +18,11 @@ This page lists the supported providers and their available models.
 - Claude 3 Haiku
 
 ## MoonshotAI
-- Moonshot-v1-8k
-- Moonshot-v1-32k
+- kimi-k2-turbo-preview
+- kimi-k2-turbo-preview
+- kimi-k1-8k
+- kimi-k1-32k
+- kimi-k1-128k
 
 - Llama-3-8b-8192
 - Llama-3-70b-8192

@@ -72,7 +72,8 @@ Janito supports these MoonshotAI models:
 - **kimi-k1-8k**: Fast responses, good for general tasks
 - **kimi-k1-32k**: Better for longer contexts
 - **kimi-k1-128k**: Best for very long documents
-- **kimi-k2-0711-preview**: Latest model with enhanced capabilities
+- **kimi-k2-turbo-preview**: Latest model with enhanced capabilities
+- **kimi-k2-turbo-preview**: Turbo version of the advanced reasoning model
 
 ## Next Steps
 

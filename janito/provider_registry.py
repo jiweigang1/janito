@@ -93,11 +93,21 @@ class ProviderRegistry:
                 model_specs = model_info_mod.MODEL_SPECS
             elif hasattr(model_info_mod, "MOONSHOTAI_MODEL_SPECS"):
                 model_specs = model_info_mod.MOONSHOTAI_MODEL_SPECS
+            
             if model_specs:
+                default_model = getattr(provider_class, "DEFAULT_MODEL", None)
+                model_names = []
+                
+                for model_key in model_specs.keys():
+                    if model_key == default_model:
+                        # Highlight the default model with color and star icon
+                        model_names.append(f"[bold green]⭐ {model_key}[/bold green]")
+                    else:
+                        model_names.append(model_key)
+                
                 if provider_name == "moonshotai":
-                    # Show all MoonshotAI model keys (e.g., kimi-k2-0711-preview)
-                    return ", ".join(model_specs.keys())
-                return ", ".join(model_specs.keys())
+                    return ", ".join(model_names)
+                return ", ".join(model_names)
             return "-"
         except Exception as e:
             return "-"

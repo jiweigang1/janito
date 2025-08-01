@@ -21,7 +21,7 @@ janito --set model=kimi-k1-8k
 - **kimi-k1-8k**: Fast, general-purpose model (8k context)
 - **kimi-k1-32k**: Extended context model (32k context)
 - **kimi-k1-128k**: Long context model (128k context)
-- **kimi-k2-0711-preview**: Latest enhanced model
+- **kimi-k2-turbo-preview**: Latest enhanced model
 
 ### Environment Variables
 ```bash
