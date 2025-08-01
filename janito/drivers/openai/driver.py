@@ -44,9 +44,10 @@ class OpenAIModelDriver(LLMDriver):
 
                 tool_classes = self.tools_adapter.get_tool_classes()
                 tool_schemas = generate_tool_schemas(tool_classes)
-                api_kwargs["tools"] = tool_schemas
+                if tool_schemas:  # Only add tools if we have actual schemas
+                    api_kwargs["tools"] = tool_schemas
             except Exception as e:
-                api_kwargs["tools"] = []
+                # Don't add empty tools array - some providers reject it
                 if hasattr(config, "verbose_api") and config.verbose_api:
                     print(f"[OpenAIModelDriver] Tool schema generation failed: {e}")
         # OpenAI-specific parameters

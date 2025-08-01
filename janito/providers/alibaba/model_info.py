@@ -30,4 +30,11 @@ MODEL_SPECS = {
         category="Alibaba Qwen3 Coder Plus Model (OpenAI-compatible)",
         driver="OpenAIModelDriver",
     ),
+    "qwen3-coder-480b-a35b-instruct": LLMModelInfo(
+        name="qwen3-coder-480b-a35b-instruct",
+        context=262144,
+        max_response=65536,
+        category="Alibaba Qwen3 Coder 480B A35B Instruct Model (OpenAI-compatible)",
+        driver="OpenAIModelDriver",
+    ),
 }

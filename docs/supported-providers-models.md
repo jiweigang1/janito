@@ -32,5 +32,6 @@ This page lists the supported providers and their available models.
 - qwen-plus
 - qwen-max
 - qwen3-coder-plus
+- qwen3-coder-480b-a35b-instruct
 
 <!-- Removed links to model_info.py files for all providers to avoid broken references. -->
