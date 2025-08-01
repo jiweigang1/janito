@@ -2,6 +2,7 @@
 
 from janito.llm.driver_config import LLMDriverConfig
 from janito.provider_config import get_config_provider
+from janito.cli.core.model_guesser import guess_provider_from_model as _guess_provider_from_model
 from janito.cli.verbose_output import print_verbose_info
 
 
@@ -14,6 +15,17 @@ def _choose_provider(args):
                 "Default provider", provider, style="magenta", align_content=True
             )
         elif provider is None:
+            # Try to guess provider based on model name if -m is provided
+            model = getattr(args, "model", None)
+            if model:
+                guessed_provider = _guess_provider_from_model(model)
+                if guessed_provider:
+                    if getattr(args, "verbose", False):
+                        print_verbose_info(
+                            "Guessed provider", guessed_provider, style="magenta", align_content=True
+                        )
+                    return guessed_provider
+            
             print(
                 "Error: No provider selected and no provider found in config. Please set a provider using '-p PROVIDER', '--set provider=name', or configure a provider."
             )
