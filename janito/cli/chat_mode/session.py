@@ -109,6 +109,9 @@ class ChatSession:
         )
         self._support = False
 
+        # Check if multi-line mode should be enabled by default
+        self.multi_line_mode = getattr(args, "multi", False) if args else False
+
     def _select_profile_and_role(self, args, role):
         profile = getattr(args, "profile", None) if args is not None else None
         role_arg = getattr(args, "role", None) if args is not None else None
@@ -213,6 +216,11 @@ class ChatSession:
             f"[green]Working Dir:[/green] {cwd_display}  |  {priv_status}"
         )
 
+        if self.multi_line_mode:
+            self.console.print(
+                "[blue]Multi-line input mode enabled (Esc+Enter or Ctrl+D to submit)[/blue]"
+            )
+
         from janito.cli.chat_mode.shell.commands._priv_check import (
             user_has_any_privileges,
         )
@@ -305,6 +313,7 @@ class ChatSession:
             bottom_toolbar=lambda: get_toolbar_func(
                 self.performance_collector, 0, self.shell_state
             )(),
+            multiline=self.multi_line_mode,
         )
 
     def _handle_input(self, session):

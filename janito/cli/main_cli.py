@@ -22,6 +22,13 @@ definition = [
         },
     ),
     (
+        ["--multi"],
+        {
+            "action": "store_true",
+            "help": "Start chat mode with multi-line input as default (no need for /multi command)",
+        },
+    ),
+    (
         ["--profile"],
         {
             "metavar": "PROFILE",

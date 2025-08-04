@@ -32,6 +32,7 @@ You can use these commands at any time (prefix with `/` or just type the name):
 | `/lang <code>`         | Change the interface language (e.g., `/lang pt`, `/lang en`)      |
 | `/clear`               | Clear the terminal screen                                        |
 | `/multi`               | Enter multiline input mode (write multi-line text, Esc+Enter)    |
+| `--multi` (CLI arg)    | Start chat mode with multiline input as default (no need for /multi) |
 | `/config`              | Show or set configuration (see: `/config show`, `/config set local|global key=value`) |
 | `/edit <filename>`     | Open a file in the browser-based editor                          |
 | `/view`                | Print the current LLM conversation history                       |
