@@ -1,6 +1,6 @@
 site_name: Janito CLI Documentation
 site_description: A powerful command-line tool for running LLM-powered workflows
-site_url: https://janito.readthedocs.io/
+site_url: https://ikignosis.github.io/janito/
 
 nav:
   - Home: README.md
