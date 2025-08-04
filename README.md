@@ -275,7 +275,7 @@ For more information, see the documentation in the `docs/` directory or run `jan
 
 ## 📖 Detailed Documentation
 
-Full and up-to-date documentation is available at: https://ikignosis.github.io/janito/
+Full and up-to-date documentation is available at: https://docs.janito.dev/
 
 ---
 
