@@ -1,0 +1,55 @@
+from janito.llm.model import LLMModelInfo
+
+MODEL_SPECS = {
+    "glm-4.5": LLMModelInfo(
+        name="glm-4.5",
+        context=128000,
+        max_input=128000,
+        max_cot=4096,
+        max_response=4096,
+        thinking_supported=True,
+        other={
+            "description": "Z.AI's GLM-4.5 model for advanced reasoning and conversation",
+            "supports_tools": True,
+            "supports_images": True,
+            "supports_audio": False,
+            "supports_video": False,
+            "input_cost_per_1k": 0.0005,
+            "output_cost_per_1k": 0.0015,
+        },
+    ),
+    "glm-4": LLMModelInfo(
+        name="glm-4",
+        context=128000,
+        max_input=128000,
+        max_cot="N/A",
+        max_response=4096,
+        thinking_supported=False,
+        other={
+            "description": "Z.AI's GLM-4 model for general purpose tasks",
+            "supports_tools": True,
+            "supports_images": True,
+            "supports_audio": False,
+            "supports_video": False,
+            "input_cost_per_1k": 0.0003,
+            "output_cost_per_1k": 0.0009,
+        },
+    ),
+    "glm-4v": LLMModelInfo(
+        name="glm-4v",
+        context=128000,
+        max_input=128000,
+        max_cot="N/A",
+        max_response=4096,
+        thinking_supported=False,
+        other={
+            "description": "Z.AI's GLM-4V vision model for image understanding",
+            "supports_tools": True,
+            "supports_images": True,
+            "supports_audio": False,
+            "supports_video": False,
+            "input_cost_per_1k": 0.0004,
+            "output_cost_per_1k": 0.0012,
+        },
+    ),
+}
