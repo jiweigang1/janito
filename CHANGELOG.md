@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.11.0] - 2025-08-04
+
+### Added
+
+- **Z.AI Provider**: Added complete support for Z.AI with GLM-4.5, GLM-4, and GLM-4V models
+  - GLM-4.5: 128k context with thinking support for advanced reasoning
+  - GLM-4: General-purpose model with 128k context
+  - GLM-4V: Vision model for image understanding with 128k context
+- **Alibaba Cloud Provider**: Added support for Alibaba Cloud's Qwen models
+  - qwen-turbo, qwen-plus, qwen-max, and qwen3-coder-plus models
+- Updated supported providers documentation to include new Z.AI and Alibaba Cloud providers
+
+### Changed
+
+- Enhanced provider registry with new visual indicators and improved model listing
+- Updated documentation to reflect new provider additions and model availability
+
+### Removed
+
+- Removed deprecated PROVIDERS.md file from janito/docs (content merged into supported-providers-models.md)
+
 ## [2.9.0] - 2025-07-16
 ### Added
 - Added new `kimi-k2-turbo-preview` model to MoonshotAI provider
