@@ -4,7 +4,7 @@ Generate OpenAI-compatible tool schemas for Z.AI API.
 
 import inspect
 from typing import get_type_hints, Dict, Any, Optional, List, Union
-from janito.tools import Tool
+from janito.tools.tool_base import ToolBase
 
 
 def generate_tool_schemas(tool_classes):
@@ -35,14 +35,16 @@ def generate_tool_schema(tool_class):
     Returns:
         OpenAI-compatible tool schema dict
     """
-    if not issubclass(tool_class, Tool):
+    if not issubclass(tool_class, ToolBase):
         return None
 
     tool_instance = tool_class()
 
-    # Get the execute method
+    # Get the execute or run method
     execute_method = getattr(tool_class, "execute", None)
-    if not execute_method:
+    if execute_method is None:
+        execute_method = getattr(tool_class, "run", None)
+    if execute_method is None:
         return None
 
     # Get method signature and type hints
@@ -78,7 +80,7 @@ def generate_tool_schema(tool_class):
     schema = {
         "type": "function",
         "function": {
-            "name": tool_class.__name__,
+            "name": getattr(tool_instance, "tool_name", tool_class.__name__),
             "description": getattr(
                 tool_instance, "description", f"Execute {tool_class.__name__}"
             ),

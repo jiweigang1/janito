@@ -52,15 +52,15 @@ class ZAIModelDriver(LLMDriver):
         # Z.AI-specific parameters
         if config.model:
             api_kwargs["model"] = config.model
-        # Prefer max_completion_tokens if present, else fallback to max_tokens (for backward compatibility)
-        if (
+        # Use max_tokens for Z.ai SDK compatibility
+        if hasattr(config, "max_tokens") and config.max_tokens is not None:
+            api_kwargs["max_tokens"] = int(config.max_tokens)
+        elif (
             hasattr(config, "max_completion_tokens")
             and config.max_completion_tokens is not None
         ):
-            api_kwargs["max_completion_tokens"] = int(config.max_completion_tokens)
-        elif hasattr(config, "max_tokens") and config.max_tokens is not None:
-            # For models that do not support 'max_tokens', map to 'max_completion_tokens'
-            api_kwargs["max_completion_tokens"] = int(config.max_tokens)
+            # Fallback to max_completion_tokens if max_tokens not set
+            api_kwargs["max_tokens"] = int(config.max_completion_tokens)
         for p in (
             "temperature",
             "top_p",
@@ -260,10 +260,6 @@ class ZAIModelDriver(LLMDriver):
             api_key_display = str(config.api_key)
             if api_key_display and len(api_key_display) > 8:
                 api_key_display = api_key_display[:4] + "..." + api_key_display[-4:]
-            client_kwargs = {
-                "api_key": config.api_key,
-                "base_url": "https://api.z.ai/api/paas/v4",
-            }
 
             # HTTP debug wrapper
             if os.environ.get("ZAI_DEBUG_HTTP", "0") == "1":
@@ -280,7 +276,12 @@ class ZAIModelDriver(LLMDriver):
                     flush=True,
                 )
 
-            client = openai.OpenAI(**client_kwargs)
+            # Use the official Z.ai SDK
+            from zai import ZaiClient
+
+            client = ZaiClient(
+                api_key=config.api_key, base_url="https://api.z.ai/api/paas/v4/"
+            )
             return client
         except Exception as e:
             print(

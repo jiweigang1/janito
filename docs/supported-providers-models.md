@@ -42,7 +42,6 @@ This page lists the supported providers and their available models.
 ## Z.AI
 
 - glm-4.5
-- glm-4
-- glm-4v
+- glm-4.5-air
 
 <!-- Removed links to model_info.py files for all providers to avoid broken references. -->
