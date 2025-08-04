@@ -6,3 +6,4 @@ import janito.providers.anthropic.provider
 import janito.providers.deepseek.provider
 import janito.providers.moonshotai.provider
 import janito.providers.alibaba.provider
+import janito.providers.zai.provider
