@@ -43,6 +43,7 @@ class ZAIProvider(LLMProvider):
             )
             print(f"  janito --set-api-key YOUR_API_KEY -p {self.name}")
             print(f"Or set the ZAI_API_KEY environment variable.")
+            self._tools_adapter = get_local_tools_adapter()
             return
 
         self._tools_adapter = get_local_tools_adapter()
