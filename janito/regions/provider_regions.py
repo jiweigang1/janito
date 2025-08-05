@@ -24,61 +24,21 @@ class RegionEndpoint:
 PROVIDER_REGIONS: Dict[str, List[RegionEndpoint]] = {
     "openai": [
         RegionEndpoint(
-            "US-EAST", "US East", "https://api.openai.com/v1", "Ashburn, US", 1
-        ),
-        RegionEndpoint(
-            "US-WEST", "US West", "https://api.openai.com/v1", "San Jose, US", 2
-        ),
-        RegionEndpoint(
-            "EU-CENTRAL", "EU Central", "https://api.openai.com/v1", "Frankfurt, DE", 3
-        ),
-        RegionEndpoint(
-            "ASIA-PACIFIC",
-            "Asia Pacific",
-            "https://api.openai.com/v1",
-            "Singapore, SG",
-            4,
+            "US-WEST", "US West", "https://api.openai.com/v1", "San Francisco, US", 1
         ),
     ],
     "anthropic": [
         RegionEndpoint(
-            "US-EAST", "US East", "https://api.anthropic.com", "Ashburn, US", 1
-        ),
-        RegionEndpoint(
-            "US-WEST", "US West", "https://api.anthropic.com", "San Jose, US", 2
-        ),
-        RegionEndpoint(
-            "EU-CENTRAL", "EU Central", "https://api.anthropic.com", "Frankfurt, DE", 3
+            "US-WEST", "US West", "https://api.anthropic.com", "San Francisco, US", 1
         ),
     ],
     "google": [
         RegionEndpoint(
-            "US-CENTRAL",
-            "US Central",
-            "https://generativelanguage.googleapis.com/v1beta",
-            "Council Bluffs, US",
-            1,
-        ),
-        RegionEndpoint(
-            "US-EAST",
-            "US East",
-            "https://generativelanguage.googleapis.com/v1beta",
-            "Moncks Corner, US",
-            2,
-        ),
-        RegionEndpoint(
             "EU-WEST",
             "EU West",
             "https://generativelanguage.googleapis.com/v1beta",
-            "St. Ghislain, BE",
-            3,
-        ),
-        RegionEndpoint(
-            "ASIA-EAST",
-            "Asia East",
-            "https://generativelanguage.googleapis.com/v1beta",
-            "Tokyo, JP",
-            4,
+            "Delfzijl, NL",
+            1,
         ),
     ],
     "azure-openai": [
@@ -126,38 +86,25 @@ PROVIDER_REGIONS: Dict[str, List[RegionEndpoint]] = {
             "Hangzhou, CN",
             2,
         ),
-        RegionEndpoint(
-            "CN-NORTH",
-            "China North",
-            "https://dashscope.aliyuncs.com/api/v1",
-            "Beijing, CN",
-            3,
-        ),
-        RegionEndpoint(
-            "CN-SOUTH",
-            "China South",
-            "https://dashscope.aliyuncs.com/api/v1",
-            "Shenzhen, CN",
-            4,
-        ),
     ],
     "moonshot": [
         RegionEndpoint(
-            "CN-EAST", "China East", "https://api.moonshot.cn/v1", "Shanghai, CN", 1
+            "US-WEST", "US West", "https://api.moonshot.ai/v1", "San Francisco, US", 1
         ),
         RegionEndpoint(
-            "CN-NORTH", "China North", "https://api.moonshot.cn/v1", "Beijing, CN", 2
+            "CN-EAST", "China East", "https://api.moonshot.cn/v1", "Shanghai, CN", 2
+        ),
+        RegionEndpoint(
+            "CN-NORTH", "China North", "https://api.moonshot.cn/v1", "Beijing, CN", 3
         ),
     ],
     "zai": [
         RegionEndpoint(
-            "US-CENTRAL", "US Central", "https://api.zai.dev/v1", "Chicago, US", 1
-        ),
-        RegionEndpoint(
-            "EU-CENTRAL", "EU Central", "https://api.zai.dev/v1", "Frankfurt, DE", 2
-        ),
-        RegionEndpoint(
-            "ASIA-PACIFIC", "Asia Pacific", "https://api.zai.dev/v1", "Singapore, SG", 3
+            "ASIA-PACIFIC",
+            "Asia Pacific",
+            "https://api.z.ai/api/paas/v4",
+            "Singapore, SG",
+            1,
         ),
     ],
 }

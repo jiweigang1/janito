@@ -28,7 +28,7 @@ def handle_list_providers_region(args=None):
     table = Table(title="LLM Providers by Region")
     table.add_column("Provider", style="cyan", no_wrap=True)
     table.add_column("Region", style="green")
-    table.add_column("Endpoint", style="blue")
+    table.add_column("Endpoint", style="bright_white")
 
     for provider in sorted(providers):
         regions = PROVIDER_REGIONS.get(provider, [])
@@ -54,7 +54,11 @@ def handle_list_providers_region(args=None):
             region_code = (
                 user_region
                 if any(r.region_code.startswith(user_region) for r in regions)
-                else best_region.region_code[:2]
+                else (
+                    "APAC"
+                    if best_region.region_code == "ASIA-PACIFIC"
+                    else best_region.region_code[:2]
+                )
             )
 
         table.add_row(
@@ -73,7 +77,7 @@ def handle_list_providers_region(args=None):
 
     # Show region mapping info
     console.print(
-        "\n[dim]Regions: US (United States), EU (Europe), CN (China), CH (Switzerland), ASIA (Asia Pacific)[/dim]"
+        "\n[dim]Regions: US (United States), EU (Europe), CN (China), CH (Switzerland), APAC (Asia Pacific)[/dim]"
     )
 
 
