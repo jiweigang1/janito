@@ -4,7 +4,32 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [2.11.0] - 2025-08-04
+## [2.16.0] - 2025-01-08
+
+### Added
+
+- Added `--python` CLI flag to start with the Python developer profile without manual profile selection
+- Added `--list-drivers` CLI command to list available LLM drivers and their dependencies
+- Added `--multi` CLI option for default multiline input in chat mode
+- Enhanced model information display with backend hostname in both chat and single-shot modes
+
+### Changed
+
+- Updated Z.AI provider to use official SDK with improved model support
+- Changed default GLM model from air to regular version
+- Updated documentation URLs to use GitHub Pages default domain
+
+### Fixed
+
+- Fixed AttributeError when ZAIProvider API key is missing
+- Removed accidentally committed test files
+- Improved error handling and user experience in profile selection
+
+### Security
+
+- Enhanced privilege checking and status display in chat sessions
+
+## [2.15.0] - 2025-08-05
 
 ### Added
 

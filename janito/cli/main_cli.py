@@ -37,6 +37,13 @@ definition = [
         },
     ),
     (
+        ["--python"],
+        {
+            "action": "store_true",
+            "help": "Start with the Python developer profile (equivalent to --profile 'Developer with Python Tools')",
+        },
+    ),
+    (
         ["--role"],
         {
             "metavar": "ROLE",
@@ -119,7 +126,10 @@ definition = [
     ),
     (
         ["--list-drivers"],
-        {"action": "store_true", "help": "List available LLM drivers and their dependencies"},
+        {
+            "action": "store_true",
+            "help": "List available LLM drivers and their dependencies",
+        },
     ),
     (
         ["-l", "--list-models"],
@@ -192,6 +202,7 @@ MODIFIER_KEYS = [
     "model",
     "role",
     "profile",
+    "python",
     "system",
     "temperature",
     "verbose",

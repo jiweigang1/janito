@@ -29,7 +29,7 @@ def format_token_message_summary(
     msg_count, usage, width=96, use_rich=False, elapsed=None
 ):
     """
-    Returns a string (rich or pt markup) summarizing message count, last token usage, and elapsed time.
+    Returns a string (rich or pt markup) summarizing message count, last token usage, elapsed time, and tokens per second.
     """
     left = f" Messages: {'[' if use_rich else '<'}msg_count{']' if use_rich else '>'}{msg_count}{'[/msg_count]' if use_rich else '</msg_count>'}"
     tokens_part = ""
@@ -42,10 +42,14 @@ def format_token_message_summary(
             f"Completion: {format_tokens(completion_tokens, 'tokens_out', use_rich)}, "
             f"Total: {format_tokens(total_tokens, 'tokens_total', use_rich)}"
         )
-    elapsed_part = (
-        f" | Elapsed: [cyan]{elapsed:.2f}s[/cyan]" if elapsed is not None else ""
-    )
-    return f"{left}{tokens_part}{elapsed_part}"
+    elapsed_part = ""
+    tps_part = ""
+    if elapsed is not None and elapsed > 0:
+        elapsed_part = f" | Elapsed: [cyan]{elapsed:.2f}s[/cyan]"
+        if usage and total_tokens:
+            tokens_per_second = total_tokens / elapsed
+            tps_part = f" | TPS: {int(tokens_per_second)}"
+    return f"{left}{tokens_part}{elapsed_part}{tps_part}"
 
 
 def print_token_message_summary(

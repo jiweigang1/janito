@@ -115,9 +115,15 @@ class ChatSession:
     def _select_profile_and_role(self, args, role):
         profile = getattr(args, "profile", None) if args is not None else None
         role_arg = getattr(args, "role", None) if args is not None else None
+        python_profile = getattr(args, "python", False) if args is not None else False
         profile_system_prompt = None
         no_tools_mode = False
-        if profile is None and role_arg is None:
+
+        # Handle --python flag
+        if python_profile and profile is None and role_arg is None:
+            profile = "Developer with Python Tools"
+
+        if profile is None and role_arg is None and not python_profile:
             try:
                 from janito.cli.chat_mode.session_profile_select import select_profile
 
@@ -277,6 +283,41 @@ class ChatSession:
                 else None
             )
             start_time = time.time()
+
+            # Print rule line with model info before processing prompt
+            model_name = (
+                self.agent.get_model_name()
+                if hasattr(self.agent, "get_model_name")
+                else "Unknown"
+            )
+            provider_name = (
+                self.agent.get_provider_name()
+                if hasattr(self.agent, "get_provider_name")
+                else "Unknown"
+            )
+
+            # Get backend hostname if available
+            backend_hostname = "Unknown"
+            if hasattr(self.agent, "driver") and self.agent.driver:
+                if hasattr(self.agent.driver, "config") and hasattr(
+                    self.agent.driver.config, "base_url"
+                ):
+                    base_url = self.agent.driver.config.base_url
+                    if base_url:
+                        try:
+                            from urllib.parse import urlparse
+
+                            parsed = urlparse(base_url)
+                            backend_hostname = parsed.netloc
+                        except Exception:
+                            backend_hostname = base_url
+
+            self.console.print(
+                Rule(
+                    f"[bold blue]Model: {model_name} ({provider_name}) | Backend: {backend_hostname}[/bold blue]"
+                )
+            )
+
             self._prompt_handler.run_prompt(cmd_input)
             end_time = time.time()
             elapsed = end_time - start_time

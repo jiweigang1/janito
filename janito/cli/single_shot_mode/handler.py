@@ -24,6 +24,11 @@ class PromptHandler:
         self.llm_driver_config = llm_driver_config
         self.role = role
         # Instantiate agent together with prompt handler using the shared helper
+        # Handle --python flag for single shot mode
+        profile = getattr(args, "profile", None)
+        if profile is None and getattr(args, "python", False):
+            profile = "Developer with Python Tools"
+
         self.agent, self.generic_handler = setup_agent_and_prompt_handler(
             args=args,
             provider_instance=provider_instance,
@@ -32,7 +37,7 @@ class PromptHandler:
             verbose_tools=getattr(args, "verbose_tools", False),
             verbose_agent=getattr(args, "verbose_agent", False),
             allowed_permissions=allowed_permissions,
-            profile=getattr(args, "profile", None),
+            profile=profile,
         )
 
     def handle(self) -> None:
@@ -52,6 +57,43 @@ class PromptHandler:
 
         try:
             start_time = time.time()
+
+            # Print rule line with model info before processing prompt
+            model_name = (
+                self.agent.get_model_name()
+                if hasattr(self.agent, "get_model_name")
+                else "Unknown"
+            )
+            provider_name = (
+                self.agent.get_provider_name()
+                if hasattr(self.agent, "get_provider_name")
+                else "Unknown"
+            )
+
+            # Get backend hostname if available
+            backend_hostname = "Unknown"
+            if hasattr(self.agent, "driver") and self.agent.driver:
+                if hasattr(self.agent.driver, "config") and hasattr(
+                    self.agent.driver.config, "base_url"
+                ):
+                    base_url = self.agent.driver.config.base_url
+                    if base_url:
+                        try:
+                            from urllib.parse import urlparse
+
+                            parsed = urlparse(base_url)
+                            backend_hostname = parsed.netloc
+                        except Exception:
+                            backend_hostname = base_url
+
+            from rich.rule import Rule
+
+            shared_console.print(
+                Rule(
+                    f"[bold blue]Model: {model_name} ({provider_name}) | Backend: {backend_hostname}[/bold blue]"
+                )
+            )
+
             self.generic_handler.handle_prompt(
                 sanitized,
                 args=self.args,
