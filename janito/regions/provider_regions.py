@@ -113,25 +113,32 @@ PROVIDER_REGIONS: Dict[str, List[RegionEndpoint]] = {
     ],
     "alibaba": [
         RegionEndpoint(
+            "SG",
+            "Singapore",
+            "https://dashscope.aliyuncs.com/api/v1",
+            "Singapore, SG",
+            1,
+        ),
+        RegionEndpoint(
             "CN-EAST",
             "China East",
             "https://dashscope.aliyuncs.com/api/v1",
             "Hangzhou, CN",
-            1,
+            2,
         ),
         RegionEndpoint(
             "CN-NORTH",
             "China North",
             "https://dashscope.aliyuncs.com/api/v1",
             "Beijing, CN",
-            2,
+            3,
         ),
         RegionEndpoint(
             "CN-SOUTH",
             "China South",
             "https://dashscope.aliyuncs.com/api/v1",
             "Shenzhen, CN",
-            3,
+            4,
         ),
     ],
     "moonshot": [
