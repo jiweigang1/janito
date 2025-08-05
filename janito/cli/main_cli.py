@@ -132,6 +132,27 @@ definition = [
         },
     ),
     (
+        ["--region-info"],
+        {
+            "action": "store_true",
+            "help": "Show current region information and location",
+        },
+    ),
+    (
+        ["--region-list"],
+        {
+            "action": "store_true",
+            "help": "List regions for a provider (requires -p PROVIDER)",
+        },
+    ),
+    (
+        ["--region-endpoint"],
+        {
+            "action": "store_true",
+            "help": "Get optimal endpoint for provider based on location",
+        },
+    ),
+    (
         ["-l", "--list-models"],
         {"action": "store_true", "help": "List all supported models"},
     ),
@@ -221,6 +242,10 @@ GETTER_KEYS = [
     "list_models",
     "list_tools",
     "list_config",
+    "list_drivers",
+    "region_info",
+    "region_list",
+    "region_endpoint",
 ]
 
 

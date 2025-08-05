@@ -8,6 +8,12 @@ from janito.cli.cli_commands.list_tools import handle_list_tools
 from janito.cli.cli_commands.show_config import handle_show_config
 from janito.cli.cli_commands.list_config import handle_list_config
 from janito.cli.cli_commands.list_drivers import handle_list_drivers
+from janito.regions.cli import (
+    handle_region_info,
+    handle_provider_regions,
+    handle_optimal_endpoint,
+    handle_list_providers as handle_region_list_providers,
+)
 from functools import partial
 from janito.provider_registry import ProviderRegistry
 
@@ -19,6 +25,9 @@ GETTER_KEYS = [
     "list_tools",
     "list_config",
     "list_drivers",
+    "region_info",
+    "region_list",
+    "region_endpoint",
 ]
 
 
@@ -45,6 +54,9 @@ def handle_getter(args, config_mgr=None):
         "show_config": partial(handle_show_config, args),
         "list_config": partial(handle_list_config, args),
         "list_drivers": partial(handle_list_drivers, args),
+        "region_info": partial(handle_region_info, args),
+        "region_list": partial(handle_provider_regions, args),
+        "region_endpoint": partial(handle_optimal_endpoint, args),
     }
     for arg in GETTER_KEYS:
         if getattr(args, arg, False) and arg in GETTER_DISPATCH:
