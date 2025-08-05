@@ -115,7 +115,7 @@ PROVIDER_REGIONS: Dict[str, List[RegionEndpoint]] = {
         RegionEndpoint(
             "SG",
             "Singapore",
-            "https://dashscope.aliyuncs.com/api/v1",
+            "https://dashscope-intl.aliyuncs.com/api/v1",
             "Singapore, SG",
             1,
         ),
