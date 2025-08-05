@@ -30,7 +30,6 @@ def handle_list_providers_region(args=None):
     table.add_column("Region", style="green")
     table.add_column("Endpoint", style="blue")
     table.add_column("Location", style="yellow")
-    table.add_column("User Priority", style="magenta", justify="center")
 
     for provider in sorted(providers):
         regions = PROVIDER_REGIONS.get(provider, [])
@@ -49,16 +48,11 @@ def handle_list_providers_region(args=None):
         if not best_region:
             best_region = regions[0]
 
-        # Check if this is optimal for user
-        is_optimal = any(r.region_code.startswith(user_region) for r in regions)
-        priority_text = "✅ Optimal" if is_optimal else f"⚠️ Suboptimal"
-
         table.add_row(
             provider,
             best_region.region_code,
             best_region.endpoint,
             best_region.location,
-            priority_text,
         )
 
     console.print(table)
