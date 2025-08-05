@@ -118,6 +118,10 @@ definition = [
         {"action": "store_true", "help": "List supported LLM providers"},
     ),
     (
+        ["--list-drivers"],
+        {"action": "store_true", "help": "List available LLM drivers and their dependencies"},
+    ),
+    (
         ["-l", "--list-models"],
         {"action": "store_true", "help": "List all supported models"},
     ),
@@ -321,13 +325,14 @@ class JanitoCLI:
         if run_mode == RunMode.SET:
             if self._run_set_mode():
                 return
-        # Special handling: provider is not required for list_providers, list_tools, show_config
+        # Special handling: provider is not required for list_providers, list_tools, show_config, list_drivers
         if run_mode == RunMode.GET and (
             self.args.list_providers
             or self.args.list_tools
             or self.args.list_profiles
             or self.args.show_config
             or self.args.list_config
+            or self.args.list_drivers
         ):
             self._maybe_print_verbose_provider_model()
             handle_getter(self.args)

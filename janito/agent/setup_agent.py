@@ -12,7 +12,7 @@ from queue import Queue
 from rich import print as rich_print
 from janito.tools import get_local_tools_adapter
 from janito.llm.agent import LLMAgent
-from janito.drivers.driver_registry import get_driver_class
+
 from janito.platform_discovery import PlatformDiscovery
 from janito.tools.tool_base import ToolPermissions
 from janito.tools.permissions import get_global_allowed_permissions
