@@ -139,6 +139,13 @@ definition = [
         },
     ),
     (
+        ["--list-providers-region"],
+        {
+            "action": "store_true",
+            "help": "List all providers with their regional API information",
+        },
+    ),
+    (
         ["-l", "--list-models"],
         {"action": "store_true", "help": "List all supported models"},
     ),
@@ -230,6 +237,7 @@ GETTER_KEYS = [
     "list_config",
     "list_drivers",
     "region_info",
+    "list_providers_region",
 ]
 
 

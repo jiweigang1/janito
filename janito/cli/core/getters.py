@@ -9,6 +9,7 @@ from janito.cli.cli_commands.show_config import handle_show_config
 from janito.cli.cli_commands.list_config import handle_list_config
 from janito.cli.cli_commands.list_drivers import handle_list_drivers
 from janito.regions.cli import handle_region_info
+from janito.cli.cli_commands.list_providers_region import handle_list_providers_region
 from functools import partial
 from janito.provider_registry import ProviderRegistry
 
@@ -21,6 +22,7 @@ GETTER_KEYS = [
     "list_config",
     "list_drivers",
     "region_info",
+    "list_providers_region",
 ]
 
 
@@ -48,6 +50,7 @@ def handle_getter(args, config_mgr=None):
         "list_config": partial(handle_list_config, args),
         "list_drivers": partial(handle_list_drivers, args),
         "region_info": partial(handle_region_info, args),
+        "list_providers_region": partial(handle_list_providers_region, args),
     }
     for arg in GETTER_KEYS:
         if getattr(args, arg, False) and arg in GETTER_DISPATCH:
