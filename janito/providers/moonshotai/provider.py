@@ -17,44 +17,53 @@ class MoonshotAIProvider(LLMProvider):
     def __init__(
         self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
     ):
+        self._tools_adapter = get_local_tools_adapter()
+        self._driver = None
+
         if not self.available:
-            self._tools_adapter = get_local_tools_adapter()
-            self._driver = None
-        else:
-            self.auth_manager = auth_manager or LLMAuthManager()
-            self._api_key = self.auth_manager.get_credentials(type(self).name)
-            if not self._api_key:
-                print(f"[ERROR] No API key found for provider '{self.name}'. Please set the API key using:")
-                print(f"  janito --set-api-key YOUR_API_KEY -p {self.name}")
-                print(f"Or set the MOONSHOTAI_API_KEY environment variable.")
-                return
-            
-            self._tools_adapter = get_local_tools_adapter()
-            self._driver_config = config or LLMDriverConfig(model=None)
-            if not self._driver_config.model:
-                self._driver_config.model = self.DEFAULT_MODEL
-            if not self._driver_config.api_key:
-                self._driver_config.api_key = self._api_key
-            # Set only the correct token parameter for the model
-            model_name = self._driver_config.model
-            model_spec = self.MODEL_SPECS.get(model_name)
-            if hasattr(self._driver_config, "max_tokens"):
-                self._driver_config.max_tokens = None
-            if hasattr(self._driver_config, "max_completion_tokens"):
-                self._driver_config.max_completion_tokens = None
-            if model_spec:
-                if getattr(model_spec, "thinking_supported", False):
-                    max_cot = getattr(model_spec, "max_cot", None)
-                    if max_cot and max_cot != "N/A":
-                        self._driver_config.max_completion_tokens = int(max_cot)
-                else:
-                    max_response = getattr(model_spec, "max_response", None)
-                    if max_response and max_response != "N/A":
-                        self._driver_config.max_tokens = int(max_response)
-            self.fill_missing_device_info(self._driver_config)
-            self._driver = None
-            # Set MoonshotAI base_url
-            self._driver_config.base_url = "https://api.moonshot.ai/v1"
+            return
+
+        self._initialize_config(auth_manager, config)
+        self._setup_model_config()
+        self._driver_config.base_url = "https://api.moonshot.ai/v1"
+
+    def _initialize_config(self, auth_manager, config):
+        """Initialize configuration and API key."""
+        self.auth_manager = auth_manager or LLMAuthManager()
+        self._api_key = self.auth_manager.get_credentials(type(self).name)
+        if not self._api_key:
+            from janito.llm.auth_utils import handle_missing_api_key
+
+            handle_missing_api_key(self.name, "MOONSHOTAI_API_KEY")
+
+        self._driver_config = config or LLMDriverConfig(model=None)
+        if not self._driver_config.model:
+            self._driver_config.model = self.DEFAULT_MODEL
+        if not self._driver_config.api_key:
+            self._driver_config.api_key = self._api_key
+
+    def _setup_model_config(self):
+        """Configure token limits based on model specifications."""
+        model_name = self._driver_config.model
+        model_spec = self.MODEL_SPECS.get(model_name)
+
+        # Reset token parameters
+        if hasattr(self._driver_config, "max_tokens"):
+            self._driver_config.max_tokens = None
+        if hasattr(self._driver_config, "max_completion_tokens"):
+            self._driver_config.max_completion_tokens = None
+
+        if model_spec:
+            if getattr(model_spec, "thinking_supported", False):
+                max_cot = getattr(model_spec, "max_cot", None)
+                if max_cot and max_cot != "N/A":
+                    self._driver_config.max_completion_tokens = int(max_cot)
+            else:
+                max_response = getattr(model_spec, "max_response", None)
+                if max_response and max_response != "N/A":
+                    self._driver_config.max_tokens = int(max_response)
+
+        self.fill_missing_device_info(self._driver_config)
 
     @property
     def driver(self) -> OpenAIModelDriver:
