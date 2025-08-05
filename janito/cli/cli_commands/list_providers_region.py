@@ -29,7 +29,6 @@ def handle_list_providers_region(args=None):
     table.add_column("Provider", style="cyan", no_wrap=True)
     table.add_column("Region", style="green")
     table.add_column("Endpoint", style="blue")
-    table.add_column("Location", style="yellow")
 
     for provider in sorted(providers):
         regions = PROVIDER_REGIONS.get(provider, [])
@@ -52,7 +51,6 @@ def handle_list_providers_region(args=None):
             provider,
             best_region.region_code,
             best_region.endpoint,
-            best_region.location,
         )
 
     console.print(table)
