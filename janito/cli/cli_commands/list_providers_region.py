@@ -47,9 +47,16 @@ def handle_list_providers_region(args=None):
         if not best_region:
             best_region = regions[0]
 
+        # Extract 2-letter region code
+        region_code = (
+            user_region
+            if any(r.region_code.startswith(user_region) for r in regions)
+            else best_region.region_code[:2]
+        )
+
         table.add_row(
             provider,
-            best_region.region_code,
+            region_code,
             best_region.endpoint,
         )
 
