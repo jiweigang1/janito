@@ -17,7 +17,7 @@ class ZAIProvider(LLMProvider):
     NAME = "zai"
     MAINTAINER = "João Pinto <janito@ikignosis.org>"
     MODEL_SPECS = MODEL_SPECS
-    DEFAULT_MODEL = "glm-4.5-air"  # Options: glm-4.5, glm-4.5-air
+    DEFAULT_MODEL = "glm-4.5"  # Options: glm-4.5, glm-4.5-air
 
     def __init__(
         self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
