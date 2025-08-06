@@ -44,4 +44,11 @@ This page lists the supported providers and their available models.
 - glm-4.5
 - glm-4.5-air
 
+## Cerebras
+
+- llama-4-scout-17b-16e-instruct
+- llama-4-maverick-17b-128e-instruct
+- llama-3.3-70b-instruct
+- llama-3.1-8b-instruct
+
 <!-- Removed links to model_info.py files for all providers to avoid broken references. -->

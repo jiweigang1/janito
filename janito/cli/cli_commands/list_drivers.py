@@ -92,6 +92,7 @@ def get_driver_info():
         ("janito.drivers.openai.driver", "OpenAIModelDriver"),
         ("janito.drivers.azure_openai.driver", "AzureOpenAIModelDriver"),
         ("janito.drivers.zai.driver", "ZAIModelDriver"),
+        ("janito.drivers.cerebras.driver", "CerebrasModelDriver"),
     ]
 
     for module_path, class_name in driver_modules:

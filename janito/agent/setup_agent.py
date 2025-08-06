@@ -167,7 +167,7 @@ def setup_agent(
     """
     Creates an agent. A system prompt is rendered from a template only when a profile is specified.
     """
-    if no_tools_mode:
+    if no_tools_mode or zero_mode:
         tools_provider = None
     else:
         tools_provider = get_local_tools_adapter()
