@@ -1,99 +1,56 @@
-# Configuring Janito for Cerebras
+# Cerebras Setup Guide
 
-Janito supports Cerebras as an LLM provider. This guide explains how to configure Janito to use Cerebras models.
+This guide will help you set up Janito to use Cerebras as an LLM provider.
 
-## 1. Obtain a Cerebras API Key
+## Prerequisites
 
-- Sign up or log in at [Cerebras AI Platform](https://cloud.cerebras.ai) to get your API key.
-- Navigate to the API Keys section in your dashboard to create and manage your keys.
+1. A Cerebras account
+2. An API key from Cerebras
 
-## 2. Set Your Cerebras API Key in Janito
+## Getting an API Key
 
-You must specify both the API key and the provider name when configuring Janito for Cerebras:
+1. Visit the [Cerebras API Keys page](https://api.cerebras.ai/)
+2. Log in to your account
+3. Generate a new API key
+4. Copy the API key for use in Janito
+
+## Configuration
+
+To configure Janito to use Cerebras, you need to set your API key:
 
 ```bash
 janito --set-api-key YOUR_CEREBRAS_API_KEY -p cerebras
 ```
 
-Replace `YOUR_CEREBRAS_API_KEY` with your actual Cerebras API key.
+Replace `YOUR_CEREBRAS_API_KEY` with the API key you obtained from Cerebras.
 
-## 3. Select Cerebras as the Provider
+## Usage
 
-You can set Cerebras as your default provider:
-
-```bash
-janito --set provider=cerebras
-```
-
-Or specify it per command:
+After setting up your API key, you can use Cerebras models with Janito:
 
 ```bash
-janito -p cerebras "Your prompt here"
+janito -p cerebras "Hello, how are you?"
 ```
 
-## 4. Choose a Cerebras Model
-
-Janito supports the following Cerebras models:
-
-**Production Models:**
-
-- `llama-4-scout-17b-16e-instruct` - Llama 4 Scout (109B parameters, ~2600 tokens/s)
-- `llama-3.3-70b` - Llama 3.3 70B (70B parameters, ~2100 tokens/s)
-- `llama3.1-8b` - Llama 3.1 8B (8B parameters, ~2200 tokens/s)
-- `qwen-3-32b` - Qwen 3 32B (32B parameters, ~2600 tokens/s)
-
-**Preview Models:**
-
-- `llama-4-maverick-17b-128e-instruct` - Llama 4 Maverick (400B parameters, ~2400 tokens/s)
-- `qwen-3-235b-a22b-instruct-2507` - Qwen 3 235B Instruct (235B parameters, ~1400 tokens/s)
-- `qwen-3-235b-a22b-thinking-2507` - Qwen 3 235B Thinking (235B parameters, ~1700 tokens/s)
-- `qwen-3-coder-480b` - Qwen 3 480B Coder (480B parameters, ~2000 tokens/s)
-- `gpt-oss-120b` - GPT-OSS 120B (120B parameters, ~3000 tokens/s)
-
-**Note:** Preview models are intended for evaluation purposes only and may be discontinued with short notice. Production models are fully supported for production use.
-
-To select a model:
+By default, Janito will use the `qwen-3-coder-480b` model. You can specify a different model if needed:
 
 ```bash
-janito -p cerebras -m llama-3.3-70b-instruct "Your prompt here"
+janito -p cerebras -m qwen-3-coder-480b "Explain quantum computing"
 ```
 
-## 5. Verify Your Configuration
+## Available Models
 
-Show your current configuration (the config file path will be shown at the top):
+Cerebras offers several models through their API:
 
-```bash
-janito --show-config
-```
+- `qwen-3-coder-480b`: 32k context, reasoning-focused model with function calling support
 
-## 6. API Endpoint Information
+## Troubleshooting
 
-Cerebras uses an OpenAI-compatible API endpoint:
+If you encounter issues:
 
-- **Base URL**: `https://api.cerebras.ai/v1`
-- **Authentication**: Bearer token (API key)
-- **Format**: OpenAI API format
-- **Documentation**: [Cerebras Inference API Reference](https://inference-docs.cerebras.ai/api-reference)
+1. Verify your API key is correct and active
+2. Check that you have internet connectivity
+3. Ensure you're using a supported model name
+4. Check the Cerebras status page for any service outages
 
-## 7. Pricing Information
-
-For the most current pricing information, please check the [Cerebras pricing page](https://cloud.cerebras.ai/pricing).
-
-Cerebras offers competitive pricing for their high-speed inference service, with different rates for production and preview models. Pricing is typically based on:
-
-- Input tokens per 1K
-- Output tokens per 1K
-- Model complexity and size
-
-All models benefit from Cerebras' industry-leading inference speeds, providing excellent cost-performance ratios.
-
-## 8. Troubleshooting
-
-- Ensure your API key is correct and has sufficient credits.
-- If you encounter issues, use `janito --list-providers` to verify Cerebras is available.
-- Check your API key permissions and rate limits in the Cerebras AI Platform dashboard.
-- For more help, see the main [Configuration Guide](guides/configuration.md) or run `janito --help`.
-
----
-
-For more details on supported models and features, see [Supported Providers & Models](supported-providers-models.md).
+For further assistance, consult the [Cerebras documentation](https://api.cerebras.ai/docs) or [Janito documentation](https://docs.janito.dev).

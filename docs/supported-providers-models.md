@@ -59,4 +59,7 @@ This page lists the supported providers and their available models.
 - qwen-3-coder-480b
 - gpt-oss-120b
 
+**Notes:**
+- qwen-3-coder-480b: 32k context, reasoning-focused model with function calling support
+
 <!-- Removed links to model_info.py files for all providers to avoid broken references. -->
