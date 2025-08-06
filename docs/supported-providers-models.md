@@ -36,7 +36,7 @@ This page lists the supported providers and their available models.
 - qwen-turbo
 - qwen-plus
 - qwen-max
-- qwen3-coder-plus
+- qwen3-coder-plus (default)
 - qwen3-coder-480b-a35b-instruct
 
 ## Z.AI
