@@ -4,6 +4,34 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.17.0] - 2025-08-05
+
+### Added
+
+- **New Provider Support**
+  - **Cerebras Provider**: Added complete support for Cerebras with qwen-3-coder-480b model
+    - qwen-3-coder-480b: 32k context, reasoning-focused model with function calling support
+
+- **Enhanced UX**
+  - Improved error handling for invalid provider names in set-api-key command
+  - Better error messages when provider is not found
+
+### Changed
+
+- **Provider Improvements**
+  - Updated Alibaba endpoint to international URL for better global access
+  - Simplified region display to 2-letter codes for cleaner output
+  - Improved driver listing and region display functionality
+
+- **Zero Mode Enhancement**
+  - Zero mode now properly disables system prompt and tools for minimal interaction
+
+### Fixed
+
+- **Bug Fixes**
+  - Added missing tools adapter to Cerebras provider
+  - Improved error handling for invalid provider names in set-api-key command
+
 ## [2.16.0] - 2025-01-08
 
 ### Added
