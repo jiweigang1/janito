@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [2.18.0] - 2025-08-07
+
+### Added
+
+- Added OpenAI GPT-5 models (gpt-5, gpt-5-mini, gpt-5-nano) and set default model to gpt-5
+- Chat session: improved backend hostname detection
+- Cleaned up test file
+
 ## [2.17.0] - 2025-08-05
 
 ### Added
