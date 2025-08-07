@@ -35,9 +35,11 @@ nav:
       - API Reference: reference/api.md
   - Supported Providers & Models:
       - Overview: supported-providers-models.md
+      - OpenAI Setup: openai-setup.md
       - DeepSeek Setup: deepseek-setup.md
       - MoonshotAI Setup: moonshotai-setup.md
       - Z.ai Setup: z-ai-setup.md
+      - Cerebras Setup: cerebras-setup.md
   - Concepts:
       - Overview: concepts/index.md
       - What Is a Language Model Client?: concepts/language-model-clients.md

@@ -4,9 +4,14 @@ This page lists the supported providers and their available models.
 
 ## OpenAI
 
-- GPT-3.5 Turbo
+- GPT-5 (default)
+- GPT-5 Mini
+- GPT-5 Nano
 - GPT-4
 - GPT-4 Turbo
+- GPT-3.5 Turbo
+
+For setup instructions, see the [OpenAI Setup Guide](openai-setup.md).
 
 ## Google
 
@@ -47,12 +52,14 @@ This page lists the supported providers and their available models.
 ## Cerebras
 
 **Production Models:**
+
 - llama-4-scout-17b-16e-instruct
 - llama-3.3-70b
 - llama3.1-8b
 - qwen-3-32b
 
 **Preview Models:**
+
 - llama-4-maverick-17b-128e-instruct
 - qwen-3-235b-a22b-instruct-2507
 - qwen-3-235b-a22b-thinking-2507
@@ -60,6 +67,7 @@ This page lists the supported providers and their available models.
 - gpt-oss-120b
 
 **Notes:**
+
 - qwen-3-coder-480b: 32k context, reasoning-focused model with function calling support
 
 <!-- Removed links to model_info.py files for all providers to avoid broken references. -->
