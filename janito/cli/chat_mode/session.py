@@ -296,21 +296,39 @@ class ChatSession:
                 else "Unknown"
             )
 
-            # Get backend hostname if available
             backend_hostname = "Unknown"
-            if hasattr(self.agent, "driver") and self.agent.driver:
-                if hasattr(self.agent.driver, "config") and hasattr(
-                    self.agent.driver.config, "base_url"
-                ):
-                    base_url = self.agent.driver.config.base_url
-                    if base_url:
-                        try:
-                            from urllib.parse import urlparse
-
-                            parsed = urlparse(base_url)
-                            backend_hostname = parsed.netloc
-                        except Exception:
-                            backend_hostname = base_url
+            candidates = []
+            drv = getattr(self.agent, "driver", None)
+            if drv is not None:
+                cfg = getattr(drv, "config", None)
+                if cfg is not None:
+                    b = getattr(cfg, "base_url", None)
+                    if b:
+                        candidates.append(b)
+                direct_base = getattr(drv, "base_url", None)
+                if direct_base:
+                    candidates.append(direct_base)
+            cfg2 = getattr(self.agent, "config", None)
+            if cfg2 is not None:
+                b2 = getattr(cfg2, "base_url", None)
+                if b2:
+                    candidates.append(b2)
+            top_base = getattr(self.agent, "base_url", None)
+            if top_base:
+                candidates.append(top_base)
+            from urllib.parse import urlparse
+            for candidate in candidates:
+                try:
+                    if not candidate:
+                        continue
+                    parsed = urlparse(str(candidate))
+                    host = parsed.netloc or parsed.path
+                    if host:
+                        backend_hostname = host
+                        break
+                except Exception:
+                    backend_hostname = str(candidate)
+                    break
 
             self.console.print(
                 Rule(
