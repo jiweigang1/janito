@@ -7,6 +7,9 @@ MODEL_SPECS = {
         max_response=8192,
         category="Alibaba Qwen Turbo Model (OpenAI-compatible)",
         driver="OpenAIModelDriver",
+        thinking_supported=True,
+        thinking=False,
+        max_cot=8192,
     ),
     "qwen-plus": LLMModelInfo(
         name="qwen-plus", 
@@ -14,6 +17,9 @@ MODEL_SPECS = {
         max_response=8192,
         category="Alibaba Qwen Plus Model (OpenAI-compatible)",
         driver="OpenAIModelDriver",
+        thinking_supported=True,
+        thinking=False,
+        max_cot=8192,
     ),
     "qwen-max": LLMModelInfo(
         name="qwen-max",
@@ -21,6 +27,9 @@ MODEL_SPECS = {
         max_response=8192,
         category="Alibaba Qwen Max Model (OpenAI-compatible)",
         driver="OpenAIModelDriver",
+        thinking_supported=True,
+        thinking=False,
+        max_cot=8192,
     ),
 
     "qwen3-coder-plus": LLMModelInfo(
@@ -29,6 +38,9 @@ MODEL_SPECS = {
         max_response=65536,
         category="Alibaba Qwen3 Coder Plus Model (OpenAI-compatible)",
         driver="OpenAIModelDriver",
+        thinking_supported=True,
+        thinking=False,
+        max_cot=65536,
     ),
     "qwen3-coder-480b-a35b-instruct": LLMModelInfo(
         name="qwen3-coder-480b-a35b-instruct",
@@ -36,5 +48,50 @@ MODEL_SPECS = {
         max_response=65536,
         category="Alibaba Qwen3 Coder 480B A35B Instruct Model (OpenAI-compatible)",
         driver="OpenAIModelDriver",
+        thinking_supported=True,
+        thinking=False,
+        max_cot=65536,
+    ),
+    
+    # Qwen3 1M context models (July 2025 update)
+    "qwen3-235b-a22b-thinking-2507": LLMModelInfo(
+        name="qwen3-235b-a22b-thinking-2507",
+        context=131072,  # Supports up to 1M with special config
+        max_response=32768,
+        category="Alibaba Qwen3 235B A22B Thinking Model (OpenAI-compatible)",
+        driver="OpenAIModelDriver",
+        thinking=True,
+        thinking_supported=True,
+        max_cot=32768,
+    ),
+    "qwen3-235b-a22b-instruct-2507": LLMModelInfo(
+        name="qwen3-235b-a22b-instruct-2507",
+        context=129024,  # Supports up to 1M with special config
+        max_response=32768,
+        category="Alibaba Qwen3 235B A22B Instruct Model (OpenAI-compatible)",
+        driver="OpenAIModelDriver",
+        thinking_supported=True,
+        thinking=False,
+        max_cot=32768,
+    ),
+    "qwen3-30b-a3b-thinking-2507": LLMModelInfo(
+        name="qwen3-30b-a3b-thinking-2507",
+        context=126976,  # Supports up to 1M with special config
+        max_response=32768,
+        category="Alibaba Qwen3 30B A3B Thinking Model (OpenAI-compatible)",
+        driver="OpenAIModelDriver",
+        thinking=True,
+        thinking_supported=True,
+        max_cot=32768,
+    ),
+    "qwen3-30b-a3b-instruct-2507": LLMModelInfo(
+        name="qwen3-30b-a3b-instruct-2507",
+        context=129024,  # Supports up to 1M with special config
+        max_response=32768,
+        category="Alibaba Qwen3 30B A3B Instruct Model (OpenAI-compatible)",
+        driver="OpenAIModelDriver",
+        thinking_supported=True,
+        thinking=False,
+        max_cot=32768,
     ),
 }

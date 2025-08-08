@@ -43,6 +43,10 @@ For setup instructions, see the [OpenAI Setup Guide](openai-setup.md).
 - qwen-max
 - qwen3-coder-plus (default)
 - qwen3-coder-480b-a35b-instruct
+- qwen3-235b-a22b-thinking-2507
+- qwen3-235b-a22b-instruct-2507
+- qwen3-30b-a3b-thinking-2507
+- qwen3-30b-a3b-instruct-2507
 
 ## Z.AI
 

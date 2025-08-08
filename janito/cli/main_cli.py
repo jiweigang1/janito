@@ -125,6 +125,10 @@ definition = [
         {"action": "store_true", "help": "List supported LLM providers"},
     ),
     (
+        ["--ping"],
+        {"action": "store_true", "help": "Ping/test connectivity for all providers (use with --list-providers)"},
+    ),
+    (
         ["--list-drivers"],
         {
             "action": "store_true",
@@ -238,6 +242,19 @@ GETTER_KEYS = [
     "list_drivers",
     "region_info",
     "list_providers_region",
+    "ping",
+]
+GETTER_KEYS = [
+    "show_config",
+    "list_providers",
+    "list_profiles",
+    "list_models",
+    "list_tools",
+    "list_config",
+    "list_drivers",
+    "region_info",
+    "list_providers_region",
+    "ping",
 ]
 
 
@@ -361,6 +378,7 @@ class JanitoCLI:
             or self.args.show_config
             or self.args.list_config
             or self.args.list_drivers
+            or self.args.ping
         ):
             self._maybe_print_verbose_provider_model()
             handle_getter(self.args)

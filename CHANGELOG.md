@@ -2,7 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [2.19.0] - 2025-08-08
+
+### Added
+
+- **Alibaba Cloud Provider**: Added support for new Qwen3 1M context models
+  - `qwen3-235b-a22b-thinking-2507`: 1M context thinking model
+  - `qwen3-235b-a22b-instruct-2507`: 1M context instruct model
+  - `qwen3-30b-a3b-thinking-2507`: 1M context thinking model
+  - `qwen3-30b-a3b-instruct-2507`: 1M context instruct model
+- **Thinking Mode Support**: Added thinking mode indicators (📖) for models that support chain-of-thought reasoning
+- **Default Model Highlighting**: Added star (⭐) indicators to highlight default models in provider listings
+- **Provider Connectivity Testing**: Added `--ping` flag to test connectivity with all providers when used with `--list-providers`
+- **Enhanced Model Display**: Improved model listing with better formatting of context sizes and response limits
+
+### Changed
+
+- **Alibaba Cloud Provider**: Updated default model from `qwen3-coder-plus` to `qwen3-235b-a22b-instruct-2507` (129k context)
+- **Model Information**: Added thinking mode support tracking in LLMModelInfo class
+- **Documentation**: Updated Alibaba setup guide with comprehensive configuration instructions
 
 ## [2.18.0] - 2025-08-07
 

@@ -27,9 +27,23 @@ def handle_list_models(args, provider_instance):
         if models and isinstance(models[0], dict):
             _print_models_table(models, provider_name)
         else:
-            print(f"Supported models for provider '{provider_name}':")
+            # Fallback for simple string model lists
+            from rich.table import Table
+            from janito.cli.console import shared_console
+            
+            table = Table(title=f"Supported models for provider '{provider_name}'")
+            table.add_column("Model Name", style="cyan")
+            
             for m in models:
-                print(f"- {m}")
+                table.add_row(str(m))
+                
+            import sys
+            if sys.stdout.isatty():
+                shared_console.print(table)
+            else:
+                print(f"Supported models for provider '{provider_name}':")
+                for m in models:
+                    print(f"- {m}")
     except Exception as e:
         print(f"Error listing models for provider '{provider_name}': {e}")
     return
