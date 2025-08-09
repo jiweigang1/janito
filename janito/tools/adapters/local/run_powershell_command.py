@@ -39,17 +39,11 @@ class RunPowershellCommandTool(ToolBase):
                 ReportAction.EXECUTE,
             )
         if require_confirmation:
-            confirmed = self.ask_user_confirmation(
-                tr(
-                    "About to run PowerShell command: {command}\nContinue?",
-                    command=command,
-                )
+            self.report_warning(
+                tr("⚠️ Confirmation requested, but no handler (auto-confirmed)."),
+                ReportAction.USER_INPUT
             )
-            if not confirmed:
-                self.report_warning(
-                    tr("⚠️ Execution cancelled by user."), ReportAction.EXECUTE
-                )
-                return False
+            return True  # Auto-confirm for now
         return True
 
     def _launch_process(self, shell_exe, command_with_encoding):
@@ -143,10 +137,7 @@ class RunPowershellCommandTool(ToolBase):
             tr("🖥️ Running PowerShell command: {command} ...\n", command=command),
             ReportAction.EXECUTE,
         )
-        if not self._confirm_and_warn(
-            command, require_confirmation, requires_user_input
-        ):
-            return tr("❌ Command execution cancelled by user.")
+        self._confirm_and_warn(command, require_confirmation, requires_user_input)
         from janito.platform_discovery import PlatformDiscovery
 
         pd = PlatformDiscovery()

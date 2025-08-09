@@ -39,7 +39,17 @@ class ProviderRegistry:
             if len(info) == 4 and info[3]:
                 continue  # skip providers flagged as not implemented
             rows.append(info[:3])
-        rows.sort(key=self._maintainer_sort_key)
+        
+        # Group providers by openness (open-source first, then proprietary)
+        open_providers = {'cerebras', 'deepseek', 'alibaba', 'moonshotai', 'zai'}
+        
+        def sort_key(row):
+            provider_name = row[0]
+            is_open = provider_name in open_providers
+            # Sort open providers alphabetically first, then proprietary alphabetically
+            return (not is_open, provider_name)
+        
+        rows.sort(key=sort_key)
         return rows
 
     def _add_rows_to_table(self, table, rows):

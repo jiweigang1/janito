@@ -1,77 +1,94 @@
 # Supported Providers and Models
 
-This page lists the supported providers and their available models.
+This page lists the supported providers and their available models, organized by openness and sorted alphabetically within each category.
 
-## OpenAI
+## Open-Source / Open-Weight Models
 
-- GPT-5 (default)
-- GPT-5 Mini
-- GPT-5 Nano
-- GPT-4
-- GPT-4 Turbo
-- GPT-3.5 Turbo
+### Alibaba
 
-For setup instructions, see the [OpenAI Setup Guide](openai-setup.md).
+- **Qwen3 235B A22B Instruct** (default) - Latest 1M context model
+- **Qwen3 235B A22B Thinking** - Reasoning-focused version
+- **Qwen3 30B A3B Instruct** - Compact 1M context model
+- **Qwen3 30B A3B Thinking** - Compact reasoning version
+- **Qwen3 Coder Plus** - Specialized for programming tasks
+- **Qwen3 Coder 480B** - Large-scale coding model
+- **Qwen Turbo** - High-speed general purpose
+- **Qwen Plus** - Balanced performance
+- **Qwen Max** - Maximum capability
 
-## Google
-
-- Gemini Pro
-- Gemini 1.5 Pro
-
-## Anthropic
-
-- Claude 2
-- Claude 3 Opus
-- Claude 3 Sonnet
-- Claude 3 Haiku
-
-## MoonshotAI
-
-- kimi-k2-turbo-preview
-- kimi-k2-turbo-preview
-- kimi-k1-8k
-- kimi-k1-32k
-- kimi-k1-128k
-
-- Llama-3-8b-8192
-- Llama-3-70b-8192
-
-## Alibaba
-
-- qwen-turbo
-- qwen-plus
-- qwen-max
-- qwen3-coder-plus (default)
-- qwen3-coder-480b-a35b-instruct
-- qwen3-235b-a22b-thinking-2507
-- qwen3-235b-a22b-instruct-2507
-- qwen3-30b-a3b-thinking-2507
-- qwen3-30b-a3b-instruct-2507
-
-## Z.AI
-
-- glm-4.5
-- glm-4.5-air
-
-## Cerebras
+### Cerebras
 
 **Production Models:**
 
-- llama-4-scout-17b-16e-instruct
-- llama-3.3-70b
-- llama3.1-8b
-- qwen-3-32b
+- **Qwen-3 32B** - General instruction following
 
 **Preview Models:**
 
-- llama-4-maverick-17b-128e-instruct
-- qwen-3-235b-a22b-instruct-2507
-- qwen-3-235b-a22b-thinking-2507
-- qwen-3-coder-480b
-- gpt-oss-120b
+- **Qwen-3 Coder 480B** - Programming-focused with 32k context
+- **Qwen-3 235B A22B Instruct** - Large-scale instruction model
+- **Qwen-3 235B A22B Thinking** - Reasoning-focused version
+- **GPT-OSS 120B** - Open-source model
 
 **Notes:**
 
-- qwen-3-coder-480b: 32k context, reasoning-focused model with function calling support
+- All Cerebras models support 128k context window
+- Models are optimized for low-latency inference
+- Pricing varies by model size and capability
 
-<!-- Removed links to model_info.py files for all providers to avoid broken references. -->
+### DeepSeek
+
+- **DeepSeek Chat** (default) - General purpose chat model
+- **DeepSeek Reasoner** - Specialized for complex reasoning tasks
+
+### MoonshotAI
+
+- **Kimi K2 Turbo Preview** (default) - Latest generation with enhanced performance
+- **Kimi K2 0711 Preview** - Previous preview version
+
+MoonshotAI provides open-source Kimi models with competitive performance.
+
+### Z.AI
+
+- **GLM-4.5** (default) - Advanced reasoning and conversation
+- **GLM-4.5 Air** - Compact and efficient version
+
+## Proprietary Models
+
+### Anthropic
+
+- **Claude 3.7 Sonnet** (default) - Latest Claude model with enhanced reasoning
+- **Claude 4 Opus** - Most capable Claude model (preview)
+- **Claude 4 Sonnet** - Balanced performance and capability (preview)
+- **Claude 3.5 Sonnet** - Previous generation, still highly capable
+- **Claude 3.5 Haiku** - Fast and efficient
+- **Claude 3 Haiku** - Compact and cost-effective
+
+### Google
+
+- **Gemini 2.5 Flash** (default) - Fast and efficient
+- **Gemini 2.5 Pro** - Advanced capabilities with extended context
+- **Gemini 2.5 Flash-Lite Preview** - Lightweight preview version
+
+### OpenAI
+
+- **GPT-5** (default) - Latest generation with advanced reasoning
+- **GPT-5 Mini** - Compact version of GPT-5
+- **GPT-5 Nano** - Ultra-compact version
+- **GPT-4.1** - Enhanced GPT-4 with improved capabilities
+- **GPT-4.1-mini** - Balanced performance and efficiency
+- **GPT-4.1-nano** - Lightweight version
+- **GPT-4 Turbo** - High-performance GPT-4 variant
+- **GPT-4o** - Multimodal GPT-4 optimized for chat
+- **GPT-4o-mini** - Compact multimodal version
+- **o3** - Advanced reasoning model
+- **o3-mini** - Compact reasoning model
+- **o4-mini** - Latest mini reasoning model
+- **GPT-3.5 Turbo** - Cost-effective general purpose
+
+For setup instructions, see the [OpenAI Setup Guide](openai-setup.md).
+
+### Azure OpenAI
+
+- **Azure OpenAI Deployment** - Custom Azure OpenAI deployments
+
+For setup instructions, see [Using Azure OpenAI with Janito](reference/azure-openai.md).
