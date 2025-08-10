@@ -2,8 +2,8 @@
 CLI Command: List models for the specified/current provider
 """
 
-from janito.cli.cli_commands.model_utils import _print_models_table
 import sys
+from janito.cli.cli_commands.model_utils import _print_models_table
 
 _provider_instance = None
 
@@ -36,8 +36,6 @@ def handle_list_models(args, provider_instance):
             
             for m in models:
                 table.add_row(str(m))
-                
-            import sys
             if sys.stdout.isatty():
                 shared_console.print(table)
             else:

@@ -35,6 +35,7 @@ nav:
       - API Reference: reference/api.md
   - Supported Providers & Models:
       - Overview: supported-providers-models.md
+      - Platform & Documentation Access: provider-platform-access.md
       - OpenAI Setup: openai-setup.md
       - DeepSeek Setup: deepseek-setup.md
       - MoonshotAI Setup: moonshotai-setup.md

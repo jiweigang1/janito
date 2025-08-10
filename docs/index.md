@@ -39,6 +39,7 @@ Janito supports multiple AI providers:
 - [OpenAI](openai-setup.md)
 - [DeepSeek](deepseek-setup.md)
 - [MoonshotAI](moonshotai-setup.md)
+- [Mistral](mistral-setup.md)
 - [Z.ai](z-ai-setup.md)
 - [Cerebras](cerebras-setup.md)
 

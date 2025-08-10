@@ -64,14 +64,20 @@ class OpenAIModelDriver(LLMDriver):
         if config.model:
             api_kwargs["model"] = config.model
         # Prefer max_completion_tokens if present, else fallback to max_tokens (for backward compatibility)
-        if (
-            hasattr(config, "max_completion_tokens")
-            and config.max_completion_tokens is not None
-        ):
-            api_kwargs["max_completion_tokens"] = int(config.max_completion_tokens)
+        # Skip max_completion_tokens for Mistral as their API doesn't support it
+        is_mistral = config.base_url and "mistral.ai" in str(config.base_url)
+        if not is_mistral:
+            if (
+                hasattr(config, "max_completion_tokens")
+                and config.max_completion_tokens is not None
+            ):
+                api_kwargs["max_completion_tokens"] = int(config.max_completion_tokens)
+            elif hasattr(config, "max_tokens") and config.max_tokens is not None:
+                # For models that do not support 'max_tokens', map to 'max_completion_tokens'
+                api_kwargs["max_completion_tokens"] = int(config.max_tokens)
         elif hasattr(config, "max_tokens") and config.max_tokens is not None:
-            # For models that do not support 'max_tokens', map to 'max_completion_tokens'
-            api_kwargs["max_completion_tokens"] = int(config.max_tokens)
+            # For Mistral, use max_tokens directly
+            api_kwargs["max_tokens"] = int(config.max_tokens)
         for p in (
             "temperature",
             "top_p",
