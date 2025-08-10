@@ -2,6 +2,8 @@
 
 This page lists the supported providers and their available models, organized by openness and sorted alphabetically within each category.
 
+> 📋 **Platform & Documentation Access**: For information about which providers have publicly accessible platforms and documentation vs. blocked access, see [Platform & Documentation Access](provider-platform-access.md).
+
 ## Open-Source / Open-Weight Models
 
 ### Alibaba
@@ -39,6 +41,20 @@ This page lists the supported providers and their available models, organized by
 
 - **DeepSeek Chat** (default) - General purpose chat model
 - **DeepSeek Reasoner** - Specialized for complex reasoning tasks
+
+### Mistral
+
+- **Mistral Large Latest** (default) - Most capable Mistral model with 128k context
+- **Mistral Medium Latest** - Balanced performance with 32k context
+- **Mistral Small Latest** - Compact and efficient with 32k context
+- **Codestral Latest** - Specialized for code generation with 256k context
+- **Codestral 2405** - Previous version of code-focused model
+- **Devstral Small Latest** - Optimized for agentic tool use in software development
+- **Devstral Medium Latest** - Enhanced agentic capabilities for development tasks
+
+Mistral provides both general-purpose and specialized models, with Codestral specifically designed for code generation and Devstral for agentic software development.
+
+For setup instructions, see the [Mistral Setup Guide](mistral-setup.md).
 
 ### MoonshotAI
 

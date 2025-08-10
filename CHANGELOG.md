@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.20.0] - 2025-08-10
+
+### Added
+
+- **Mistral AI Provider**: Added complete support for Mistral AI models
+  - **General Purpose Models**:
+    - `mistral-large-latest`: 128k context, most capable model (default)
+    - `mistral-medium-latest`: 32k context, balanced performance
+    - `mistral-small-latest`: 32k context, compact and efficient
+  - **Code-Focused Models**:
+    - `codestral-latest`: 256k context, specialized for code generation
+    - `codestral-2405`: Previous version of code-focused model
+  - **Development-Focused Models**:
+    - `devstral-small-latest`: 128k context, optimized for agentic tool use
+    - `devstral-medium-latest`: 128k context, enhanced agentic capabilities
+- **Mistral Setup Guide**: Comprehensive documentation for Mistral AI integration
+- **Tool Support**: Full tool/function calling support across all Mistral models
+- **API Integration**: Uses OpenAI-compatible API format via Mistral's La Plateforme
+
 ## [2.19.0] - 2025-08-08
 
 ### Added
