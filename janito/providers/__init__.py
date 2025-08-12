@@ -9,3 +9,4 @@ import janito.providers.alibaba.provider
 import janito.providers.zai.provider
 import janito.providers.cerebras.provider
 import janito.providers.mistral.provider
+import janito.providers.ibm.provider

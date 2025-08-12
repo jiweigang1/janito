@@ -82,7 +82,7 @@ class AzureOpenAIProvider(LLMProvider):
         If the model_name is not in MODEL_SPECS, return a generic info dict.
         """
         if model_name is None:
-            # Return all known specs, but note: only static ones are listed
+            # Return all known specs
             return {
                 name: model_info.to_dict()
                 for name, model_info in self.MODEL_SPECS.items()
