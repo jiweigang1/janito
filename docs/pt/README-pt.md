@@ -246,7 +246,7 @@ Janito foi construído para ser extensível. Você pode adicionar novos provedor
 - DeepSeek
 - Anthropic
 
-Veja [docs/supported-providers-models.md](docs/supported-providers-models.md) para mais detalhes.
+Veja [supported-providers-models.md](../supported-providers-models.md) para mais detalhes.
 
 ## Contribuindo
 
@@ -256,7 +256,7 @@ Contribuições são bem-vindas! Por favor veja o `CONTRIBUTING.md` (se disponí
 
 ## Documentação do Desenvolvedor
 
-Para configuração específica do desenvolvedor, versionamento e diretrizes de contribuição, veja [README-dev.md](./README-dev.md).
+Para configuração específica do desenvolvedor, versionamento e diretrizes de contribuição, veja [README-dev.md](https://github.com/ikignosis/janito/blob/main/README-dev.md).
 
 ## Licença
 

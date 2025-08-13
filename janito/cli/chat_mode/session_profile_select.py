@@ -111,6 +111,7 @@ def select_profile():
     choices = [
         "Developer with Python Tools",
         "Developer",
+        "Market Analyst",
         "Custom system prompt...",
         "Raw Model Session (no tools, no context)",
     ]
@@ -146,9 +147,9 @@ def select_profile():
         from jinja2 import Template
         from janito.agent.setup_agent import _prepare_template_context
 
-        template_path = Path(
-            "./janito/agent/templates/profiles/system_prompt_template_Developer.txt.j2"
-        )
+        # Get the absolute path relative to the current script location
+        current_dir = Path(__file__).parent
+        template_path = current_dir / "../../agent/templates/profiles/system_prompt_template_developer.txt.j2"
         with open(template_path, "r", encoding="utf-8") as f:
             template_content = f.read()
 
@@ -156,4 +157,20 @@ def select_profile():
         context = _prepare_template_context("developer", "Developer", None)
         prompt = template.render(**context)
         return {"profile": "Developer", "profile_system_prompt": prompt}
+    elif answer == "Market Analyst":
+        # Return the content of the built-in Market Analyst profile prompt
+        from pathlib import Path
+        from jinja2 import Template
+        from janito.agent.setup_agent import _prepare_template_context
+
+        # Get the absolute path relative to the current script location
+        current_dir = Path(__file__).parent
+        template_path = current_dir / "../../agent/templates/profiles/system_prompt_template_market_analyst.txt.j2"
+        with open(template_path, "r", encoding="utf-8") as f:
+            template_content = f.read()
+
+        template = Template(template_content)
+        context = _prepare_template_context("market_analyst", "Market Analyst", None)
+        prompt = template.render(**context)
+        return {"profile": "Market Analyst", "profile_system_prompt": prompt}
     return answer

@@ -1,4 +1,8 @@
 import requests
+import time
+import os
+import json
+from pathlib import Path
 from bs4 import BeautifulSoup
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_base import ToolBase, ToolPermissions
@@ -18,6 +22,7 @@ class FetchUrlTool(ToolBase):
         max_length (int, optional): Maximum number of characters to return. Defaults to 5000.
         max_lines (int, optional): Maximum number of lines to return. Defaults to 200.
         context_chars (int, optional): Characters of context around search matches. Defaults to 400.
+        timeout (int, optional): Timeout in seconds for the HTTP request. Defaults to 10.
     Returns:
         str: Extracted text content from the web page, or a warning message. Example:
             - "<main text content...>"
@@ -28,15 +33,101 @@ class FetchUrlTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "fetch_url"
 
-    def _fetch_url_content(self, url: str) -> str:
-        """Fetch URL content and handle HTTP errors."""
+    def __init__(self):
+        super().__init__()
+        self.cache_dir = Path.home() / ".janito" / "cache" / "fetch_url"
+        self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cache_file = self.cache_dir / "error_cache.json"
+        self._load_cache()
+
+    def _load_cache(self):
+        """Load error cache from disk."""
+        if self.cache_file.exists():
+            try:
+                with open(self.cache_file, 'r', encoding='utf-8') as f:
+                    self.error_cache = json.load(f)
+            except (json.JSONDecodeError, IOError):
+                self.error_cache = {}
+        else:
+            self.error_cache = {}
+
+    def _save_cache(self):
+        """Save error cache to disk."""
         try:
-            response = requests.get(url, timeout=10)
+            with open(self.cache_file, 'w', encoding='utf-8') as f:
+                json.dump(self.error_cache, f, indent=2)
+        except IOError:
+            pass  # Silently fail if we can't write cache
+
+    def _get_cached_error(self, url: str) -> tuple[str, bool]:
+        """
+        Check if we have a cached error for this URL.
+        Returns (error_message, is_cached) tuple.
+        """
+        if url not in self.error_cache:
+            return None, False
+        
+        entry = self.error_cache[url]
+        current_time = time.time()
+        
+        # Different expiration times for different status codes
+        if entry['status_code'] == 403:
+            # Cache 403 errors for 24 hours (more permanent)
+            expiration_time = 24 * 3600
+        elif entry['status_code'] == 404:
+            # Cache 404 errors for 1 hour (more temporary)
+            expiration_time = 3600
+        else:
+            # Cache other 4xx errors for 30 minutes
+            expiration_time = 1800
+            
+        if current_time - entry['timestamp'] > expiration_time:
+            # Cache expired, remove it
+            del self.error_cache[url]
+            self._save_cache()
+            return None, False
+            
+        return entry['message'], True
+
+    def _cache_error(self, url: str, status_code: int, message: str):
+        """Cache an HTTP error response."""
+        self.error_cache[url] = {
+            'status_code': status_code,
+            'message': message,
+            'timestamp': time.time()
+        }
+        self._save_cache()
+
+    def _fetch_url_content(self, url: str, timeout: int = 10) -> str:
+        """Fetch URL content and handle HTTP errors."""
+        # Check cache first for known errors
+        cached_error, is_cached = self._get_cached_error(url)
+        if cached_error:
+            self.report_warning(
+                tr(
+                    "ℹ️ Using cached HTTP error for URL: {url}",
+                    url=url,
+                ),
+                ReportAction.READ,
+            )
+            return cached_error
+
+        try:
+            response = requests.get(url, timeout=timeout)
             response.raise_for_status()
             return response.text
         except requests.exceptions.HTTPError as http_err:
             status_code = http_err.response.status_code if http_err.response else None
             if status_code and 400 <= status_code < 500:
+                error_message = tr(
+                    "Warning: HTTP {status_code} error for URL: {url}",
+                    status_code=status_code,
+                    url=url,
+                )
+                # Cache 403 and 404 errors
+                if status_code in [403, 404]:
+                    self._cache_error(url, status_code, error_message)
+                
                 self.report_error(
                     tr(
                         "❗ HTTP {status_code} error for URL: {url}",
@@ -45,11 +136,7 @@ class FetchUrlTool(ToolBase):
                     ),
                     ReportAction.READ,
                 )
-                return tr(
-                    "Warning: HTTP {status_code} error for URL: {url}",
-                    status_code=status_code,
-                    url=url,
-                )
+                return error_message
             else:
                 self.report_error(
                     tr(
@@ -123,6 +210,7 @@ class FetchUrlTool(ToolBase):
         max_length: int = 5000,
         max_lines: int = 200,
         context_chars: int = 400,
+        timeout: int = 10,
     ) -> str:
         if not url.strip():
             self.report_warning(tr("ℹ️ Empty URL provided."), ReportAction.READ)
@@ -131,7 +219,7 @@ class FetchUrlTool(ToolBase):
         self.report_action(tr("🌐 Fetch URL '{url}' ...", url=url), ReportAction.READ)
 
         # Fetch URL content
-        html_content = self._fetch_url_content(url)
+        html_content = self._fetch_url_content(url, timeout=timeout)
         if html_content.startswith("Warning:"):
             return html_content
 

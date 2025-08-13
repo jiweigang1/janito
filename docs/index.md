@@ -23,25 +23,38 @@ Janito is a powerful AI assistant designed for developers, providing intelligent
 ## Documentation Sections
 
 ### Using Janito
+
 Learn how to use Janito effectively:
+
 - [Terminal Shell](guides/terminal-shell.md) - Interactive terminal sessions
 - [Single-Shot Commands](guides/single-shot-terminal.md) - One-off command execution
 - [Profiles](guides/profiles.md) - Custom configurations for different workflows
+- [Stock Market Guide](guides/stock-market-guide.md) - Accessing financial market data
+- [Market Data Sources](guides/market-data-sources.md) - Reliable sources for financial data
 
 ### Development & Extension
+
 For developers looking to extend Janito:
+
 - [Developer Guide](guides/developing.md) - Core development concepts
 - [Tools Developer Guide](guides/tools-developer-guide.md) - Creating custom tools
 - [Developer Toolchain](meta/developer-toolchain.md) - Development setup and workflows
 
 ### Supported Providers
+
 Janito supports multiple AI providers:
+
 - [OpenAI](openai-setup.md)
 - [DeepSeek](deepseek-setup.md)
 - [MoonshotAI](moonshotai-setup.md)
 - [Mistral](mistral-setup.md)
 - [Z.ai](z-ai-setup.md)
 - [Cerebras](cerebras-setup.md)
+- [IBM WatsonX](ibm-setup.md)
+
+### Public Data Sources
+
+- [Government & Public Sources](public-sources.md) - Access to public finance and government data
 
 ## Getting Help
 

@@ -68,6 +68,27 @@ MoonshotAI provides open-source Kimi models with competitive performance.
 - **GLM-4.5** (default) - Advanced reasoning and conversation
 - **GLM-4.5 Air** - Compact and efficient version
 
+### IBM WatsonX
+
+**Open-Source Models:**
+
+- **openai/gpt-oss-120b** (default) - Open-source 120B model with thinking capabilities
+- **openai/gpt-oss-20b** - Open-source 20B model with thinking capabilities
+
+**IBM Granite Models:**
+
+- **ibm/granite-3-8b-instruct** - IBM's Granite 3 8B Instruct model with 128K context
+- **ibm/granite-3-3-8b-instruct** - Updated Granite 3.3 8B Instruct model
+
+**Hosted Models:**
+
+- **meta-llama/llama-3-1-70b-instruct** - Meta Llama 3.1 70B hosted on WatsonX
+- **meta-llama/llama-3-3-70b-instruct** - Meta Llama 3.3 70B hosted on WatsonX
+- **mistralai/mistral-large** - Mistral Large model hosted on WatsonX
+- **mistralai/mistral-large-2407** - Mistral Large 2407 version
+
+IBM WatsonX provides access to IBM's Granite models as well as popular open-source models hosted on their platform. All models support 128K context windows.
+
 ## Proprietary Models
 
 ### Anthropic

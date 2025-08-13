@@ -3,6 +3,15 @@
 from janito.llm.model import LLMModelInfo
 
 MODEL_SPECS = {
+    "openai/gpt-oss-120b": LLMModelInfo(
+        name="openai/gpt-oss-120b",
+        context=128000,
+        max_input=128000,
+        max_response=4096,
+        max_cot=4096,
+        thinking_supported=True,
+        category="IBM WatsonX",
+    ),
     "ibm/granite-3-8b-instruct": LLMModelInfo(
         name="ibm/granite-3-8b-instruct",
         context=128000,
