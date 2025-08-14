@@ -140,6 +140,8 @@ class RunPowershellCommandTool(ToolBase):
                 tr("🖥️ Running PowerShell command: {command} ...\n", command=command),
                 ReportAction.EXECUTE,
             )
+        else:
+            self.report_action(tr("⚡ Executing..."), ReportAction.EXECUTE)
         self._confirm_and_warn(command, require_confirmation, requires_user_input)
         from janito.platform_discovery import PlatformDiscovery
 

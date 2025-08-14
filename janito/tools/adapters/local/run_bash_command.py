@@ -55,6 +55,8 @@ class RunBashCommandTool(ToolBase):
                 tr("🖥️  Run bash command: {command} ...\n", command=command),
                 ReportAction.EXECUTE,
             )
+        else:
+            self.report_action(tr("⚡ Executing..."), ReportAction.EXECUTE)
         if requires_user_input and not silent:
             self.report_warning(
                 tr(

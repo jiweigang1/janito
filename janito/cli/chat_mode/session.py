@@ -94,6 +94,7 @@ class ChatSession:
             profile_system_prompt,
             conversation_history,
         )
+        self.profile = profile  # Store profile name for welcome message
         self.shell_state = ChatShellState(self.mem_history, conversation_history)
         self.shell_state.agent = self.agent
         # Set no_tools_mode if present
@@ -207,6 +208,7 @@ class ChatSession:
         from janito import __version__
 
         self.console.print(f"[bold green]Janito Chat Mode v{__version__}[/bold green]")
+        self.console.print(f"[dim]Profile: {self.profile}[/dim]")
         self.console.print(
             "[green]/help for commands   /exit or Ctrl+C to quit[/green]"
         )

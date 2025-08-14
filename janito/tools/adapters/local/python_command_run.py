@@ -35,6 +35,8 @@ class PythonCommandRunTool(ToolBase):
                 tr("🐍 Running: python -c ...\n{code}\n", code=code), ReportAction.EXECUTE
             )
             self.report_stdout("\n")
+        else:
+            self.report_action(tr("⚡ Executing..."), ReportAction.EXECUTE)
         try:
             with (
                 tempfile.NamedTemporaryFile(

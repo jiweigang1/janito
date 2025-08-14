@@ -33,6 +33,8 @@ class PythonFileRunTool(ToolBase):
                 ReportAction.EXECUTE,
             )
             self.report_stdout("\n")
+        else:
+            self.report_action(tr("⚡ Executing..."), ReportAction.EXECUTE)
         try:
             with (
                 tempfile.NamedTemporaryFile(
