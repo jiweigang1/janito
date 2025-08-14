@@ -9,6 +9,7 @@ from janito.platform_discovery import PlatformDiscovery
 from pathlib import Path
 from jinja2 import Template
 import importlib.resources
+import importlib.resources as resources
 import re
 
 
@@ -115,6 +116,11 @@ def handle_show_system_prompt(args):
         Path(__file__).parent.parent.parent / "agent" / "templates" / "profiles"
     )
     profile = getattr(args, "profile", None)
+    
+    # Handle --market flag mapping to Market Analyst profile
+    if profile is None and getattr(args, "market", False):
+        profile = "Market Analyst"
+    
     if not profile:
         print(
             "[janito] No profile specified. The main agent runs without a system prompt template.\n"
@@ -126,46 +132,13 @@ def handle_show_system_prompt(args):
     _print_debug_info(debug_flag, template_filename, allowed_permissions, context)
 
     if not template_content:
-        if profile:
-            from janito.cli.cli_commands.list_profiles import _gather_default_profiles, _gather_user_profiles
-            import re
-            
-            default_profiles = _gather_default_profiles()
-            user_profiles = _gather_user_profiles()
-            
-            available_profiles = []
-            if default_profiles:
-                available_profiles.extend([(p, "default") for p in default_profiles])
-            if user_profiles:
-                available_profiles.extend([(p, "user") for p in user_profiles])
-            
-            # Normalize the input profile for better matching suggestions
-            normalized_input = re.sub(r"\s+", " ", profile.strip().lower())
-            
-            if available_profiles:
-                profile_list = "\n".join([f"  - {name} ({source})" for name, source in available_profiles])
-                
-                # Find close matches
-                close_matches = []
-                for name, source in available_profiles:
-                    normalized_name = name.lower()
-                    if normalized_input in normalized_name or normalized_name in normalized_input:
-                        close_matches.append(name)
-                
-                suggestion = ""
-                if close_matches:
-                    suggestion = f"\nDid you mean: {', '.join(close_matches)}?"
-                
-                error_msg = f"[janito] Could not find profile '{profile}'. Available profiles:\n{profile_list}{suggestion}"
-            else:
-                error_msg = f"[janito] Could not find profile '{profile}'. No profiles available."
-            
-            raise FileNotFoundError(error_msg)
-        else:
-            print(
-                f"[janito] Could not find {template_filename} in {templates_dir / template_filename} nor in janito.agent.templates.profiles package."
-            )
-            print("No system prompt is set or resolved for this configuration.")
+        # Try to load directly from package resources as fallback
+        try:
+            template_content = resources.files("janito.agent.templates.profiles").joinpath(
+                f"system_prompt_template_{profile.lower().replace(' ', '_')}.txt.j2"
+            ).read_text(encoding="utf-8")
+        except (FileNotFoundError, ModuleNotFoundError, AttributeError):
+            print(f"[janito] Could not find profile '{profile}'. This may be a configuration issue.")
             return
 
     template = Template(template_content)
