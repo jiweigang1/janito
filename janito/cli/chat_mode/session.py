@@ -116,6 +116,7 @@ class ChatSession:
         profile = getattr(args, "profile", None) if args is not None else None
         role_arg = getattr(args, "role", None) if args is not None else None
         python_profile = getattr(args, "python", False) if args is not None else False
+        market_profile = getattr(args, "market", False) if args is not None else False
         profile_system_prompt = None
         no_tools_mode = False
 
@@ -123,7 +124,11 @@ class ChatSession:
         if python_profile and profile is None and role_arg is None:
             profile = "Developer with Python Tools"
 
-        if profile is None and role_arg is None and not python_profile:
+        # Handle --market flag
+        if market_profile and profile is None and role_arg is None:
+            profile = "Market Analyst"
+
+        if profile is None and role_arg is None and not python_profile and not market_profile:
             try:
                 from janito.cli.chat_mode.session_profile_select import select_profile
 

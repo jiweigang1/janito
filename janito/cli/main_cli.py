@@ -45,6 +45,13 @@ definition = [
         },
     ),
     (
+        ["--market"],
+        {
+            "action": "store_true",
+            "help": "Start with the Market Analyst profile (equivalent to --profile 'Market Analyst')",
+        },
+    ),
+    (
         ["--role"],
         {
             "metavar": "ROLE",
@@ -223,6 +230,7 @@ MODIFIER_KEYS = [
     "role",
     "profile",
     "python",
+    "market",
     "system",
     "temperature",
     "verbose",
