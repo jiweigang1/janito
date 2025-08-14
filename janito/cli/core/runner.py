@@ -144,13 +144,18 @@ def handle_runner(
 
     load_disabled_tools_from_config()
 
-    unrestricted_paths = getattr(args, "unrestricted_paths", False)
+    unrestricted = getattr(args, "unrestricted", False)
     adapter = janito.tools.get_local_tools_adapter(
         workdir=getattr(args, "workdir", None)
     )
-    if unrestricted_paths:
+    if unrestricted:
         # Patch: disable path security enforcement for this adapter instance
         setattr(adapter, "unrestricted_paths", True)
+        
+        # Also disable URL whitelist restrictions in unrestricted mode
+        from janito.tools.url_whitelist import get_url_whitelist_manager
+        whitelist_manager = get_url_whitelist_manager()
+        whitelist_manager.set_unrestricted_mode(True)
 
     # Print allowed permissions in verbose mode
     if getattr(args, "verbose", False):

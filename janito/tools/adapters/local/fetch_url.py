@@ -42,6 +42,8 @@ class FetchUrlTool(ToolBase):
         max_lines (int, optional): Maximum number of lines to return. Defaults to 200.
         context_chars (int, optional): Characters of context around search matches. Defaults to 400.
         timeout (int, optional): Timeout in seconds for the HTTP request. Defaults to 10.
+        save_to_file (str, optional): File path to save the full resource content. If provided, 
+            the complete response will be saved to this file instead of being processed.
     Returns:
         str: Extracted text content from the web page, or a warning message. Example:
             - "<main text content...>"
@@ -148,10 +150,7 @@ class FetchUrlTool(ToolBase):
         # Check session cache first
         if url in self.session_cache:
             self.report_warning(
-                tr(
-                    "ℹ️ Using session cache for URL: {url}",
-                    url=url,
-                ),
+                tr("ℹ️ Using session cache"),
                 ReportAction.READ,
             )
             return self.session_cache[url]
@@ -270,6 +269,7 @@ class FetchUrlTool(ToolBase):
         max_lines: int = 200,
         context_chars: int = 400,
         timeout: int = 10,
+        save_to_file: str = None,
     ) -> str:
         if not url.strip():
             self.report_warning(tr("ℹ️ Empty URL provided."), ReportAction.READ)
@@ -277,7 +277,31 @@ class FetchUrlTool(ToolBase):
 
         self.report_action(tr("🌐 Fetch URL '{url}' ...", url=url), ReportAction.READ)
 
-        # Fetch URL content
+        # Check if we should save to file
+        if save_to_file:
+            html_content = self._fetch_url_content(url, timeout=timeout)
+            if html_content.startswith("Warning:"):
+                return html_content
+            
+            try:
+                with open(save_to_file, 'w', encoding='utf-8') as f:
+                    f.write(html_content)
+                file_size = len(html_content)
+                self.report_success(
+                    tr(
+                        "✅ Saved {size} bytes to {file}",
+                        size=file_size,
+                        file=save_to_file,
+                    ),
+                    ReportAction.READ,
+                )
+                return tr("Successfully saved content to: {file}", file=save_to_file)
+            except IOError as e:
+                error_msg = tr("Error saving to file: {error}", error=str(e))
+                self.report_error(error_msg, ReportAction.READ)
+                return error_msg
+
+        # Normal processing path
         html_content = self._fetch_url_content(url, timeout=timeout)
         if html_content.startswith("Warning:"):
             return html_content

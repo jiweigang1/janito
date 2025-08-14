@@ -12,6 +12,11 @@ class UrlWhitelistManager:
     def __init__(self):
         self.config_path = Path.home() / ".janito" / "url_whitelist.json"
         self._allowed_sites = self._load_whitelist()
+        self._unrestricted_mode = False
+    
+    def set_unrestricted_mode(self, enabled: bool = True):
+        """Enable or disable unrestricted mode (bypasses whitelist)."""
+        self._unrestricted_mode = enabled
     
     def _load_whitelist(self) -> Set[str]:
         """Load the whitelist from config file."""
@@ -36,6 +41,9 @@ class UrlWhitelistManager:
     
     def is_url_allowed(self, url: str) -> bool:
         """Check if a URL is allowed based on the whitelist."""
+        if self._unrestricted_mode:
+            return True  # Unrestricted mode bypasses all whitelist checks
+        
         if not self._allowed_sites:
             return True  # No whitelist means all sites allowed
         

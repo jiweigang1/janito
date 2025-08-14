@@ -1,0 +1,11 @@
+{
+  "plugins": {
+    "paths": [
+      "./plugins",
+      "~/.janito/plugins"
+    ],
+    "load": {
+      "example_plugin": true
+    }
+  }
+}
