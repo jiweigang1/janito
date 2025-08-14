@@ -52,10 +52,40 @@ def _load_template_content(profile, templates_dir):
         with open(user_template_path, "r", encoding="utf-8") as file:
             return file.read(), user_template_path
 
-    # If nothing matched, raise an informative error
-    raise FileNotFoundError(
-        f"[janito] Could not find profile-specific template '{template_filename}' in {template_path} nor in janito.agent.templates.profiles package nor in user profiles directory {user_template_path}."
-    )
+    # If nothing matched, list available profiles and raise an informative error
+    from janito.cli.cli_commands.list_profiles import _gather_default_profiles, _gather_user_profiles
+    
+    default_profiles = _gather_default_profiles()
+    user_profiles = _gather_user_profiles()
+    
+    available_profiles = []
+    if default_profiles:
+        available_profiles.extend([(p, "default") for p in default_profiles])
+    if user_profiles:
+        available_profiles.extend([(p, "user") for p in user_profiles])
+    
+    # Normalize the input profile for better matching suggestions
+    normalized_input = re.sub(r"\s+", " ", profile.strip().lower())
+    
+    if available_profiles:
+        profile_list = "\n".join([f"  - {name} ({source})" for name, source in available_profiles])
+        
+        # Find close matches
+        close_matches = []
+        for name, source in available_profiles:
+            normalized_name = name.lower()
+            if normalized_input in normalized_name or normalized_name in normalized_input:
+                close_matches.append(name)
+        
+        suggestion = ""
+        if close_matches:
+            suggestion = f"\nDid you mean: {', '.join(close_matches)}?"
+        
+        error_msg = f"[janito] Could not find profile '{profile}'. Available profiles:\n{profile_list}{suggestion}"
+    else:
+        error_msg = f"[janito] Could not find profile '{profile}'. No profiles available."
+    
+    raise FileNotFoundError(error_msg)
     # Replace spaces in profile name with underscores for filename resolution
     sanitized_profile = re.sub(r"\\s+", "_", profile.strip()) if profile else profile
     """

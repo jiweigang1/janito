@@ -60,7 +60,17 @@ def _load_template(profile, templates_dir):
             ).open("r", encoding="utf-8") as file:
                 template_content = file.read()
         except (FileNotFoundError, ModuleNotFoundError, AttributeError):
-            return template_filename, None
+            # Also check user profiles directory
+            from pathlib import Path
+            import os
+            user_profiles_dir = Path(os.path.expanduser("~/.janito/profiles"))
+            user_template_path = user_profiles_dir / template_filename
+            if user_template_path.exists():
+                with open(user_template_path, "r", encoding="utf-8") as file:
+                    template_content = file.read()
+            else:
+                template_content = None
+            return template_filename, template_content
     return template_filename, template_content
 
 
@@ -117,9 +127,40 @@ def handle_show_system_prompt(args):
 
     if not template_content:
         if profile:
-            raise FileNotFoundError(
-                f"[janito] Could not find profile-specific template '{template_filename}' in {templates_dir / template_filename} nor in janito.agent.templates.profiles package."
-            )
+            from janito.cli.cli_commands.list_profiles import _gather_default_profiles, _gather_user_profiles
+            import re
+            
+            default_profiles = _gather_default_profiles()
+            user_profiles = _gather_user_profiles()
+            
+            available_profiles = []
+            if default_profiles:
+                available_profiles.extend([(p, "default") for p in default_profiles])
+            if user_profiles:
+                available_profiles.extend([(p, "user") for p in user_profiles])
+            
+            # Normalize the input profile for better matching suggestions
+            normalized_input = re.sub(r"\s+", " ", profile.strip().lower())
+            
+            if available_profiles:
+                profile_list = "\n".join([f"  - {name} ({source})" for name, source in available_profiles])
+                
+                # Find close matches
+                close_matches = []
+                for name, source in available_profiles:
+                    normalized_name = name.lower()
+                    if normalized_input in normalized_name or normalized_name in normalized_input:
+                        close_matches.append(name)
+                
+                suggestion = ""
+                if close_matches:
+                    suggestion = f"\nDid you mean: {', '.join(close_matches)}?"
+                
+                error_msg = f"[janito] Could not find profile '{profile}'. Available profiles:\n{profile_list}{suggestion}"
+            else:
+                error_msg = f"[janito] Could not find profile '{profile}'. No profiles available."
+            
+            raise FileNotFoundError(error_msg)
         else:
             print(
                 f"[janito] Could not find {template_filename} in {templates_dir / template_filename} nor in janito.agent.templates.profiles package."
