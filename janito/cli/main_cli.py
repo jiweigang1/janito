@@ -16,10 +16,10 @@ from janito.cli.core.event_logger import (
 
 definition = [
     (
-        ["-u", "--unrestricted-paths"],
+        ["-u", "--unrestricted"],
         {
             "action": "store_true",
-            "help": "Disable path security: allow tool arguments to use any file/directory path (DANGEROUS)",
+            "help": "Unrestricted mode: disable path security and URL whitelist restrictions (DANGEROUS)",
         },
     ),
     (
@@ -222,6 +222,14 @@ definition = [
             "help": "Use custom configuration file ~/.janito/configs/NAME.json instead of default config.json",
         },
     ),
+    (
+        ["--list-plugins"],
+        {"action": "store_true", "help": "List all loaded plugins"},
+    ),
+    (
+        ["--list-plugins-available"],
+        {"action": "store_true", "help": "List all available plugins"},
+    ),
 ]
 
 MODIFIER_KEYS = [
@@ -382,7 +390,7 @@ class JanitoCLI:
         if run_mode == RunMode.SET:
             if self._run_set_mode():
                 return
-        # Special handling: provider is not required for list_providers, list_tools, show_config, list_drivers
+        # Special handling: provider is not required for list commands
         if run_mode == RunMode.GET and (
             self.args.list_providers
             or self.args.list_tools
@@ -390,6 +398,8 @@ class JanitoCLI:
             or self.args.show_config
             or self.args.list_config
             or self.args.list_drivers
+            or self.args.list_plugins
+            or self.args.list_plugins_available
             or self.args.ping
         ):
             self._maybe_print_verbose_provider_model()
