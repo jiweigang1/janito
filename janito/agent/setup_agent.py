@@ -144,6 +144,20 @@ def _prepare_template_context(role, profile, allowed_permissions):
         context["platform"] = pd.get_platform_name()
         context["python_version"] = pd.get_python_version()
         context["shell_info"] = pd.detect_shell()
+    
+    # Add allowed sites for market analyst profile
+    if profile == "market-analyst":
+        from janito.tools.url_whitelist import get_url_whitelist_manager
+        whitelist_manager = get_url_whitelist_manager()
+        allowed_sites = whitelist_manager.get_allowed_sites()
+        context["allowed_sites"] = allowed_sites
+        
+        # Add market data sources documentation
+        if not allowed_sites:
+            context["allowed_sites_info"] = "No whitelist restrictions - all sites allowed"
+        else:
+            context["allowed_sites_info"] = f"Restricted to: {', '.join(allowed_sites)}"
+    
     return context
 
 
