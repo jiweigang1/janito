@@ -1,0 +1,80 @@
+REVOLUT AMD DAY TRADING SCRIPT
+=============================
+
+TOMORROW'S TRADING PLAN - AMD
+
+PRE-MARKET PREP (9:25 AM EST):
+1. Open Revolut app
+2. Search "AMD" and add to watchlist
+3. Check yesterday's closing price
+4. Look for any AMD news on Google
+5. Calculate your max investment (suggest $100-500 for first trade)
+
+MARKET OPEN STRATEGY (9:30 AM EST):
+
+BUY CONDITIONS (ALL must be met):
+- AMD opens between $138-140
+- NASDAQ futures are positive
+- No major negative AMD news
+- You have available cash in Revolut
+
+BUY EXECUTION:
+1. Tap "Trade" → "Buy" → AMD
+2. Enter amount: Your budget (start small: $100-200)
+3. Review order details
+4. Tap "Buy" and screenshot confirmation
+5. Note your exact entry price
+
+TARGETS:
+- Target 1: +1.5% profit ($141-142 if bought at $139)
+- Target 2: +2.5% profit ($142-143)
+- Stop Loss: -2% ($136-137)
+
+MONITORING SCHEDULE:
+- 9:45 AM: Check first 15-min movement
+- 10:00 AM: Assess trend direction
+- 10:30 AM: Decision point - take profits or cut losses
+- 11:00 AM: Close position if still holding
+
+REVOLUT-SPECIFIC INSTRUCTIONS:
+
+SETTING PRICE ALERTS:
+1. In AMD stock page
+2. Tap "Alert" icon
+3. Set alert at $142 (profit target)
+4. Set alert at $137 (stop loss)
+
+FRACTIONAL SHARES CALCULATION:
+If AMD = $139 and you have:
+- $100 → 0.72 shares
+- $200 → 1.44 shares  
+- $500 → 3.60 shares
+
+EXIT STRATEGIES:
+Scenario 1: AMD hits $142
+- Tap "Sell" → Sell all shares
+- Profit: ~$2 per share (1.4% gain)
+
+Scenario 2: AMD drops to $137
+- Tap "Sell" → Sell all shares
+- Loss: ~$2 per share (1.4% loss)
+
+Scenario 3: AMD flat
+- Sell at 11:00 AM regardless
+- Small profit/loss acceptable
+
+RISK MANAGEMENT RULES:
+- Never invest more than 5% of total portfolio
+- Never risk more than you can afford to lose
+- Take profits quickly (don't get greedy)
+- Document every trade
+
+EMERGENCY CONTACTS:
+- Revolut support: In-app chat
+- Trading hours: 9:30 AM - 4:00 PM EST only
+- Settlement: 3 business days for stock sales
+
+PRACTICE RUN:
+Before tomorrow, try this with $50 on any stock to get familiar with Revolut's interface.
+
+REMEMBER: This is high-risk day trading. You could lose money. Only trade with money you can afford to lose.

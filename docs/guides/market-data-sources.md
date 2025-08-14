@@ -29,34 +29,51 @@ This guide provides information about reliable sources for accessing financial m
 
 ## Working with Market Data in Janito
 
+### Security Configuration
+
+Before accessing market data, configure trusted sources using the `/security` command:
+
+```
+/security allowed-sites add sec.gov
+/security allowed-sites add fred.stlouisfed.org
+/security allowed-sites add tradingview.com
+/security allowed-sites add investing.com
+/security allowed-sites add alphavantage.co
+/security allowed-sites add financialmodelingprep.com
+/security allowed-sites add twelvedata.com
+
+# Verify configuration
+/security allowed-sites list
+```
+
 ### Quick Stock Price Check
 
-```bash
+```
 # Get current Apple stock information
-janito "Fetch Apple's current stock price and key metrics from tradingview.com"
+Fetch Apple's current stock price and key metrics from tradingview.com
 
 # Get market indices overview
-janito "Retrieve current S&P 500, Dow Jones, and Nasdaq values from investing.com"
+Retrieve current S&P 500, Dow Jones, and Nasdaq values from investing.com
 ```
 
 ### Historical Data Access
 
-```bash
+```
 # Get historical price data
-janito "Find historical stock price data for Apple from FRED database"
+Find historical stock price data for Apple from FRED database
 
 # Access SEC filings
-janito "Download Apple's latest 10-K filing from SEC EDGAR"
+Download Apple's latest 10-K filing from SEC EDGAR
 ```
 
 ### Economic Indicators
 
-```bash
+```
 # Get Federal Reserve data
-janito "Fetch current federal funds rate and economic indicators from FRED"
+Fetch current federal funds rate and economic indicators from FRED
 
 # Market analysis
-janito "Analyze current market conditions using available public data sources"
+Analyze current market conditions using available public data sources
 ```
 
 ## Data Source Reliability
@@ -93,23 +110,30 @@ janito "Get Apple's financial data from SEC filings if market data sources are u
 
 ### Portfolio Tracking
 
-```bash
+```
 # Track multiple stocks
-janito "Monitor AAPL, MSFT, GOOGL, and TSLA using available public sources"
+Monitor AAPL, MSFT, GOOGL, and TSLA using available public sources
 
 # Market overview
-janito "Generate a daily market summary using government and public data sources"
+Generate a daily market summary using government and public data sources
 ```
 
 ### Economic Analysis
 
-```bash
+```
 # Economic indicators
-janito "Analyze the relationship between Federal Reserve data and market performance"
+Analyze the relationship between Federal Reserve data and market performance
 
 # Sector analysis
-janito "Compare technology sector performance using SEC filings and market data"
+Compare technology sector performance using SEC filings and market data
 ```
+
+## Security Configuration
+
+For enhanced security, use the `/security` command in chat mode to restrict access to trusted sources:
+
+- [Security Commands Guide](security-commands.md) - Manage allowed sites for fetch_url
+- [URL Whitelist Guide](url-whitelist.md) - Detailed whitelist configuration
 
 ## Related Documentation
 
@@ -122,7 +146,7 @@ janito "Compare technology sector performance using SEC filings and market data"
 
 For assistance with market data access:
 
-1. Check the [troubleshooting section](configuration.md)
-2. Use `janito --help` to see available options
-3. Test different data sources for reliability
+1. Configure trusted sources with `/security allowed-sites add <site>`
+2. Use `/security allowed-sites list` to verify configuration
+3. Check the [troubleshooting section](configuration.md)
 4. Open GitHub issues for specific data source requests

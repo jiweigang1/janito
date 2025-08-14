@@ -13,6 +13,7 @@ from janito.cli.core.event_logger import (
     inject_debug_event_bus_if_needed,
 )
 
+
 definition = [
     (
         ["-u", "--unrestricted-paths"],
@@ -149,6 +150,7 @@ definition = [
             "help": "List all providers with their regional API information",
         },
     ),
+
     (
         ["-l", "--list-models"],
         {"action": "store_true", "help": "List all supported models"},
@@ -323,6 +325,8 @@ class JanitoCLI:
 
                 argkwargs["version"] = f"Janito {janito_version}"
             self.parser.add_argument(*argnames, **argkwargs)
+        
+
 
     def _set_all_arg_defaults(self):
         # Gather all possible keys from definition, MODIFIER_KEYS, SETTER_KEYS, GETTER_KEYS

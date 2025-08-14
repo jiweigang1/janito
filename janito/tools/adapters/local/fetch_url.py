@@ -16,6 +16,25 @@ class FetchUrlTool(ToolBase):
     """
     Fetch the content of a web page and extract its text.
 
+    This tool implements a **session-based caching mechanism** that provides
+    **in-memory caching** for the lifetime of the tool instance. URLs are cached
+    in RAM during the session, providing instant access to previously fetched
+    content without making additional HTTP requests.
+
+    **Session Cache Behavior:**
+    - **Lifetime**: Cache exists for the lifetime of the FetchUrlTool instance
+    - **Scope**: In-memory (RAM) cache, not persisted to disk
+    - **Storage**: Successful responses are cached as raw HTML content
+    - **Key**: Cache key is the exact URL string
+    - **Invalidation**: Cache is automatically cleared when the tool instance is destroyed
+    - **Performance**: Subsequent requests for the same URL return instantly
+
+    **Error Cache Behavior:**
+    - HTTP 403 errors: Cached for 24 hours (more permanent)
+    - HTTP 404 errors: Cached for 1 hour (temporary)
+    - Other 4xx errors: Cached for 30 minutes
+    - 5xx errors: Not cached (retried on each request)
+
     Args:
         url (str): The URL of the web page to fetch.
         search_strings (list[str], optional): Strings to search for in the page content.
@@ -38,6 +57,7 @@ class FetchUrlTool(ToolBase):
         self.cache_dir = Path.home() / ".janito" / "cache" / "fetch_url"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.cache_file = self.cache_dir / "error_cache.json"
+        self.session_cache = {}  # In-memory session cache - lifetime matches tool instance
         self._load_cache()
 
     def _load_cache(self):
@@ -99,8 +119,44 @@ class FetchUrlTool(ToolBase):
         self._save_cache()
 
     def _fetch_url_content(self, url: str, timeout: int = 10) -> str:
-        """Fetch URL content and handle HTTP errors."""
-        # Check cache first for known errors
+        """Fetch URL content and handle HTTP errors.
+        
+        Implements two-tier caching:
+        1. Session cache: In-memory cache for successful responses (lifetime = tool instance)
+        2. Error cache: Persistent disk cache for HTTP errors with different expiration times
+        
+        Also implements URL whitelist checking.
+        """
+        # Check URL whitelist
+        from janito.tools.url_whitelist import get_url_whitelist_manager
+        whitelist_manager = get_url_whitelist_manager()
+        
+        if not whitelist_manager.is_url_allowed(url):
+            error_message = tr(
+                "Warning: URL blocked by whitelist: {url}",
+                url=url,
+            )
+            self.report_error(
+                tr(
+                    "❗ URL blocked by whitelist: {url}",
+                    url=url,
+                ),
+                ReportAction.READ,
+            )
+            return error_message
+
+        # Check session cache first
+        if url in self.session_cache:
+            self.report_warning(
+                tr(
+                    "ℹ️ Using session cache for URL: {url}",
+                    url=url,
+                ),
+                ReportAction.READ,
+            )
+            return self.session_cache[url]
+
+        # Check persistent cache for known errors
         cached_error, is_cached = self._get_cached_error(url)
         if cached_error:
             self.report_warning(
@@ -115,7 +171,10 @@ class FetchUrlTool(ToolBase):
         try:
             response = requests.get(url, timeout=timeout)
             response.raise_for_status()
-            return response.text
+            content = response.text
+            # Cache successful responses in session cache
+            self.session_cache[url] = content
+            return content
         except requests.exceptions.HTTPError as http_err:
             status_code = http_err.response.status_code if http_err.response else None
             if status_code and 400 <= status_code < 500:

@@ -69,8 +69,17 @@ def _dispatch_set_key(key, value):
         global_config.file_set("disabled_tools", value)
         print(f"Disabled tools set to '{value}'")
         return True
+    if key == "allowed_sites":
+        from janito.tools.url_whitelist import get_url_whitelist_manager
+        
+        sites = [site.strip() for site in value.split(',') if site.strip()]
+        whitelist_manager = get_url_whitelist_manager()
+        whitelist_manager.set_allowed_sites(sites)
+        global_config.file_set("allowed_sites", value)
+        print(f"Allowed sites set to: {', '.join(sites)}")
+        return True
     print(
-        f"Error: Unknown config key '{key}'. Supported: provider, model, max_tokens, base_url, azure_deployment_name, tool_permissions, disabled_tools"
+        f"Error: Unknown config key '{key}'. Supported: provider, model, max_tokens, base_url, azure_deployment_name, tool_permissions, disabled_tools, allowed_sites"
     )
     return True
 
