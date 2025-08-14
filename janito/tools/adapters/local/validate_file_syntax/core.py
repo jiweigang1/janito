@@ -15,6 +15,7 @@ from .html_validator import validate_html
 from .markdown_validator import validate_markdown
 from .js_validator import validate_js
 from .css_validator import validate_css
+from .jinja2_validator import validate_jinja2
 
 
 def _get_validator(ext):
@@ -32,6 +33,8 @@ def _get_validator(ext):
         ".md": validate_markdown,
         ".js": validate_js,
         ".css": validate_css,
+        ".j2": validate_jinja2,
+        ".jinja2": validate_jinja2,
     }
     return mapping.get(ext)
 
@@ -73,6 +76,7 @@ class ValidateFileSyntaxTool(ToolBase):
       - HTML (.html, .htm) [lxml]
       - Markdown (.md)
       - JavaScript (.js)
+      - Jinja2 templates (.j2, .jinja2)
 
     Args:
         path (str): Path to the file to validate.
