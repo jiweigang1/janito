@@ -17,6 +17,7 @@ class PythonCodeRunTool(ToolBase):
     Args:
         code (str): The Python code to execute as a string.
         timeout (int): Timeout in seconds for the command. Defaults to 60.
+        silent (bool): If True, suppresses progress and status messages. Defaults to False.
 
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
@@ -25,15 +26,16 @@ class PythonCodeRunTool(ToolBase):
     permissions = ToolPermissions(execute=True)
     tool_name = "python_code_run"
 
-    def run(self, code: str, timeout: int = 60) -> str:
+    def run(self, code: str, timeout: int = 60, silent: bool = False) -> str:
         if not code.strip():
             self.report_warning(tr("ℹ️ Empty code provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty code provided. Operation skipped.")
-        self.report_action(
-            tr("⚡ Running: python (stdin mode) ...\n{code}\n", code=code),
-            ReportAction.EXECUTE,
-        )
-        self.report_stdout("\n")
+        if not silent:
+            self.report_action(
+                tr("⚡ Running: python (stdin mode) ...\n{code}\n", code=code),
+                ReportAction.EXECUTE,
+            )
+            self.report_stdout("\n")
         try:
             with (
                 tempfile.NamedTemporaryFile(
@@ -70,10 +72,11 @@ class PythonCodeRunTool(ToolBase):
                     )
                 stdout_file.flush()
                 stderr_file.flush()
-                self.report_success(
-                    tr("✅ Return code {return_code}", return_code=return_code),
-                    ReportAction.EXECUTE,
-                )
+                if not silent:
+                    self.report_success(
+                        tr("✅ Return code {return_code}", return_code=return_code),
+                        ReportAction.EXECUTE,
+                    )
                 return self._format_result(
                     stdout_file.name, stderr_file.name, return_code
                 )

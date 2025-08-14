@@ -20,6 +20,7 @@ class RunBashCommandTool(ToolBase):
         timeout (int): Timeout in seconds for the command. Defaults to 60.
         require_confirmation (bool): If True, require user confirmation before running. Defaults to False.
         requires_user_input (bool): If True, warns that the command may require user input and might hang. Defaults to False. Non-interactive commands are preferred for automation and reliability.
+        silent (bool): If True, suppresses progress and status messages. Defaults to False.
 
     Returns:
         str: File paths and line counts for stdout and stderr.
@@ -44,15 +45,17 @@ class RunBashCommandTool(ToolBase):
         timeout: int = 60,
         require_confirmation: bool = False,
         requires_user_input: bool = False,
+        silent: bool = False,
     ) -> str:
         if not command.strip():
             self.report_warning(tr("ℹ️ Empty command provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty command provided. Operation skipped.")
-        self.report_action(
-            tr("🖥️  Run bash command: {command} ...\n", command=command),
-            ReportAction.EXECUTE,
-        )
-        if requires_user_input:
+        if not silent:
+            self.report_action(
+                tr("🖥️  Run bash command: {command} ...\n", command=command),
+                ReportAction.EXECUTE,
+            )
+        if requires_user_input and not silent:
             self.report_warning(
                 tr(
                     "⚠️  Warning: This command might be interactive, require user input, and might hang."
@@ -123,13 +126,14 @@ class RunBashCommandTool(ToolBase):
                 stderr_thread.join()
                 stdout_file.flush()
                 stderr_file.flush()
-                self.report_success(
-                    tr(
-                        " ✅ return code {return_code}",
-                        return_code=return_code,
-                    ),
-                    ReportAction.EXECUTE,
-                )
+                if not silent:
+                    self.report_success(
+                        tr(
+                            " ✅ return code {return_code}",
+                            return_code=return_code,
+                        ),
+                        ReportAction.EXECUTE,
+                    )
                 max_lines = 100
                 # Read back the output for summary
                 stdout_file.seek(0)

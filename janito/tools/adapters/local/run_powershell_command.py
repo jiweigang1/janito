@@ -22,6 +22,7 @@ class RunPowershellCommandTool(ToolBase):
         timeout (int): Timeout in seconds for the command. Defaults to 60.
         require_confirmation (bool): If True, require user confirmation before running. Defaults to False.
         requires_user_input (bool): If True, warns that the command may require user input and might hang. Defaults to False. Non-interactive commands are preferred for automation and reliability.
+        silent (bool): If True, suppresses progress and status messages. Defaults to False.
 
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
@@ -127,16 +128,18 @@ class RunPowershellCommandTool(ToolBase):
         timeout: int = 60,
         require_confirmation: bool = False,
         requires_user_input: bool = False,
+        silent: bool = False,
     ) -> str:
         if not command.strip():
             self.report_warning(tr("ℹ️ Empty command provided."), ReportAction.EXECUTE)
             return tr("Warning: Empty command provided. Operation skipped.")
         encoding_prefix = "$OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; "
         command_with_encoding = encoding_prefix + command
-        self.report_action(
-            tr("🖥️ Running PowerShell command: {command} ...\n", command=command),
-            ReportAction.EXECUTE,
-        )
+        if not silent:
+            self.report_action(
+                tr("🖥️ Running PowerShell command: {command} ...\n", command=command),
+                ReportAction.EXECUTE,
+            )
         self._confirm_and_warn(command, require_confirmation, requires_user_input)
         from janito.platform_discovery import PlatformDiscovery
 
@@ -199,10 +202,11 @@ class RunPowershellCommandTool(ToolBase):
                 stderr_thread.join()
                 stdout_file.flush()
                 stderr_file.flush()
-                self.report_success(
-                    tr(" ✅ return code {return_code}", return_code=return_code),
-                    ReportAction.EXECUTE,
-                )
+                if not silent:
+                    self.report_success(
+                        tr(" ✅ return code {return_code}", return_code=return_code),
+                        ReportAction.EXECUTE,
+                    )
                 return self._format_result(
                     requires_user_input, return_code, stdout_file, stderr_file
                 )

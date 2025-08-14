@@ -17,6 +17,7 @@ class PythonFileRunTool(ToolBase):
     Args:
         path (str): Path to the Python script file to execute.
         timeout (int): Timeout in seconds for the command. Defaults to 60.
+        silent (bool): If True, suppresses progress and status messages. Defaults to False.
 
     Returns:
         str: Output and status message, or file paths/line counts if output is large.
@@ -25,12 +26,13 @@ class PythonFileRunTool(ToolBase):
     permissions = ToolPermissions(execute=True)
     tool_name = "python_file_run"
 
-    def run(self, path: str, timeout: int = 60) -> str:
-        self.report_action(
-            tr("🚀 Running: python {path}", path=path),
-            ReportAction.EXECUTE,
-        )
-        self.report_stdout("\n")
+    def run(self, path: str, timeout: int = 60, silent: bool = False) -> str:
+        if not silent:
+            self.report_action(
+                tr("🚀 Running: python {path}", path=path),
+                ReportAction.EXECUTE,
+            )
+            self.report_stdout("\n")
         try:
             with (
                 tempfile.NamedTemporaryFile(
@@ -66,10 +68,11 @@ class PythonFileRunTool(ToolBase):
                     )
                 stdout_file.flush()
                 stderr_file.flush()
-                self.report_success(
-                    tr("✅ Return code {return_code}", return_code=return_code),
-                    ReportAction.EXECUTE,
-                )
+                if not silent:
+                    self.report_success(
+                        tr("✅ Return code {return_code}", return_code=return_code),
+                        ReportAction.EXECUTE,
+                    )
                 return self._format_result(
                     stdout_file.name, stderr_file.name, return_code
                 )
