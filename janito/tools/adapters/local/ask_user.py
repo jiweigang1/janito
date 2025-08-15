@@ -1,5 +1,6 @@
 from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.tools.adapters.local.adapter import register_local_tool
+from janito.tools.loop_protection_decorator import protect_against_loops
 
 from rich import print as rich_print
 from janito.i18n import tr
@@ -31,6 +32,7 @@ class AskUserTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "ask_user"
 
+    @protect_against_loops(max_calls=5, time_window=10.0)
     def run(self, question: str) -> str:
 
         print()  # Print an empty line before the question panel

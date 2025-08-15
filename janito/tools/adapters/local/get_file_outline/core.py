@@ -10,6 +10,7 @@ from janito.tools.tool_utils import display_path, pluralize
 from janito.i18n import tr
 
 from janito.tools.adapters.local.adapter import register_local_tool as register_tool
+from janito.tools.loop_protection_decorator import protect_against_loops
 
 
 @register_tool
@@ -24,6 +25,7 @@ class GetFileOutlineTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "get_file_outline"
 
+    @protect_against_loops(max_calls=5, time_window=10.0)
     def run(self, path: str) -> str:
         try:
             self.report_action(

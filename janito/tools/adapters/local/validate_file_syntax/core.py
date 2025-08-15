@@ -16,6 +16,7 @@ from .markdown_validator import validate_markdown
 from .js_validator import validate_js
 from .css_validator import validate_css
 from .jinja2_validator import validate_jinja2
+from janito.tools.loop_protection_decorator import protect_against_loops
 
 
 def _get_validator(ext):
@@ -90,6 +91,7 @@ class ValidateFileSyntaxTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "validate_file_syntax"
 
+    @protect_against_loops(max_calls=5, time_window=10.0)
     def run(self, path: str) -> str:
         disp_path = display_path(path)
         self.report_action(

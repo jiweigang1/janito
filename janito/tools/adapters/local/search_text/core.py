@@ -7,6 +7,7 @@ import os
 from .pattern_utils import prepare_pattern, format_result, summarize_total
 from .match_lines import read_file_lines
 from .traverse_directory import traverse_directory
+from janito.tools.loop_protection_decorator import protect_against_loops
 
 
 from janito.tools.adapters.local.adapter import register_local_tool as register_tool
@@ -152,6 +153,7 @@ class SearchTextTool(ToolBase):
         )
         return info_str, dir_output, dir_limit_reached, per_file_counts
 
+    @protect_against_loops(max_calls=5, time_window=10.0)
     def run(
         self,
         paths: str,

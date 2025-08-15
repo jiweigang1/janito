@@ -90,7 +90,7 @@ class ReplaceTextInFileTool(ToolBase):
                 f"\n{validation_result}" if validation_result else ""
             )
         except Exception as e:
-            self.report_error(tr(" ❌ Error"), ReportAction.REPLACE)
+            self.report_error(tr(" ❌ Error"), ReportAction.UPDATE)
             return tr("Error replacing text: {error}", error=e)
 
     def _read_file_content(self, path):

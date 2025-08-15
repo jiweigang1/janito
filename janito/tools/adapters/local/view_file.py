@@ -3,6 +3,7 @@ from janito.report_events import ReportAction
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_utils import pluralize
 from janito.i18n import tr
+from janito.tools.loop_protection_decorator import protect_against_loops
 
 
 @register_local_tool
@@ -28,6 +29,7 @@ class ViewFileTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "view_file"
 
+    @protect_against_loops(max_calls=5, time_window=10.0)
     def run(self, path: str, from_line: int = None, to_line: int = None) -> str:
         import os
         from janito.tools.tool_utils import display_path

@@ -5,6 +5,7 @@ from janito.tools.tool_utils import display_path
 from janito.i18n import tr
 import json
 import os
+from janito.tools.loop_protection_decorator import protect_against_loops
 
 
 @register_local_tool
@@ -25,6 +26,7 @@ class ReadChartTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "read_chart"
 
+    @protect_against_loops(max_calls=5, time_window=10.0)
     def run(self, data: dict, title: str = "Chart", width: int = 80, height: int = 20) -> str:
         try:
             from rich.console import Console

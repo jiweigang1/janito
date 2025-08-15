@@ -4,6 +4,7 @@ from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.i18n import tr
+from janito.tools.loop_protection_decorator import protect_against_loops
 
 
 @register_local_tool
@@ -20,6 +21,7 @@ class OpenHtmlInBrowserTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "open_html_in_browser"
 
+    @protect_against_loops(max_calls=5, time_window=10.0)
     def run(self, path: str) -> str:
         if not path.strip():
             self.report_warning(tr("ℹ️ Empty file path provided."))

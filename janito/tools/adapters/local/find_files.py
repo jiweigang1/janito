@@ -6,6 +6,7 @@ from janito.dir_walk_utils import walk_dir_with_gitignore
 from janito.i18n import tr
 import fnmatch
 import os
+from janito.tools.loop_protection_decorator import protect_against_loops
 
 
 @register_local_tool
@@ -107,6 +108,7 @@ class FindFilesTool(ToolBase):
             }
         return sorted(dir_output)
 
+    @protect_against_loops(max_calls=5, time_window=10.0)
     def run(
         self,
         paths: str,
