@@ -91,7 +91,7 @@ class ValidateFileSyntaxTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "validate_file_syntax"
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="path")
     def run(self, path: str) -> str:
         disp_path = display_path(path)
         self.report_action(

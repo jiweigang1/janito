@@ -108,7 +108,7 @@ class FindFilesTool(ToolBase):
             }
         return sorted(dir_output)
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="paths")
     def run(
         self,
         paths: str,

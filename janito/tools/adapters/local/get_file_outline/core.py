@@ -25,7 +25,7 @@ class GetFileOutlineTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "get_file_outline"
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="path")
     def run(self, path: str) -> str:
         try:
             self.report_action(

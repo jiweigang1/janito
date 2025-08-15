@@ -153,7 +153,7 @@ class SearchTextTool(ToolBase):
         )
         return info_str, dir_output, dir_limit_reached, per_file_counts
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="paths")
     def run(
         self,
         paths: str,

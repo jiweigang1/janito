@@ -43,7 +43,7 @@ class FetchUrlTool(ToolBase):
         max_lines (int, optional): Maximum number of lines to return. Defaults to 200.
         context_chars (int, optional): Characters of context around search matches. Defaults to 400.
         timeout (int, optional): Timeout in seconds for the HTTP request. Defaults to 10.
-        save_to_file (str, optional): File path to save the full resource content. If provided, 
+        save_to_file (str, optional): File path to save the full resource content. If provided,
             the complete response will be saved to this file instead of being processed.
     Returns:
         str: Extracted text content from the web page, or a warning message. Example:
@@ -60,14 +60,16 @@ class FetchUrlTool(ToolBase):
         self.cache_dir = Path.home() / ".janito" / "cache" / "fetch_url"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.cache_file = self.cache_dir / "error_cache.json"
-        self.session_cache = {}  # In-memory session cache - lifetime matches tool instance
+        self.session_cache = (
+            {}
+        )  # In-memory session cache - lifetime matches tool instance
         self._load_cache()
 
     def _load_cache(self):
         """Load error cache from disk."""
         if self.cache_file.exists():
             try:
-                with open(self.cache_file, 'r', encoding='utf-8') as f:
+                with open(self.cache_file, "r", encoding="utf-8") as f:
                     self.error_cache = json.load(f)
             except (json.JSONDecodeError, IOError):
                 self.error_cache = {}
@@ -77,7 +79,7 @@ class FetchUrlTool(ToolBase):
     def _save_cache(self):
         """Save error cache to disk."""
         try:
-            with open(self.cache_file, 'w', encoding='utf-8') as f:
+            with open(self.cache_file, "w", encoding="utf-8") as f:
                 json.dump(self.error_cache, f, indent=2)
         except IOError:
             pass  # Silently fail if we can't write cache
@@ -89,51 +91,52 @@ class FetchUrlTool(ToolBase):
         """
         if url not in self.error_cache:
             return None, False
-        
+
         entry = self.error_cache[url]
         current_time = time.time()
-        
+
         # Different expiration times for different status codes
-        if entry['status_code'] == 403:
+        if entry["status_code"] == 403:
             # Cache 403 errors for 24 hours (more permanent)
             expiration_time = 24 * 3600
-        elif entry['status_code'] == 404:
+        elif entry["status_code"] == 404:
             # Cache 404 errors for 1 hour (more temporary)
             expiration_time = 3600
         else:
             # Cache other 4xx errors for 30 minutes
             expiration_time = 1800
-            
-        if current_time - entry['timestamp'] > expiration_time:
+
+        if current_time - entry["timestamp"] > expiration_time:
             # Cache expired, remove it
             del self.error_cache[url]
             self._save_cache()
             return None, False
-            
-        return entry['message'], True
+
+        return entry["message"], True
 
     def _cache_error(self, url: str, status_code: int, message: str):
         """Cache an HTTP error response."""
         self.error_cache[url] = {
-            'status_code': status_code,
-            'message': message,
-            'timestamp': time.time()
+            "status_code": status_code,
+            "message": message,
+            "timestamp": time.time(),
         }
         self._save_cache()
 
     def _fetch_url_content(self, url: str, timeout: int = 10) -> str:
         """Fetch URL content and handle HTTP errors.
-        
+
         Implements two-tier caching:
         1. Session cache: In-memory cache for successful responses (lifetime = tool instance)
         2. Error cache: Persistent disk cache for HTTP errors with different expiration times
-        
+
         Also implements URL whitelist checking.
         """
         # Check URL whitelist
         from janito.tools.url_whitelist import get_url_whitelist_manager
+
         whitelist_manager = get_url_whitelist_manager()
-        
+
         if not whitelist_manager.is_url_allowed(url):
             error_message = tr(
                 "Warning: URL blocked by whitelist: {url}",
@@ -186,7 +189,7 @@ class FetchUrlTool(ToolBase):
                 # Cache 403 and 404 errors
                 if status_code in [403, 404]:
                     self._cache_error(url, status_code, error_message)
-                
+
                 self.report_error(
                     tr(
                         "❗ HTTP {status_code} error for URL: {url}",
@@ -262,7 +265,7 @@ class FetchUrlTool(ToolBase):
 
         return text
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="url")
     def run(
         self,
         url: str,
@@ -284,9 +287,9 @@ class FetchUrlTool(ToolBase):
             html_content = self._fetch_url_content(url, timeout=timeout)
             if html_content.startswith("Warning:"):
                 return html_content
-            
+
             try:
-                with open(save_to_file, 'w', encoding='utf-8') as f:
+                with open(save_to_file, "w", encoding="utf-8") as f:
                     f.write(html_content)
                 file_size = len(html_content)
                 self.report_success(

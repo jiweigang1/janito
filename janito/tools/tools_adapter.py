@@ -67,8 +67,6 @@ class ToolsAdapterBase:
     def add_tool(self, tool):
         self._tools.append(tool)
 
-
-
     def _validate_arguments_against_schema(self, arguments: dict, schema: dict):
         properties = schema.get("properties", {})
         required = schema.get("required", [])
@@ -221,7 +219,10 @@ class ToolsAdapterBase:
                                 message=f"[SECURITY] Path access denied: {sec_err}",
                                 action=ReportAction.EXECUTE,
                                 tool=tool_name,
-                                context={"arguments": arguments, "request_id": request_id},
+                                context={
+                                    "arguments": arguments,
+                                    "request_id": request_id,
+                                },
                             )
                         )
                     return f"Security error: {sec_err}"
@@ -234,7 +235,7 @@ class ToolsAdapterBase:
         try:
             # Normalize arguments to ensure proper type handling
             normalized_args = self._normalize_arguments(arguments, tool, func)
-            
+
             if isinstance(normalized_args, (list, tuple)):
                 # Positional arguments supplied as an array → expand as *args
                 result = self.execute(tool, *normalized_args, **kwargs)
@@ -245,7 +246,14 @@ class ToolsAdapterBase:
                 # Single positional argument (scalar/str/int/…)
                 result = self.execute(tool, normalized_args, **kwargs)
         except Exception as e:
-            self._handle_execution_error(tool_name, request_id, e, arguments)
+            # Handle exception and return error message instead of raising
+            error_result = self._handle_execution_error(
+                tool_name, request_id, e, arguments
+            )
+            if error_result is not None:
+                return error_result
+            # If _handle_execution_error returns None, re-raise
+            raise
         self._print_verbose(
             f"[tools-adapter] Tool execution finished: {tool_name} -> {result}"
         )
@@ -303,7 +311,7 @@ class ToolsAdapterBase:
     def _normalize_arguments(self, arguments, tool, func):
         """
         Normalize arguments to ensure proper type handling at the adapter level.
-        
+
         This handles cases where:
         1. String is passed instead of list for array parameters
         2. JSON string parsing issues
@@ -311,51 +319,57 @@ class ToolsAdapterBase:
         """
         import inspect
         import json
-        
+
         # If arguments is already a dict or None, return as-is
         if isinstance(arguments, dict) or arguments is None:
             return arguments
-            
+
         # If arguments is a list/tuple, return as-is (positional args)
         if isinstance(arguments, (list, tuple)):
             return arguments
-            
+
         # Handle string arguments
         if isinstance(arguments, str):
             # Try to parse as JSON if it looks like JSON
             stripped = arguments.strip()
-            if (stripped.startswith('{') and stripped.endswith('}')) or \
-               (stripped.startswith('[') and stripped.endswith(']')):
+            if (stripped.startswith("{") and stripped.endswith("}")) or (
+                stripped.startswith("[") and stripped.endswith("]")
+            ):
                 try:
                     parsed = json.loads(arguments)
                     return parsed
                 except json.JSONDecodeError:
                     # If it looks like JSON but failed, try to handle common issues
                     pass
-            
+
             # Check if the function expects a list parameter
             try:
                 sig = inspect.signature(func)
                 params = list(sig.parameters.values())
-                
+
                 # Skip 'self' parameter for methods
-                if len(params) > 0 and params[0].name == 'self':
+                if len(params) > 0 and params[0].name == "self":
                     params = params[1:]
-                
+
                 # If there's exactly one parameter that expects a list, wrap string in list
                 if len(params) == 1:
                     param = params[0]
                     annotation = param.annotation
-                    
+
                     # Check if annotation is list[str] or similar
-                    if hasattr(annotation, '__origin__') and annotation.__origin__ is list:
+                    if (
+                        hasattr(annotation, "__origin__")
+                        and annotation.__origin__ is list
+                    ):
                         return [arguments]
-                    elif str(annotation).startswith('list[') or str(annotation) == 'list':
+                    elif (
+                        str(annotation).startswith("list[") or str(annotation) == "list"
+                    ):
                         return [arguments]
-                        
+
             except (ValueError, TypeError):
                 pass
-                
+
         # Return original arguments for other cases
         return arguments
 
@@ -420,6 +434,22 @@ class ToolsAdapterBase:
             raise ToolCallException(tool_name, error_msg, arguments=arguments)
 
     def _handle_execution_error(self, tool_name, request_id, exception, arguments):
+        # Check if this is a loop protection error that should be returned as a string
+        if isinstance(exception, RuntimeError) and "Loop protection:" in str(exception):
+            error_msg = str(exception)  # Return the loop protection message directly
+            if self._event_bus:
+                self._event_bus.publish(
+                    ToolCallError(
+                        tool_name=tool_name,
+                        request_id=request_id,
+                        error=error_msg,
+                        exception=exception,
+                        arguments=arguments,
+                    )
+                )
+            # Return the error message instead of raising an exception
+            return error_msg
+
         error_msg = f"Exception during execution of tool '{tool_name}': {exception}"
         if self._event_bus:
             self._event_bus.publish(

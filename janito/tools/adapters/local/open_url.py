@@ -20,7 +20,7 @@ class OpenUrlTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "open_url"
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="url")
     def run(self, url: str) -> str:
         if not url.strip():
             self.report_warning(tr("ℹ️ Empty URL provided."))

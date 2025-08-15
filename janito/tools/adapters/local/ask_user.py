@@ -32,7 +32,7 @@ class AskUserTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "ask_user"
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="question")
     def run(self, question: str) -> str:
 
         print()  # Print an empty line before the question panel
