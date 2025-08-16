@@ -174,7 +174,21 @@ def handle_runner(
             "Active LLMDriverConfig (after provider)", llm_driver_config, style="green"
         )
         print_verbose_info("Agent role", agent_role, style="green")
-    if mode == "single_shot":
+    
+    # Skip chat mode for list commands - handle them directly
+    from janito.cli.core.getters import GETTER_KEYS
+    skip_chat_mode = False
+    if args is not None:
+        for key in GETTER_KEYS:
+            if getattr(args, key, False):
+                skip_chat_mode = True
+                break
+    
+    if skip_chat_mode:
+        # Handle list commands directly without prompt
+        from janito.cli.core.getters import handle_getter
+        handle_getter(args)
+    elif mode == "single_shot":
         from janito.cli.single_shot_mode.handler import (
             PromptHandler as SingleShotPromptHandler,
         )

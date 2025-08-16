@@ -130,25 +130,39 @@ class ChatSession:
             profile = "Market Analyst"
 
         if profile is None and role_arg is None and not python_profile and not market_profile:
-            try:
-                from janito.cli.chat_mode.session_profile_select import select_profile
+            # Skip interactive profile selection for list commands
+            from janito.cli.core.getters import GETTER_KEYS
+            
+            # Check if any getter command is active - these don't need interactive mode
+            skip_profile_selection = False
+            if args is not None:
+                for key in GETTER_KEYS:
+                    if getattr(args, key, False):
+                        skip_profile_selection = True
+                        break
+            
+            if skip_profile_selection:
+                profile = "Developer with Python Tools"  # Default for non-interactive commands
+            else:
+                try:
+                    from janito.cli.chat_mode.session_profile_select import select_profile
 
-                result = select_profile()
-                if isinstance(result, dict):
-                    profile = result.get("profile")
-                    profile_system_prompt = result.get("profile_system_prompt")
-                    no_tools_mode = result.get("no_tools_mode", False)
-                elif isinstance(result, str) and result.startswith("role:"):
-                    role = result[len("role:") :].strip()
-                    profile = "Developer with Python Tools"
-                else:
-                    profile = (
-                        "Developer with Python Tools"
-                        if result == "Developer"
-                        else result
-                    )
-            except ImportError:
-                profile = "Raw Model Session (no tools, no context)"
+                    result = select_profile()
+                    if isinstance(result, dict):
+                        profile = result.get("profile")
+                        profile_system_prompt = result.get("profile_system_prompt")
+                        no_tools_mode = result.get("no_tools_mode", False)
+                    elif isinstance(result, str) and result.startswith("role:"):
+                        role = result[len("role:") :].strip()
+                        profile = "Developer with Python Tools"
+                    else:
+                        profile = (
+                            "Developer with Python Tools"
+                            if result == "Developer"
+                            else result
+                        )
+                except ImportError:
+                    profile = "Raw Model Session (no tools, no context)"
         if role_arg is not None:
             role = role_arg
             if profile is None:
@@ -224,7 +238,7 @@ class ChatSession:
 
         priv_status = get_privilege_status_message()
         self.console.print(
-            f"[green]Working Dir:[/green] {cwd_display}  |  {priv_status}"
+            f"[green]Working Dir:[/green] [cyan]{cwd_display}[/cyan]  |  {priv_status}"
         )
 
         if self.multi_line_mode:
@@ -280,6 +294,8 @@ class ChatSession:
 
     def _process_prompt(self, cmd_input):
         try:
+            # Clear screen before processing new prompt
+            self.console.clear()
             import time
 
             final_event = (

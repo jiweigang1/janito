@@ -1,6 +1,7 @@
 from .base import ShellCmdHandler
 from .history_view import ViewShellHandler
 from .lang import LangShellHandler
+from .provider import ProviderCmdHandler
 
 from .prompt import PromptShellHandler, RoleShellHandler
 from .multi import MultiShellHandler
@@ -43,6 +44,7 @@ COMMAND_HANDLERS = {
     "/multi": MultiShellHandler,
     "/help": HelpShellHandler,
     "/security": SecurityCommand,
+    "/provider": ProviderCmdHandler,
 }
 
 

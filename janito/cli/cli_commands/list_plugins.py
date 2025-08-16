@@ -7,6 +7,7 @@ from typing import List, Dict, Any
 from janito.plugins.discovery import list_available_plugins, discover_plugins
 import os
 from janito.plugins.manager import PluginManager
+from janito.plugins.builtin import BuiltinPluginRegistry
 
 
 def handle_list_plugins(args: argparse.Namespace) -> None:
@@ -15,10 +16,23 @@ def handle_list_plugins(args: argparse.Namespace) -> None:
     if getattr(args, 'list_plugins_available', False):
         # List available plugins
         available = list_available_plugins()
-        if available:
+        builtin_plugins = BuiltinPluginRegistry.list_builtin_plugins()
+        
+        if available or builtin_plugins:
             print("Available plugins:")
-            for plugin in available:
-                print(f"  - {plugin}")
+            
+            # Show builtin plugins first
+            if builtin_plugins:
+                print("  Builtin plugins:")
+                for plugin in builtin_plugins:
+                    print(f"    - {plugin} [BUILTIN]")
+            
+            # Show other available plugins
+            other_plugins = [p for p in available if p not in builtin_plugins]
+            if other_plugins:
+                print("  External plugins:")
+                for plugin in other_plugins:
+                    print(f"    - {plugin}")
         else:
             print("No plugins found in search paths")
             print("Search paths:")
@@ -65,8 +79,10 @@ def handle_list_plugins(args: argparse.Namespace) -> None:
             print("Loaded plugins:")
             for plugin_name in loaded:
                 metadata = manager.get_plugin_metadata(plugin_name)
+                is_builtin = BuiltinPluginRegistry.is_builtin(plugin_name)
                 if metadata:
-                    print(f"  - {metadata.name} v{metadata.version}")
+                    builtin_tag = " [BUILTIN]" if is_builtin else ""
+                    print(f"  - {metadata.name} v{metadata.version}{builtin_tag}")
                     print(f"    {metadata.description}")
                     if metadata.author:
                         print(f"    Author: {metadata.author}")

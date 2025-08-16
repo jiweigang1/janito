@@ -13,6 +13,7 @@ from janito.cli.cli_commands.list_providers_region import handle_list_providers_
 from janito.cli.cli_commands.list_plugins import handle_list_plugins
 from functools import partial
 from janito.provider_registry import ProviderRegistry
+from janito.config import config as global_config
 
 GETTER_KEYS = [
     "show_config",
@@ -29,6 +30,10 @@ GETTER_KEYS = [
     "list_resources",
 ]
 
+
+def get_current_provider():
+    """Get the current provider from the global config."""
+    return global_config.get("provider", "none")
 
 def handle_getter(args, config_mgr=None):
     provider_instance = None
@@ -56,6 +61,7 @@ def handle_getter(args, config_mgr=None):
         "region_info": partial(handle_region_info, args),
         "list_providers_region": partial(handle_list_providers_region, args),
         "list_plugins": partial(handle_list_plugins, args),
+        "list_plugins_available": partial(handle_list_plugins, args),
         "list_resources": partial(handle_list_plugins, args),
     }
     for arg in GETTER_KEYS:

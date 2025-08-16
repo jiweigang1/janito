@@ -9,6 +9,24 @@ The plugin system consists of:
 - **Plugin**: Base class for all plugins
 - **PluginManager**: Manages plugin loading, registration, and lifecycle
 - **Plugin Discovery**: Automatically finds and loads plugins from various locations
+- **Builtin Plugins**: Plugins that come packaged with janito and are available by default
+
+## Builtin Plugins
+
+Janito includes several builtin plugins that provide essential functionality out of the box. These plugins are:
+
+- **git_analyzer**: Git repository analysis and insights
+- **code_navigator**: Code navigation and analysis tools
+- **dependency_analyzer**: Project dependency analysis
+- **code_formatter**: Code formatting and style tools
+- **test_runner**: Test execution and analysis
+- **linter**: Code linting and quality checks
+- **debugger**: Debugging and troubleshooting tools
+- **performance_profiler**: Performance analysis and profiling
+- **security_scanner**: Security vulnerability scanning
+- **documentation_generator**: Documentation generation tools
+
+Builtin plugins are automatically available without requiring installation or configuration. They can be used immediately and are marked as `[BUILTIN]` when listing plugins.
 
 ## Creating a Plugin
 
@@ -86,6 +104,22 @@ Add to your `janito.json`:
 }
 ```
 
+### Builtin Plugins
+
+Builtin plugins are automatically loaded and do not require explicit configuration. However, you can still configure them if needed:
+
+```json
+{
+  "plugins": {
+    "load": {
+      "git_analyzer": {
+        "show_ignored_files": false
+      }
+    }
+  }
+}
+```
+
 ### Plugin Configuration
 
 Plugins can accept configuration:
@@ -113,7 +147,12 @@ janito --list-plugins
 
 # List available plugins
 janito --list-plugins-available
+
+# List plugin resources
+janito --list-resources
 ```
+
+Builtin plugins are marked with `[BUILTIN]` in the plugin listings.
 
 ### Manual Loading
 
@@ -166,6 +205,24 @@ def validate_config(self, config):
     return "api_key" in config
 ```
 
+## Plugin Types
+
+### Builtin Plugins
+
+Builtin plugins are developed and maintained as part of the janito project. They provide core functionality and are always available. Examples include:
+
+- **git_analyzer**: Git repository tools
+- **code_navigator**: Code analysis and navigation
+- **test_runner**: Test execution capabilities
+
+### External Plugins
+
+External plugins are developed by the community or for specific use cases. They can be:
+
+- Single file plugins (`.py` files)
+- Package plugins (directories with `__init__.py`)
+- Installed packages (via pip)
+
 ## Example Plugin
 
 See `plugins/example_plugin.py` for a complete example including:
@@ -173,6 +230,8 @@ See `plugins/example_plugin.py` for a complete example including:
 - Custom tools
 - Configuration handling
 - Initialization and cleanup
+
+For builtin plugin examples, see the `janito-coder` repository which contains all the builtin plugins.
 
 ## Best Practices
 

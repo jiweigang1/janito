@@ -32,6 +32,7 @@ from typing import Optional, List
 import logging
 
 from .base import Plugin
+from .builtin import load_builtin_plugin, BuiltinPluginRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,7 @@ def discover_plugins(plugin_name: str, search_paths: List[Path] = None) -> Optio
     Supports multiple plugin formats:
     - Single .py files
     - Python package directories
+    - Package-based plugins (e.g., core.filemanager)
     - Installed Python packages
     - ZIP files containing packages
     
@@ -65,6 +67,20 @@ def discover_plugins(plugin_name: str, search_paths: List[Path] = None) -> Optio
     
     all_paths = search_paths + default_paths
     
+    # Handle package-based plugins (e.g., core.filemanager)
+    if "." in plugin_name:
+        parts = plugin_name.split(".")
+        if len(parts) == 2:
+            package_name, submodule_name = parts
+            for base_path in all_paths:
+                package_path = base_path / package_name / submodule_name / "__init__.py"
+                if package_path.exists():
+                    return _load_plugin_from_file(package_path, plugin_name=plugin_name)
+                
+                plugin_path = base_path / package_name / submodule_name / "plugin.py"
+                if plugin_path.exists():
+                    return _load_plugin_from_file(plugin_path, plugin_name=plugin_name)
+    
     # Try to find plugin in search paths
     for base_path in all_paths:
         plugin_path = base_path / plugin_name
@@ -75,6 +91,11 @@ def discover_plugins(plugin_name: str, search_paths: List[Path] = None) -> Optio
         module_path = base_path / f"{plugin_name}.py"
         if module_path.exists():
             return _load_plugin_from_file(module_path)
+    
+    # Check for builtin plugins
+    builtin_plugin = load_builtin_plugin(plugin_name)
+    if builtin_plugin:
+        return builtin_plugin
     
     # Try importing as installed package
     try:
@@ -124,6 +145,38 @@ def _load_plugin_from_file(file_path: Path, plugin_name: str = None) -> Optional
                 attr != Plugin):
                 return attr()
         
+        # Check for package-based plugin with __plugin_name__ metadata
+        if hasattr(module, '__plugin_name__'):
+            from janito.plugins.base import PluginMetadata
+            
+            # Create a dynamic plugin class
+            class PackagePlugin(Plugin):
+                def __init__(self):
+                    super().__init__()
+                    self._module = module
+                
+                def get_metadata(self) -> PluginMetadata:
+                    return PluginMetadata(
+                        name=getattr(module, '__plugin_name__', plugin_name),
+                        version=getattr(module, '__plugin_version__', '1.0.0'),
+                        description=getattr(module, '__plugin_description__', f'Package plugin: {plugin_name}'),
+                        author=getattr(module, '__plugin_author__', 'Unknown'),
+                        license=getattr(module, '__plugin_license__', 'MIT')
+                    )
+                
+                def get_tools(self):
+                    return getattr(module, '__plugin_tools__', [])
+                
+                def initialize(self):
+                    if hasattr(module, 'initialize'):
+                        module.initialize()
+                
+                def cleanup(self):
+                    if hasattr(module, 'cleanup'):
+                        module.cleanup()
+            
+            return PackagePlugin()
+        
     except Exception as e:
         logger.error(f"Failed to load plugin from file {file_path}: {e}")
     
@@ -156,6 +209,7 @@ def list_available_plugins(search_paths: List[Path] = None) -> List[str]:
     Scans for plugins in multiple formats:
     - .py files (excluding __init__.py)
     - Directories with __init__.py or plugin.py
+    - Package directories with plugin metadata (__plugin_name__)
     - Any valid plugin structure in search paths
     
     Args:
@@ -184,9 +238,37 @@ def list_available_plugins(search_paths: List[Path] = None) -> List[str]:
         # Look for directories with __init__.py or plugin.py
         for item in base_path.iterdir():
             if item.is_dir():
-                if (item / "__init__.py").exists() or (item / "plugin.py").exists():
+                # Check for package-based plugins (subdirectories with __init__.py)
+                if (item / "__init__.py").exists():
+                    # Check subdirectories for plugin metadata
+                    for subitem in item.iterdir():
+                        if subitem.is_dir() and (subitem / "__init__.py").exists():
+                            try:
+                                import importlib.util
+                                spec = importlib.util.spec_from_file_location(
+                                    f"{item.name}.{subitem.name}", 
+                                    subitem / "__init__.py"
+                                )
+                                if spec and spec.loader:
+                                    module = importlib.util.module_from_spec(spec)
+                                    spec.loader.exec_module(module)
+                                    
+                                    # Check for plugin metadata
+                                    if hasattr(module, '__plugin_name__'):
+                                        plugins.append(getattr(module, '__plugin_name__'))
+                            except Exception:
+                                pass
+                
+                # Also check for plugin.py files
+                plugin_file = item / "plugin.py"
+                if plugin_file.exists():
                     plugins.append(item.name)
+                    
             elif item.suffix == '.py' and item.stem != '__init__':
                 plugins.append(item.stem)
+    
+    # Add builtin plugins
+    builtin_plugins = BuiltinPluginRegistry.list_builtin_plugins()
+    plugins.extend(builtin_plugins)
     
     return sorted(set(plugins))

@@ -405,6 +405,7 @@ class JanitoCLI:
             or self.args.list_drivers
             or self.args.list_plugins
             or self.args.list_plugins_available
+            or self.args.list_resources
             or self.args.ping
         ):
             self._maybe_print_verbose_provider_model()
@@ -422,9 +423,9 @@ class JanitoCLI:
             return
             
         # If running in single shot mode and --profile is not provided, default to 'developer' profile
-        if get_prompt_mode(self.args) == "single_shot" and not getattr(
-            self.args, "profile", None
-        ):
+        # Skip profile selection for list commands that don't need it
+        if (get_prompt_mode(self.args) == "single_shot" and 
+            not getattr(self.args, "profile", None)):
             self.args.profile = "developer"
         provider = self._get_provider_or_default()
         if provider is None:
@@ -453,8 +454,6 @@ class JanitoCLI:
                 agent_role,
                 verbose_tools=self.args.verbose_tools,
             )
-        elif run_mode == RunMode.GET:
-            handle_getter(self.args)
 
     def _run_set_mode(self):
         if handle_api_key_set(self.args):

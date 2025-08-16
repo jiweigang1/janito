@@ -13,6 +13,7 @@ import logging
 from .base import Plugin, PluginMetadata
 from .discovery import discover_plugins
 from .config import load_plugins_config, get_user_plugins_dir
+from .builtin import BuiltinPluginRegistry, load_builtin_plugin
 from janito.tools.adapters.local import LocalToolsAdapter
 
 logger = logging.getLogger(__name__)
@@ -190,6 +191,7 @@ class PluginManager:
                 'tools': [tool.__name__ for tool in plugin.get_tools()],
                 'commands': list(plugin.get_commands().keys()),
                 'config': self.plugin_configs.get(name, {}),
+                'builtin': BuiltinPluginRegistry.is_builtin(name),
                 'resources': [
                     {
                         'name': resource.name,

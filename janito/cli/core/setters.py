@@ -101,17 +101,29 @@ def _handle_set_base_url(value):
     return True
 
 
-def _handle_set_config_provider(value):
+def set_provider(value):
+    """Set the current provider.
+    
+    Args:
+        value (str): The provider name to set
+        
+    Raises:
+        ValueError: If the provider is not supported
+    """
     try:
         supported = ProviderRegistry().get_provider(value)
     except Exception:
-        print(
-            f"Error: Provider '{value}' is not supported. Run '--list-providers' to see the supported list."
-        )
-        return True
+        raise ValueError(f"Provider '{value}' is not supported. Run '--list-providers' to see the supported list.")
     from janito.provider_config import set_config_provider
-
     set_config_provider(value)
+    
+
+def _handle_set_config_provider(value):
+    try:
+        set_provider(value)
+    except ValueError as e:
+        print(f"Error: {str(e)}")
+        return True
     print(f"Provider set to '{value}'.")
     return True
 
