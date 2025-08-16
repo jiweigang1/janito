@@ -46,6 +46,9 @@ class FetchUrlTool(ToolBase):
         timeout (int, optional): Timeout in seconds for the HTTP request. Defaults to 10.
         save_to_file (str, optional): File path to save the full resource content. If provided,
             the complete response will be saved to this file instead of being processed.
+        headers (Dict[str, str], optional): Custom HTTP headers to send with the request.
+        cookies (Dict[str, str], optional): Custom cookies to send with the request.
+        follow_redirects (bool, optional): Whether to follow HTTP redirects. Defaults to True.
     Returns:
         str: Extracted text content from the web page, or a warning message. Example:
             - "<main text content...>"
