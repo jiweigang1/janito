@@ -2,6 +2,61 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.25.0] - 2025-08-15
+
+### Added
+
+- **Loop Protection System**: Comprehensive protection against excessive file operations
+  - **File Creation Protection**: Prevents creation of more than 5 files within 10 seconds to the same path
+  - **File Reading Protection**: Prevents reading the same file more than 10 times within 10 seconds
+  - **Directory Traversal Protection**: Prevents excessive directory operations
+  - **Cross-Tool Protection**: Loop protection is shared across all local tools to prevent abuse
+
+- **Enhanced Path Handling**: 
+  - **Tilde Expansion**: Support for `~` (user home directory) and `~username` expansion in file paths
+  - **Path Validation**: Enhanced validation for file paths with better error messages
+  - **Cross-Platform Support**: Improved Windows/Unix path handling
+
+- **Security Improvements**:
+  - **Path Security**: Enhanced path validation and sanitization
+  - **Access Control**: Better handling of restricted directories and files
+  - **Input Validation**: Improved validation for all user-provided paths
+
+- **Plugin System Enhancements**:
+  - **Remote Plugin Support**: Full support for loading plugins from remote repositories
+  - **Plugin Configuration**: Enhanced configuration management for plugins
+  - **Security Validation**: Built-in validation for plugin sources and configurations
+
+### Changed
+
+- **Tool Adapters**: All local tool adapters now use the new path utilities and loop protection
+- **Error Handling**: Improved error messages with more context and actionable feedback
+- **CLI Experience**: Enhanced command-line interface with better validation and feedback
+- **Configuration**: Updated configuration system to support new security features
+
+### Security
+
+- **Loop Protection**: Prevents denial-of-service attacks through excessive file operations
+- **Path Traversal**: Enhanced protection against directory traversal attacks
+- **Input Sanitization**: All user inputs are properly sanitized before processing
+
+### Developer Experience
+
+- **Testing**: Added comprehensive test suite for loop protection and path utilities
+- **Documentation**: Updated all documentation to reflect new security features
+- **Examples**: Added example usage patterns for safe file operations
+
+### Migration Guide
+
+For users upgrading from previous versions:
+
+1. **Configuration**: No breaking changes to existing configuration
+2. **Backward Compatibility**: All existing commands and workflows continue to work
+3. **New Features**: Loop protection is enabled by default for all local tools
+4. **Path Handling**: Tilde expansion works automatically in all file paths
+
+---
+
 ## [2.20.0] - 2025-08-10
 
 ### Added
