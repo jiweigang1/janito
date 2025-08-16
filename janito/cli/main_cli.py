@@ -293,7 +293,8 @@ class JanitoCLI:
         self.parser = argparse.ArgumentParser(
             description="Janito CLI - A tool for running LLM-powered workflows from the command line."
             "\n\nExample usage: janito -p moonshotai -m kimi-k1-8k 'Your prompt here'\n\n"
-            "Use -m or --model to set the model for the session."
+            "Use -m or --model to set the model for the session.",
+
         )
         self._define_args()
         self.args = self.parser.parse_args()
@@ -409,6 +410,10 @@ class JanitoCLI:
             self._maybe_print_verbose_provider_model()
             handle_getter(self.args)
             return
+        # Skip LLM processing for commands that start with /
+        if self.args.user_prompt and self.args.user_prompt[0].startswith('/'):
+            return
+            
         # If running in single shot mode and --profile is not provided, default to 'developer' profile
         if get_prompt_mode(self.args) == "single_shot" and not getattr(
             self.args, "profile", None

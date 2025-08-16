@@ -4,6 +4,7 @@ import os
 import json
 from pathlib import Path
 from bs4 import BeautifulSoup
+from typing import Dict, Any, Optional
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
@@ -64,6 +65,22 @@ class FetchUrlTool(ToolBase):
             {}
         )  # In-memory session cache - lifetime matches tool instance
         self._load_cache()
+        
+        # Browser-like session with cookies and headers
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'DNT': '1',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+        })
+        
+        # Load cookies from disk if they exist
+        self.cookies_file = self.cache_dir / "cookies.json"
+        self._load_cookies()
 
     def _load_cache(self):
         """Load error cache from disk."""
@@ -83,6 +100,33 @@ class FetchUrlTool(ToolBase):
                 json.dump(self.error_cache, f, indent=2)
         except IOError:
             pass  # Silently fail if we can't write cache
+
+    def _load_cookies(self):
+        """Load cookies from disk into session."""
+        if self.cookies_file.exists():
+            try:
+                with open(self.cookies_file, "r", encoding="utf-8") as f:
+                    cookies_data = json.load(f)
+                    for cookie in cookies_data:
+                        self.session.cookies.set(**cookie)
+            except (json.JSONDecodeError, IOError):
+                pass  # Silently fail if we can't load cookies
+
+    def _save_cookies(self):
+        """Save session cookies to disk."""
+        try:
+            cookies_data = []
+            for cookie in self.session.cookies:
+                cookies_data.append({
+                    'name': cookie.name,
+                    'value': cookie.value,
+                    'domain': cookie.domain,
+                    'path': cookie.path
+                })
+            with open(self.cookies_file, "w", encoding="utf-8") as f:
+                json.dump(cookies_data, f, indent=2)
+        except IOError:
+            pass  # Silently fail if we can't write cookies
 
     def _get_cached_error(self, url: str) -> tuple[str, bool]:
         """
@@ -123,14 +167,15 @@ class FetchUrlTool(ToolBase):
         }
         self._save_cache()
 
-    def _fetch_url_content(self, url: str, timeout: int = 10) -> str:
+    def _fetch_url_content(self, url: str, timeout: int = 10, headers: Optional[Dict[str, str]] = None, 
+                          cookies: Optional[Dict[str, str]] = None, follow_redirects: bool = True) -> str:
         """Fetch URL content and handle HTTP errors.
 
         Implements two-tier caching:
         1. Session cache: In-memory cache for successful responses (lifetime = tool instance)
         2. Error cache: Persistent disk cache for HTTP errors with different expiration times
 
-        Also implements URL whitelist checking.
+        Also implements URL whitelist checking and browser-like behavior.
         """
         # Check URL whitelist
         from janito.tools.url_whitelist import get_url_whitelist_manager
@@ -172,9 +217,27 @@ class FetchUrlTool(ToolBase):
             return cached_error
 
         try:
-            response = requests.get(url, timeout=timeout)
+            # Merge custom headers with default ones
+            request_headers = self.session.headers.copy()
+            if headers:
+                request_headers.update(headers)
+            
+            # Merge custom cookies
+            if cookies:
+                self.session.cookies.update(cookies)
+
+            response = self.session.get(
+                url, 
+                timeout=timeout, 
+                headers=request_headers,
+                allow_redirects=follow_redirects
+            )
             response.raise_for_status()
             content = response.text
+            
+            # Save cookies after successful request
+            self._save_cookies()
+            
             # Cache successful responses in session cache
             self.session_cache[url] = content
             return content
@@ -275,6 +338,9 @@ class FetchUrlTool(ToolBase):
         context_chars: int = 400,
         timeout: int = 10,
         save_to_file: str = None,
+        headers: Dict[str, str] = None,
+        cookies: Dict[str, str] = None,
+        follow_redirects: bool = True,
     ) -> str:
         if not url.strip():
             self.report_warning(tr("ℹ️ Empty URL provided."), ReportAction.READ)
@@ -284,7 +350,10 @@ class FetchUrlTool(ToolBase):
 
         # Check if we should save to file
         if save_to_file:
-            html_content = self._fetch_url_content(url, timeout=timeout)
+            html_content = self._fetch_url_content(
+                url, timeout=timeout, headers=headers, cookies=cookies, 
+                follow_redirects=follow_redirects
+            )
             if html_content.startswith("Warning:"):
                 return html_content
 
@@ -307,7 +376,10 @@ class FetchUrlTool(ToolBase):
                 return error_msg
 
         # Normal processing path
-        html_content = self._fetch_url_content(url, timeout=timeout)
+        html_content = self._fetch_url_content(
+            url, timeout=timeout, headers=headers, cookies=cookies, 
+            follow_redirects=follow_redirects
+        )
         if html_content.startswith("Warning:"):
             return html_content
 
