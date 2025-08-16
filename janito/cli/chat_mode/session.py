@@ -209,9 +209,7 @@ class ChatSession:
 
         self.console.print(f"[bold green]Janito Chat Mode v{__version__}[/bold green]")
         self.console.print(f"[dim]Profile: {self.profile}[/dim]")
-        self.console.print(
-            "[green]/help for commands   /exit or Ctrl+C to quit[/green]"
-        )
+
         import os
 
         cwd = os.getcwd()

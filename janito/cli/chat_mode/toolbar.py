@@ -1,3 +1,4 @@
+import os
 from prompt_toolkit.formatted_text import HTML
 from janito.performance_collector import PerformanceCollector
 from janito.cli.config import config
@@ -17,7 +18,13 @@ def format_tokens(n, tag=None):
 
 
 def assemble_first_line(provider_name, model_name, role, agent=None):
-    return f" Janito {VERSION} | Provider: <provider>{provider_name}</provider> | Model: <model>{model_name}</model> | Role: <role>{role}</role>"
+    cwd = os.getcwd()
+    # Shorten long paths for display
+    if len(cwd) > 50:
+        cwd_display = "..." + cwd[-47:]
+    else:
+        cwd_display = cwd
+    return f" Janito {VERSION} | Provider: <provider>{provider_name}</provider> | Model: <model>{model_name}</model> | Dir: <dir>{cwd_display}</dir>"
 
 
 def assemble_bindings_line(width, permissions=None):
