@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.27.0] - 2025-08-16
+
+### Added
+
+- **Enhanced CLI Experience**:
+  - **One-Shot Mode Prefix Support**: Added `/rwx` prefix support to enable all tool permissions in a single command
+    - Use `/rwx "your prompt here"` to enable read, write, and execute permissions in one-shot mode
+    - Equivalent to using `-r -w -x` flags but more convenient for quick tasks
+    - Maintains security by requiring explicit user action for each command
+
+- **Enhanced Web Fetching**:
+  - **Browser-like Session Support**: Enhanced `fetch_url` tool with browser-like session capabilities
+    - Persistent session management for improved reliability
+    - Better handling of cookies and session state
+    - Enhanced user-agent and header management
+    - Improved error handling for network requests
+
+### Changed
+
+- **Improved Documentation**:
+  - Updated CLI documentation to reflect new `/rwx` prefix and one-shot mode features
+  - Enhanced fetch_url tool documentation with new session parameters
+  - Improved parameter descriptions and usage examples
+
+### Fixed
+
+- **Documentation Fixes**:
+  - Added missing docstring parameters for fetch_url tool
+  - Fixed parameter documentation inconsistencies
+
 ## [2.26.0] - 2025-08-16
 
 ### Added
