@@ -2,11 +2,15 @@
 
 ## Summary
 
-All 23 tools have been successfully moved from `janito/tools/adapters/local/` to the organized plugin structure in `plugins/`.
+All 23 tools have been successfully organized in the plugin structure in `plugins/`. The actual implementations remain in `janito/tools/adapters/local/` as the source of truth.
 
 ## Migration Results
 
+> [!NOTE]
+> The actual tool implementations remain in `janito/tools/adapters/local/` as the source of truth. The plugin system provides organized interfaces.
+
 ### 📁 File Manager Plugin (`plugins/core/filemanager/tools/`)
+
 - ✅ copy_file.py
 - ✅ create_directory.py  
 - ✅ create_file.py
@@ -20,10 +24,12 @@ All 23 tools have been successfully moved from `janito/tools/adapters/local/` to
 - ✅ view_file.py
 
 ### 🔍 Code Analyzer Plugin (`plugins/core/codeanalyzer/tools/`)
+
 - ✅ get_file_outline/ (directory)
 - ✅ search_text/ (directory)
 
 ### ⚡ System Tools Plugin (`plugins/core/system/tools/`)
+
 - ✅ run_powershell_command.py
 
 ### 🌐 Web Tools Plugin (`plugins/web/webtools/tools/`)

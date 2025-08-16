@@ -44,6 +44,6 @@ janito/tools/adapters/local/
 
 ## Architecture Note
 
-The plugin system I created in `plugins/` contains **interface definitions and wrappers**, while the actual tool implementations are in `janito/tools/adapters/local/`. 
+The plugin system in `plugins/` contains **interface definitions and wrappers**, while the actual tool implementations are in `janito/tools/adapters/local/`. 
 
 The real tools are implemented as classes inheriting from `ToolBase` and registered via decorators like `@register_local_tool`.
