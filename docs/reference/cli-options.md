@@ -55,14 +55,34 @@ janito --multi  # Start chat mode with multiline input as default
 janito -u -x --read --write "Run a tool with unrestricted paths (DANGEROUS)"
 ```
 
-### ⚠️ Enabling Execution Tools
+### ⚠️ Enabling Tool Permissions
 
-By default, tools that can execute code or shell commands are **disabled** for safety. To enable these tools (such as code execution, shell commands, etc.), use the `--exec` or `-x` flag:
+By default, tools that can read, write, or execute code are **disabled** for safety. You can enable these permissions using individual flags or a convenient shortcut:
 
+#### Individual Permission Flags
+- `-r`, `--read`: Enable tools that require read permissions
+- `-w`, `--write`: Enable tools that require write permissions  
+- `-x`, `--exec`: Enable execution/run tools (code execution, shell commands)
+
+#### Quick Permission Shortcut
+Use `/rwx` prefix to enable all permissions at once:
 ```sh
-janito -x "Run this code: print('Hello, world!')"
+janito /rwx "Create a Python script and run it"
 ```
-> **Warning:** Enabling execution tools allows running arbitrary code or shell commands. Only use `--exec` if you trust your prompt and environment.
+
+#### Examples
+```sh
+# Enable all permissions individually
+janito -r -w -x "Create and run a Python script"
+
+# Enable only execution tools
+janito -x "Run this code: print('Hello, world!')"
+
+# Enable read and write tools
+janito -r -w "Read a file and create a new one"
+```
+
+> **Warning:** Enabling execution tools allows running arbitrary code or shell commands. Only use these options if you trust your prompt and environment.
 
 ### ⚠️ Disabling Path Security
 

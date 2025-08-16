@@ -155,7 +155,25 @@ janito -r -w "Read and update this file: ..."
 To enable all permissions (read, write, execute):
 
 ```bash
+# Using individual flags
 janito -r -w -x "Run this code: print('Hello, world!')"
+
+# Using the convenient /rwx prefix (single-shot mode)
+janito /rwx "Run this code: print('Hello, world!')"
+```
+
+#### One-Shot Mode
+For quick tasks without entering interactive mode, provide your prompt directly:
+
+```bash
+# Basic one-shot
+janito "What are the key classes in this project?"
+
+# One-shot with all permissions enabled
+janito /rwx "Create a Python script and run it"
+
+# One-shot with specific permissions
+janito -r -w "Read this file and create a summary"
 ```
 
 > **Warning:** Enabling execution tools allows running arbitrary code or shell commands. Only use `--exec` if you trust your prompt and environment.
