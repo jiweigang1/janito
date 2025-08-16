@@ -410,8 +410,15 @@ class JanitoCLI:
             self._maybe_print_verbose_provider_model()
             handle_getter(self.args)
             return
-        # Skip LLM processing for commands that start with /
-        if self.args.user_prompt and self.args.user_prompt[0].startswith('/'):
+        # Handle /rwx prefix for enabling all permissions
+        if self.args.user_prompt and self.args.user_prompt[0] == '/rwx':
+            self.args.read = True
+            self.args.write = True
+            self.args.exec = True
+            # Remove the /rwx prefix from the prompt
+            self.args.user_prompt = self.args.user_prompt[1:]
+        elif self.args.user_prompt and self.args.user_prompt[0].startswith('/'):
+            # Skip LLM processing for other commands that start with /
             return
             
         # If running in single shot mode and --profile is not provided, default to 'developer' profile
