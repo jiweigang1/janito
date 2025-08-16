@@ -1,5 +1,26 @@
 """
 Plugin discovery utilities.
+
+Plugins can be provided in several formats:
+
+1. Single Python file: A .py file containing a Plugin class
+   Example: plugins/my_plugin.py
+
+2. Python package directory: A directory with __init__.py or plugin.py
+   Example: plugins/my_plugin/__init__.py
+   Example: plugins/my_plugin/plugin.py
+
+3. Installed Python package: An installed package with a Plugin class
+   Example: pip install janito-plugin-example
+
+4. ZIP file: A .zip file containing a Python package structure
+   Example: plugins/my_plugin.zip (containing package structure)
+
+The plugin discovery system searches these locations in order:
+- Current working directory/plugins/
+- ~/.janito/plugins/
+- Python installation share/janito/plugins/
+- Any additional paths specified via configuration
 """
 
 import os
@@ -18,6 +39,12 @@ logger = logging.getLogger(__name__)
 def discover_plugins(plugin_name: str, search_paths: List[Path] = None) -> Optional[Plugin]:
     """
     Discover and load a plugin by name.
+    
+    Supports multiple plugin formats:
+    - Single .py files
+    - Python package directories
+    - Installed Python packages
+    - ZIP files containing packages
     
     Args:
         plugin_name: Name of the plugin to discover
@@ -125,6 +152,11 @@ def _load_plugin_from_package(package_name: str) -> Optional[Plugin]:
 def list_available_plugins(search_paths: List[Path] = None) -> List[str]:
     """
     List all available plugins in search paths.
+    
+    Scans for plugins in multiple formats:
+    - .py files (excluding __init__.py)
+    - Directories with __init__.py or plugin.py
+    - Any valid plugin structure in search paths
     
     Args:
         search_paths: List of directories to search for plugins

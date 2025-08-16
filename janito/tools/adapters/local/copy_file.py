@@ -1,4 +1,5 @@
 import os
+from janito.tools.path_utils import expand_path
 import shutil
 from typing import List, Union
 from janito.tools.adapters.local.adapter import register_local_tool
@@ -26,7 +27,8 @@ class CopyFileTool(ToolBase):
     tool_name = "copy_file"
 
     def run(self, sources: str, target: str, overwrite: bool = False) -> str:
-        source_list = [src for src in sources.split() if src]
+        source_list = [expand_path(src) for src in sources.split() if src]
+        target = expand_path(target)
         messages = []
         if len(source_list) > 1:
             if not os.path.isdir(target):

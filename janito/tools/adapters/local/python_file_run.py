@@ -27,6 +27,8 @@ class PythonFileRunTool(ToolBase):
     tool_name = "python_file_run"
 
     def run(self, path: str, timeout: int = 60, silent: bool = False) -> str:
+        from janito.tools.path_utils import expand_path
+        path = expand_path(path)
         if not silent:
             self.report_action(
                 tr("🚀 Running: python {path}", path=path),

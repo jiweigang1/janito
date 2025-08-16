@@ -1,11 +1,12 @@
 import os
+from janito.tools.path_utils import expand_path
 from janito.tools.adapters.local.adapter import register_local_tool
 
 from janito.tools.tool_utils import display_path
 from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.i18n import tr
-
+from janito.tools.loop_protection_decorator import protect_against_loops
 
 from janito.tools.adapters.local.validate_file_syntax.core import validate_file_syntax
 
@@ -24,15 +25,18 @@ class CreateFileTool(ToolBase):
             - "✅ Successfully created the file at ..."
 
     Note: Syntax validation is automatically performed after this operation.
+    
+    Security: This tool includes loop protection to prevent excessive file creation operations.
+    Maximum 5 calls per 10 seconds for the same file path.
     """
 
     permissions = ToolPermissions(write=True)
     tool_name = "create_file"
 
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="path")
     def run(self, path: str, content: str, overwrite: bool = False) -> str:
-        expanded_path = path  # Using path as is
-        disp_path = display_path(expanded_path)
-        path = expanded_path
+        path = expand_path(path)
+        disp_path = display_path(path)
         if os.path.exists(path) and not overwrite:
             try:
                 with open(path, "r", encoding="utf-8", errors="replace") as f:

@@ -5,7 +5,7 @@
 ### Added
 
 - **New CLI Features**
-  - `--python` flag: Start directly with Python developer profile without manual selection
+  - `--developer` flag: Start directly with Python developer profile without manual selection
   - `--multi` option: Enable default multiline input in chat mode
   - `--list-drivers` command: List available LLM drivers and their dependencies
   - `--list-providers-region` command: Show providers with region information

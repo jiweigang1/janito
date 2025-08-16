@@ -4,7 +4,7 @@ Base classes for janito plugins.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, Any, List, Optional, Type
+from typing import Dict, Any, List, Optional, Type, Union
 from janito.tools.tool_base import ToolBase
 
 
@@ -22,6 +22,15 @@ class PluginMetadata:
     def __post_init__(self):
         if self.dependencies is None:
             self.dependencies = []
+
+
+@dataclass
+class PluginResource:
+    """Represents a resource provided by a plugin."""
+    name: str
+    type: str  # "tool", "command", "config"
+    description: str
+    schema: Optional[Dict[str, Any]] = None
 
 
 class Plugin(ABC):
@@ -91,3 +100,45 @@ class Plugin(ABC):
             True if configuration is valid
         """
         return True
+
+    def get_resources(self) -> List[PluginResource]:
+        """
+        Return a list of resources provided by this plugin.
+        
+        Returns:
+            List of PluginResource objects describing the resources
+        """
+        resources = []
+        
+        # Add tools as resources
+        for tool_class in self.get_tools():
+            tool_instance = tool_class()
+            tool_name = getattr(tool_instance, 'tool_name', tool_class.__name__)
+            tool_desc = getattr(tool_class, '__doc__', f"Tool: {tool_name}")
+            resources.append(PluginResource(
+                name=tool_name,
+                type="tool",
+                description=tool_desc or f"Tool provided by {self.metadata.name}"
+            ))
+        
+        # Add commands as resources
+        commands = self.get_commands()
+        for cmd_name, cmd_handler in commands.items():
+            cmd_desc = getattr(cmd_handler, '__doc__', f"Command: {cmd_name}")
+            resources.append(PluginResource(
+                name=cmd_name,
+                type="command",
+                description=cmd_desc or f"Command provided by {self.metadata.name}"
+            ))
+        
+        # Add config schema as resource
+        config_schema = self.get_config_schema()
+        if config_schema:
+            resources.append(PluginResource(
+                name=f"{self.metadata.name}_config",
+                type="config",
+                description=f"Configuration schema for {self.metadata.name} plugin",
+                schema=config_schema
+            ))
+        
+        return resources

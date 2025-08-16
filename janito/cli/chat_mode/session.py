@@ -116,12 +116,12 @@ class ChatSession:
     def _select_profile_and_role(self, args, role):
         profile = getattr(args, "profile", None) if args is not None else None
         role_arg = getattr(args, "role", None) if args is not None else None
-        python_profile = getattr(args, "python", False) if args is not None else False
+        python_profile = getattr(args, "developer", False) if args is not None else False
         market_profile = getattr(args, "market", False) if args is not None else False
         profile_system_prompt = None
         no_tools_mode = False
 
-        # Handle --python flag
+        # Handle --developer flag
         if python_profile and profile is None and role_arg is None:
             profile = "Developer with Python Tools"
 

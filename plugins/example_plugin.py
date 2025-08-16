@@ -2,8 +2,9 @@
 Example plugin demonstrating the plugin system.
 """
 
-from janito.plugins.base import Plugin, PluginMetadata
+from janito.plugins.base import Plugin, PluginMetadata, PluginResource
 from janito.tools.tool_base import ToolBase, ToolPermissions
+from typing import Dict, Any
 
 
 class HelloWorldTool(ToolBase):
@@ -83,6 +84,24 @@ class ExamplePlugin(Plugin):
     
     def cleanup(self):
         print("Example plugin cleaned up!")
+    
+    def get_config_schema(self) -> Dict[str, Any]:
+        """Return JSON schema for plugin configuration."""
+        return {
+            "type": "object",
+            "properties": {
+                "greeting_prefix": {
+                    "type": "string",
+                    "description": "Custom greeting prefix for hello_world tool",
+                    "default": "Hello"
+                },
+                "max_calculation": {
+                    "type": "number",
+                    "description": "Maximum allowed calculation result",
+                    "default": 1000000
+                }
+            }
+        }
 
 
 # This makes the plugin discoverable

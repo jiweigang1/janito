@@ -5,6 +5,7 @@ from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.i18n import tr
 import os
+from janito.tools.path_utils import expand_path
 
 
 @register_local_tool
@@ -23,8 +24,7 @@ class CreateDirectoryTool(ToolBase):
     tool_name = "create_directory"
 
     def run(self, path: str) -> str:
-        # path = expand_path(path)
-        # Using path as is
+        path = expand_path(path)
         disp_path = display_path(path)
         self.report_action(
             tr("📁 Create directory '{disp_path}' ...", disp_path=disp_path),

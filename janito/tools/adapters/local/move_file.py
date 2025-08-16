@@ -1,4 +1,5 @@
 import os
+from janito.tools.path_utils import expand_path
 import shutil
 from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_utils import display_path
@@ -31,10 +32,10 @@ class MoveFileTool(ToolBase):
         overwrite: bool = False,
         backup: bool = False,
     ) -> str:
+        src = expand_path(src_path)
+        dest = expand_path(dest_path)
         original_src = src_path
         original_dest = dest_path
-        src = src_path
-        dest = dest_path
         disp_src = display_path(original_src)
         disp_dest = display_path(original_dest)
         backup_path = None

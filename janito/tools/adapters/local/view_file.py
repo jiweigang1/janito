@@ -29,11 +29,13 @@ class ViewFileTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "view_file"
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="path")
     def run(self, path: str, from_line: int = None, to_line: int = None) -> str:
         import os
         from janito.tools.tool_utils import display_path
+        from janito.tools.path_utils import expand_path
 
+        path = expand_path(path)
         disp_path = display_path(path)
         self.report_action(
             tr("📖 View '{disp_path}'", disp_path=disp_path),

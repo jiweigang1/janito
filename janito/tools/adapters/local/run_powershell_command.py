@@ -4,6 +4,7 @@ from janito.tools.adapters.local.adapter import register_local_tool
 from janito.i18n import tr
 import subprocess
 import os
+from janito.tools.path_utils import expand_path
 import tempfile
 import threading
 

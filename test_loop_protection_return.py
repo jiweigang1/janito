@@ -1,59 +1,67 @@
 #!/usr/bin/env python3
 """
-Test to verify that the loop protection decorator returns errors properly.
+Test script to verify that loop protection errors are returned as strings
+instead of raising ToolCallException.
 """
 
-import sys
 import os
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from janito.tools.loop_protection_decorator import protect_against_loops
-
-
-class TestTool:
-    """Test tool to verify error return behavior."""
-    
-    @protect_against_loops(max_calls=3, time_window=5.0)
-    def run(self, path: str) -> str:
-        """Test method that should return an error when loop protection is triggered."""
-        return f"Processing {path}"
+import tempfile
+import time
+from janito.tools.adapters.local.adapter import LocalToolsAdapter
+from janito.tools.adapters.local.view_file import ViewFileTool
 
 
-def test_error_return():
-    """Test that the decorator raises RuntimeError when limits are exceeded."""
-    tool = TestTool()
-    
-    print("Testing loop protection error return behavior:")
-    print("=" * 50)
-    
+def test_loop_protection_returns_string():
+    """Test that loop protection returns error message as string."""
+
+    # Create a temporary file for testing
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        f.write("Test content\n" * 100)
+        temp_file = f.name
+
     try:
-        # First two calls should work fine
-        result1 = tool.run("file1.txt")
-        print(f"Call 1: {result1}")
-        
-        result2 = tool.run("file2.txt")
-        print(f"Call 2: {result2}")
-        
-        # Third call should still work (limit is 3)
-        result3 = tool.run("file3.txt")
-        print(f"Call 3: {result3}")
-        
-        # Fourth call should trigger loop protection
-        print("\nAttempting call 4 (should trigger loop protection):")
-        result4 = tool.run("file4.txt")
-        print(f"Call 4: {result4}")
-        print("ERROR: Loop protection did not trigger as expected!")
-        
-    except RuntimeError as e:
-        print(f"SUCCESS: Loop protection triggered as expected: {e}")
+        adapter = LocalToolsAdapter()
+        adapter.register_tool(ViewFileTool)
+
+        # First few calls should work
+        for i in range(3):
+            result = adapter.execute_tool("view_file", path=temp_file)
+            assert isinstance(result, str)
+            assert "Test content" in result
+            print(f"Call {i+1}: Success")
+
+        # Now trigger loop protection by making rapid calls
+        print("\nTriggering loop protection...")
+
+        # Make enough calls to trigger loop protection
+        loop_protection_triggered = False
+        for i in range(10):
+            result = adapter.execute_tool("view_file", path=temp_file)
+            print(f"Call {i+4}: {type(result).__name__}")
+
+            # Check if we got a loop protection message
+            if isinstance(result, str) and "Loop protection:" in result:
+                print(f"✅ Loop protection triggered: {result}")
+                loop_protection_triggered = True
+                break
+
+        assert loop_protection_triggered, "Loop protection should have been triggered"
+        assert isinstance(
+            result, str
+        ), "Loop protection should return string, not raise exception"
+        assert "Loop protection:" in result, "Should contain loop protection message"
+
+        print(
+            "✅ Test passed: Loop protection returns string instead of raising exception"
+        )
         return True
-    except Exception as e:
-        print(f"ERROR: Unexpected exception: {e}")
-        return False
-    
-    return False
+
+    finally:
+        # Clean up
+        if os.path.exists(temp_file):
+            os.unlink(temp_file)
 
 
 if __name__ == "__main__":
-    success = test_error_return()
-    sys.exit(0 if success else 1)
+    success = test_loop_protection_returns_string()
+    exit(0 if success else 1)

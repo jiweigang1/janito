@@ -1,4 +1,5 @@
 import os
+from janito.tools.path_utils import expand_path
 import shutil
 from janito.tools.adapters.local.adapter import register_local_tool
 
@@ -26,9 +27,8 @@ class RemoveFileTool(ToolBase):
     tool_name = "remove_file"
 
     def run(self, path: str, backup: bool = False) -> str:
-        original_path = path
-        path = path  # Using path as is
-        disp_path = display_path(original_path)
+        path = expand_path(path)
+        disp_path = display_path(path)
 
         # Report initial info about what is going to be removed
         self.report_action(

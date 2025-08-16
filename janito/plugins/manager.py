@@ -12,6 +12,7 @@ import logging
 
 from .base import Plugin, PluginMetadata
 from .discovery import discover_plugins
+from .config import load_plugins_config, get_user_plugins_dir
 from janito.tools.adapters.local import LocalToolsAdapter
 
 logger = logging.getLogger(__name__)
@@ -158,6 +159,14 @@ class PluginManager:
             else:
                 self.load_plugin(plugin_name, plugin_config)
     
+    def load_plugins_from_user_config(self) -> None:
+        """
+        Load plugins from user configuration directory.
+        Uses ~/.janito/plugins.json instead of janito.json
+        """
+        config = load_plugins_config()
+        self.load_plugins_from_config(config)
+    
     def reload_plugin(self, plugin_name: str) -> bool:
         """
         Reload a plugin.
@@ -180,6 +189,51 @@ class PluginManager:
                 'metadata': plugin.metadata,
                 'tools': [tool.__name__ for tool in plugin.get_tools()],
                 'commands': list(plugin.get_commands().keys()),
-                'config': self.plugin_configs.get(name, {})
+                'config': self.plugin_configs.get(name, {}),
+                'resources': [
+                    {
+                        'name': resource.name,
+                        'type': resource.type,
+                        'description': resource.description,
+                        'schema': resource.schema
+                    }
+                    for resource in plugin.get_resources()
+                ]
             }
         return info
+
+    def get_plugin_resources(self, plugin_name: str) -> List[Dict[str, Any]]:
+        """
+        Get resources provided by a specific plugin.
+        
+        Args:
+            plugin_name: Name of the plugin
+            
+        Returns:
+            List of resource dictionaries
+        """
+        plugin = self.plugins.get(plugin_name)
+        if not plugin:
+            return []
+        
+        return [
+            {
+                'name': resource.name,
+                'type': resource.type,
+                'description': resource.description,
+                'schema': resource.schema
+            }
+            for resource in plugin.get_resources()
+        ]
+
+    def list_all_resources(self) -> Dict[str, List[Dict[str, Any]]]:
+        """
+        List all resources from all loaded plugins.
+        
+        Returns:
+            Dict mapping plugin names to their resources
+        """
+        all_resources = {}
+        for plugin_name in self.plugins:
+            all_resources[plugin_name] = self.get_plugin_resources(plugin_name)
+        return all_resources

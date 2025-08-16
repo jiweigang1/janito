@@ -38,7 +38,7 @@ definition = [
         },
     ),
     (
-        ["--python"],
+        ["--developer"],
         {
             "action": "store_true",
             "help": "Start with the Python developer profile (equivalent to --profile 'Developer with Python Tools')",
@@ -230,6 +230,10 @@ definition = [
         ["--list-plugins-available"],
         {"action": "store_true", "help": "List all available plugins"},
     ),
+    (
+        ["--list-resources"],
+        {"action": "store_true", "help": "List all resources (tools, commands, config) from loaded plugins"},
+    ),
 ]
 
 MODIFIER_KEYS = [
@@ -237,7 +241,7 @@ MODIFIER_KEYS = [
     "model",
     "role",
     "profile",
-    "python",
+    "developer",
     "market",
     "system",
     "temperature",

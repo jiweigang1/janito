@@ -16,7 +16,7 @@ class SearchOutlineTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "search_outline"
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="path")
     def run(self, path: str) -> str:
         from janito.tools.tool_utils import display_path
         from janito.i18n import tr

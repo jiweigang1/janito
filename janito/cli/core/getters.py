@@ -26,6 +26,7 @@ GETTER_KEYS = [
     "list_providers_region",
     "list_plugins",
     "list_plugins_available",
+    "list_resources",
 ]
 
 
@@ -55,6 +56,7 @@ def handle_getter(args, config_mgr=None):
         "region_info": partial(handle_region_info, args),
         "list_providers_region": partial(handle_list_providers_region, args),
         "list_plugins": partial(handle_list_plugins, args),
+        "list_resources": partial(handle_list_plugins, args),
     }
     for arg in GETTER_KEYS:
         if getattr(args, arg, False) and arg in GETTER_DISPATCH:

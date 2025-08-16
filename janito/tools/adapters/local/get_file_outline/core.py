@@ -4,6 +4,7 @@ from .markdown_outline import parse_markdown_outline
 from janito.formatting import OutlineFormatter
 from .java_outline import parse_java_outline
 import os
+from janito.tools.path_utils import expand_path
 from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
 from janito.tools.tool_utils import display_path, pluralize
@@ -25,9 +26,10 @@ class GetFileOutlineTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "get_file_outline"
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="path")
     def run(self, path: str) -> str:
         try:
+            path = expand_path(path)
             self.report_action(
                 tr(
                     "📄 Outline file '{disp_path}' ...",

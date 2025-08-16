@@ -6,6 +6,7 @@ from janito.i18n import tr
 import shutil
 import os
 import zipfile
+from janito.tools.path_utils import expand_path
 
 
 @register_local_tool
@@ -26,6 +27,7 @@ class RemoveDirectoryTool(ToolBase):
     tool_name = "remove_directory"
 
     def run(self, path: str, recursive: bool = False) -> str:
+        path = expand_path(path)
         disp_path = display_path(path)
         self.report_action(
             tr("🗃️ Remove directory '{disp_path}' ...", disp_path=disp_path),

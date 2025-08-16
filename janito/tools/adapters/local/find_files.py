@@ -6,6 +6,7 @@ from janito.dir_walk_utils import walk_dir_with_gitignore
 from janito.i18n import tr
 import fnmatch
 import os
+from janito.tools.path_utils import expand_path
 from janito.tools.loop_protection_decorator import protect_against_loops
 
 
@@ -108,7 +109,7 @@ class FindFilesTool(ToolBase):
             }
         return sorted(dir_output)
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="paths")
     def run(
         self,
         paths: str,
@@ -121,7 +122,7 @@ class FindFilesTool(ToolBase):
             return tr("Warning: Empty file pattern provided. Operation skipped.")
         patterns = pattern.split()
         results = []
-        for directory in paths.split():
+        for directory in [expand_path(p) for p in paths.split()]:
             disp_path = display_path(directory)
             depth_msg = (
                 tr(" (max depth: {max_depth})", max_depth=max_depth)

@@ -1,4 +1,5 @@
 import os
+from janito.tools.path_utils import expand_path
 from janito.i18n import tr
 from janito.tools.tool_base import ToolBase, ToolPermissions
 from janito.report_events import ReportAction
@@ -91,8 +92,9 @@ class ValidateFileSyntaxTool(ToolBase):
     permissions = ToolPermissions(read=True)
     tool_name = "validate_file_syntax"
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="path")
     def run(self, path: str) -> str:
+        path = expand_path(path)
         disp_path = display_path(path)
         self.report_action(
             tr(

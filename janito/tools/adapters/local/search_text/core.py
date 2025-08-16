@@ -4,6 +4,7 @@ from janito.tools.adapters.local.adapter import register_local_tool
 from janito.tools.tool_utils import pluralize, display_path
 from janito.i18n import tr
 import os
+from janito.tools.path_utils import expand_path
 from .pattern_utils import prepare_pattern, format_result, summarize_total
 from .match_lines import read_file_lines
 from .traverse_directory import traverse_directory
@@ -153,7 +154,7 @@ class SearchTextTool(ToolBase):
         )
         return info_str, dir_output, dir_limit_reached, per_file_counts
 
-    @protect_against_loops(max_calls=5, time_window=10.0)
+    @protect_against_loops(max_calls=5, time_window=10.0, key_field="paths")
     def run(
         self,
         paths: str,
@@ -169,7 +170,7 @@ class SearchTextTool(ToolBase):
         )
         if error_msg:
             return error_msg
-        paths_list = paths.split()
+        paths_list = [expand_path(p) for p in paths.split()]
         results = []
         all_per_file_counts = []
         for search_path in paths_list:
