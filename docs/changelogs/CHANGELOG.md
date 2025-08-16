@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.26.0] - 2025-08-16
+
+### Added
+
+- **Chat Mode Shell Enhancements**:
+  - **Unrestricted Mode Command**: Added new `/unrestricted` command to chat mode shell
+    - Toggle unrestricted mode equivalent to the `-u` CLI flag
+    - Real-time switching between restricted and unrestricted modes
+    - Visual feedback with color-coded status messages
+    - Integration with URL whitelist manager for comprehensive security control
+    - **Security Warning**: Clear indication when unrestricted mode is enabled (DANGEROUS - no path or URL restrictions)
+
+### Security
+
+- **Enhanced Security Controls**: 
+  - URL whitelist manager integration with unrestricted mode toggle
+  - Path security controls synchronized with shell state
+  - Real-time security status updates in chat mode
+
 ## [2.25.0] - 2025-08-15
 
 ### Added
