@@ -51,6 +51,12 @@ class AskUserTool(ToolBase):
             buf.text = "Do It"
             buf.validate_and_handle()
 
+        @bindings.add("f2")
+        def _(event):
+            buf = event.app.current_buffer
+            buf.text = "F2"
+            buf.validate_and_handle()
+
         # Use shared CLI styles
 
         # prompt_style contains the prompt area and input background
@@ -60,7 +66,7 @@ class AskUserTool(ToolBase):
         style = chat_shell_style
 
         def get_toolbar():
-            f12_hint = ""
+            f12_hint = " F2: F2 | F12: Do It"
             if mode["multiline"]:
                 return HTML(
                     f"<b>Multiline mode (Esc+Enter to submit). Type /single to switch.</b>{f12_hint}"
