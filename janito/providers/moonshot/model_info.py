@@ -1,6 +1,6 @@
 from janito.llm.model import LLMModelInfo
 
-MOONSHOTAI_MODEL_SPECS = {
+MOONSHOT_MODEL_SPECS = {
     "kimi-k2-0711-preview": LLMModelInfo(
         name="kimi-k2-0711-preview",
         context=128000,
@@ -9,7 +9,7 @@ MOONSHOTAI_MODEL_SPECS = {
         max_response=4096,
         thinking_supported=False,
         default_temp=0.2,
-        open="moonshotai",
+        open="moonshot",
         driver="OpenAIModelDriver",
     ),
     "kimi-k2-turbo-preview": LLMModelInfo(
@@ -20,7 +20,7 @@ MOONSHOTAI_MODEL_SPECS = {
         max_response=4096,
         thinking_supported=False,
         default_temp=0.2,
-        open="moonshotai",
+        open="moonshot",
         driver="OpenAIModelDriver",
     ),
 }

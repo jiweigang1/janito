@@ -13,7 +13,7 @@ pip install janito
 
 Janito supports multiple AI providers. Choose one to get started:
 
-**MoonshotAI (Recommended for Chinese users)**
+**Moonshot (Recommended for Chinese users)**
 1. Go to [Moonshot AI Platform](https://platform.moonshot.cn/)
 2. Sign up for an account
 3. Navigate to API Keys section
@@ -31,10 +31,10 @@ Janito supports multiple AI providers. Choose one to get started:
 
 ### 3. Configure Janito
 
-**MoonshotAI Setup:**
+**Moonshot Setup:**
 ```bash
-# Set MoonshotAI as your default provider
-janito --set-api-key YOUR_API_KEY -p moonshotai
+# Set Moonshot as your default provider
+janito --set-api-key YOUR_API_KEY -p moonshot
 
 # Verify it's working
 janito "Hello, can you introduce yourself?"
@@ -87,17 +87,17 @@ janito -W ./my_project "Create a REST API with FastAPI"
 ### Set as Default Provider
 ```bash
 # Make your chosen provider the permanent default
-janito --set provider=moonshotai  # or openai, ibm, etc.
+janito --set provider=moonshot  # or openai, ibm, etc.
 janito --set model=kimi-k1-8k     # or gpt-5, ibm/granite-3-8b-instruct, etc.
 ```
 
 ### Environment Variables
 You can also use environment variables:
 
-**MoonshotAI:**
+**Moonshot:**
 ```bash
-export MOONSHOTAI_API_KEY=your_key_here
-export JANITO_PROVIDER=moonshotai
+export MOONSHOT_API_KEY=your_key_here
+export JANITO_PROVIDER=moonshot
 export JANITO_MODEL=kimi-k1-8k
 ```
 
@@ -119,7 +119,7 @@ export JANITO_MODEL=ibm/granite-3-3-8b-instruct
 
 ## Available Models by Provider
 
-### MoonshotAI Models
+### Moonshot Models
 - **kimi-k1-8k**: Fast responses, good for general tasks
 - **kimi-k1-32k**: Better for longer contexts
 - **kimi-k1-128k**: Best for very long documents

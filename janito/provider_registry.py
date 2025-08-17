@@ -41,7 +41,7 @@ class ProviderRegistry:
             rows.append(info[:3])
         
         # Group providers by openness (open-source first, then proprietary)
-        open_providers = {'cerebras', 'deepseek', 'alibaba', 'moonshotai', 'zai'}
+        open_providers = {'cerebras', 'deepseek', 'alibaba', 'moonshot', 'zai'}
         
         def sort_key(row):
             provider_name = row[0]
@@ -101,8 +101,8 @@ class ProviderRegistry:
             model_specs = None
             if hasattr(model_info_mod, "MODEL_SPECS"):
                 model_specs = model_info_mod.MODEL_SPECS
-            elif hasattr(model_info_mod, "MOONSHOTAI_MODEL_SPECS"):
-                model_specs = model_info_mod.MOONSHOTAI_MODEL_SPECS
+            elif hasattr(model_info_mod, "MOONSHOT_MODEL_SPECS"):
+                model_specs = model_info_mod.MOONSHOT_MODEL_SPECS
             
             if model_specs:
                 default_model = getattr(provider_class, "DEFAULT_MODEL", None)
@@ -115,7 +115,7 @@ class ProviderRegistry:
                     else:
                         model_names.append(model_key)
                 
-                if provider_name == "moonshotai":
+                if provider_name == "moonshot":
                     return ", ".join(model_names)
                 return ", ".join(model_names)
             return "-"

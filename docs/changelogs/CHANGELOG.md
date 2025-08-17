@@ -311,12 +311,12 @@ For users upgrading from previous versions:
 
 ## [2.9.0] - 2025-07-16
 ### Added
-- Added new `kimi-k2-turbo-preview` model to MoonshotAI provider
+- Added new `kimi-k2-turbo-preview` model to Moonshot provider
 - Added visual indicators for default models in provider registry with star icons
 
 ### Changed
-- Updated default MoonshotAI model from `kimi-k2-0711-preview` to `kimi-k2-turbo-preview`
-- Updated all documentation to reflect new MoonshotAI model names and recommendations
+- Updated default Moonshot model from `kimi-k2-0711-preview` to `kimi-k2-turbo-preview`
+- Updated all documentation to reflect new Moonshot model names and recommendations
 - Updated project URLs, author email, and documentation for migration to ikignosis organization
 - Updated repository links in documentation and configuration files to point to ikignosis GitHub organization
 - Changed maintainer email in provider modules to janito@ikignosis.org
@@ -344,7 +344,7 @@ For users upgrading from previous versions:
 - **Provider-specific settings**: Simplified configuration system.
 
 ### Documentation
-- Updated MoonshotAI setup guide with platform.moonshot.ai domain.
+- Updated Moonshot setup guide with platform.moonshot.ai domain.
 - Improved CLI usage documentation and fixed syntax highlighting.
 - Removed broken references to model_info.py files in supported-providers-models.md.
 - Added comprehensive documentation updates across the project.

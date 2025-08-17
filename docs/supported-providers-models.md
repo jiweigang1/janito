@@ -56,12 +56,12 @@ Mistral provides both general-purpose and specialized models, with Codestral spe
 
 For setup instructions, see the [Mistral Setup Guide](mistral-setup.md).
 
-### MoonshotAI
+### Moonshot
 
 - **Kimi K2 Turbo Preview** (default) - Latest generation with enhanced performance
 - **Kimi K2 0711 Preview** - Previous preview version
 
-MoonshotAI provides open-source Kimi models with competitive performance.
+Moonshot provides open-source Kimi models with competitive performance.
 
 ### Z.AI
 

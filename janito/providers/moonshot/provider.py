@@ -4,14 +4,14 @@ from janito.llm.driver_config import LLMDriverConfig
 from janito.drivers.openai.driver import OpenAIModelDriver
 from janito.tools import get_local_tools_adapter
 from janito.providers.registry import LLMProviderRegistry
-from .model_info import MOONSHOTAI_MODEL_SPECS
+from .model_info import MOONSHOT_MODEL_SPECS
 
 
-class MoonshotAIProvider(LLMProvider):
-    name = "moonshotai"
-    NAME = "moonshotai"
+class MoonshotProvider(LLMProvider):
+    name = "moonshot"
+    NAME = "moonshot"
     MAINTAINER = "João Pinto <janito@ikignosis.org>"
-    MODEL_SPECS = MOONSHOTAI_MODEL_SPECS
+    MODEL_SPECS = MOONSHOT_MODEL_SPECS
     DEFAULT_MODEL = "kimi-k2-turbo-preview"
 
     def __init__(
@@ -34,7 +34,7 @@ class MoonshotAIProvider(LLMProvider):
         if not self._api_key:
             from janito.llm.auth_utils import handle_missing_api_key
 
-            handle_missing_api_key(self.name, "MOONSHOTAI_API_KEY")
+            handle_missing_api_key(self.name, "MOONSHOT_API_KEY")
 
         self._driver_config = config or LLMDriverConfig(model=None)
         if not self._driver_config.model:
@@ -69,7 +69,7 @@ class MoonshotAIProvider(LLMProvider):
     def driver(self) -> OpenAIModelDriver:
         if not self.available:
             raise ImportError(
-                f"MoonshotAIProvider unavailable: {self.unavailable_reason}"
+                f"MoonshotProvider unavailable: {self.unavailable_reason}"
             )
         return self._driver
 
@@ -101,4 +101,4 @@ class MoonshotAIProvider(LLMProvider):
         return self._tools_adapter.execute_by_name(tool_name, *args, **kwargs)
 
 
-LLMProviderRegistry.register(MoonshotAIProvider.NAME, MoonshotAIProvider)
+LLMProviderRegistry.register(MoonshotProvider.NAME, MoonshotProvider)

@@ -15,17 +15,17 @@ pip install janito
 1. **Get your API key**: Sign up at [Moonshot AI](https://platform.moonshot.cn/) and get your API key
 2. **Set your API key**:
    ```bash
-   janito --set-api-key YOUR_MOONSHOT_API_KEY -p moonshotai
+   janito --set-api-key YOUR_MOONSHOT_API_KEY -p moonshot
    ```
 
 ### Basic Usage
 
-**MoonshotAI (Recommended - Default Provider)**
+**Moonshot (Recommended - Default Provider)**
 ```bash
-# Using the default provider (moonshotai) and model
+# Using the default provider (moonshot) and model
 janito "Create a Python script that reads a CSV file"
 
-# Using a specific MoonshotAI model
+# Using a specific Moonshot model
 janito -m kimi-k1-8k "Explain quantum computing"
 ```
 
@@ -71,13 +71,13 @@ In chat mode, you can:
 
 Set default provider and model:
 ```bash
-janito --set provider=moonshotai
+janito --set provider=moonshot
 janito --set model=kimi-k1-8k
 ```
 
 ## Providers
 
-### MoonshotAI (Recommended)
+### Moonshot (Recommended)
 
 - **Models**: kimi-k1-8k, kimi-k1-32k, kimi-k1-128k, kimi-k2-turbo-preview
 - **Strengths**: Excellent Chinese/English support, competitive pricing, fast responses
@@ -126,10 +126,10 @@ janito --role python-expert "Optimize this algorithm"
 ### Environment Variables
 You can also configure via environment variables:
 
-**MoonshotAI:**
+**Moonshot:**
 ```bash
-export MOONSHOTAI_API_KEY=your_key_here
-export JANITO_PROVIDER=moonshotai
+export MOONSHOT_API_KEY=your_key_here
+export JANITO_PROVIDER=moonshot
 export JANITO_MODEL=kimi-k1-8k
 ```
 

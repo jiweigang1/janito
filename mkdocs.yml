@@ -38,7 +38,7 @@ nav:
       - Platform & Documentation Access: provider-platform-access.md
       - OpenAI Setup: openai-setup.md
       - DeepSeek Setup: deepseek-setup.md
-      - MoonshotAI Setup: moonshotai-setup.md
+      - Moonshot Setup: moonshot-setup.md
       - Z.ai Setup: z-ai-setup.md
       - Cerebras Setup: cerebras-setup.md
       - IBM WatsonX Setup: ibm-setup.md

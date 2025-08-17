@@ -34,13 +34,13 @@ def guess_provider_from_model(model_name: str) -> str:
                     if spec_model_name.lower() == model_name:
                         return provider_name
             
-            # Handle special cases like moonshotai
-            if provider_name == "moonshotai":
+            # Handle special cases like moonshot
+            if provider_name == "moonshot":
                 try:
-                    from janito.providers.moonshotai.model_info import MOONSHOTAI_MODEL_SPECS
-                    for spec_model_name in MOONSHOTAI_MODEL_SPECS.keys():
+                    from janito.providers.moonshot.model_info import MOONSHOT_MODEL_SPECS
+                    for spec_model_name in MOONSHOT_MODEL_SPECS.keys():
                         if spec_model_name.lower() == model_name:
-                            return "moonshotai"
+                            return "moonshot"
                 except ImportError:
                     pass
                     
