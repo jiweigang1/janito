@@ -1,18 +1,20 @@
 """Security command group for chat mode."""
 
 from janito.cli.chat_mode.shell.commands.base import ShellCmdHandler as BaseCommand
-from janito.cli.chat_mode.shell.commands.security.allowed_sites import SecurityAllowedSitesCommand
+from janito.cli.chat_mode.shell.commands.security.allowed_sites import (
+    SecurityAllowedSitesCommand,
+)
 
 
 class SecurityCommand(BaseCommand):
     """Security management command group."""
-    
+
     def get_name(self) -> str:
         return "security"
-    
+
     def get_description(self) -> str:
         return "Security management commands"
-    
+
     def get_usage(self):
         return """
 Usage: /security <subcommand> [args...]
@@ -25,21 +27,23 @@ Examples:
   /security allowed-sites add tradingview.com
   /security allowed-sites remove yahoo.com
 """
-    
+
     def __init__(self, after_cmd_line=None, shell_state=None):
         super().__init__(after_cmd_line=after_cmd_line, shell_state=shell_state)
         self.subcommands = {
-            "allowed-sites": SecurityAllowedSitesCommand(after_cmd_line=after_cmd_line, shell_state=shell_state)
+            "allowed-sites": SecurityAllowedSitesCommand(
+                after_cmd_line=after_cmd_line, shell_state=shell_state
+            )
         }
-    
+
     def run(self):
         """Execute the security command."""
         args = self.after_cmd_line.strip().split()
-        
+
         if not args:
             print(self.get_usage())
             return
-            
+
         subcommand = args[0].lower()
         if subcommand in self.subcommands:
             # Pass the remaining args to the subcommand

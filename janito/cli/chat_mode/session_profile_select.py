@@ -149,7 +149,10 @@ def select_profile():
 
         # Get the absolute path relative to the current script location
         current_dir = Path(__file__).parent
-        template_path = current_dir / "../../agent/templates/profiles/system_prompt_template_developer.txt.j2"
+        template_path = (
+            current_dir
+            / "../../agent/templates/profiles/system_prompt_template_developer.txt.j2"
+        )
         with open(template_path, "r", encoding="utf-8") as f:
             template_content = f.read()
 
@@ -165,7 +168,10 @@ def select_profile():
 
         # Get the absolute path relative to the current script location
         current_dir = Path(__file__).parent
-        template_path = current_dir / "../../agent/templates/profiles/system_prompt_template_market_analyst.txt.j2"
+        template_path = (
+            current_dir
+            / "../../agent/templates/profiles/system_prompt_template_market_analyst.txt.j2"
+        )
         with open(template_path, "r", encoding="utf-8") as f:
             template_content = f.read()
 

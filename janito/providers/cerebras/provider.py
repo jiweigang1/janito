@@ -12,14 +12,16 @@ from .model_info import MODEL_SPECS
 
 class CerebrasProvider(LLMProvider):
     """Cerebras Inference API provider."""
-    
+
     name = "cerebras"
     NAME = "cerebras"
     DEFAULT_MODEL = "qwen-3-coder-480b"
     MAINTAINER = "João Pinto <janito@ikignosis.org>"
     MODEL_SPECS = MODEL_SPECS
 
-    def __init__(self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None):
+    def __init__(
+        self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None
+    ):
         """Initialize Cerebras provider with optional configuration."""
         super().__init__()
         self._tools_adapter = get_local_tools_adapter()
@@ -32,10 +34,10 @@ class CerebrasProvider(LLMProvider):
         self._initialize_config(auth_manager, config)
         self._setup_model_config()
         self.fill_missing_device_info(self._driver_config)
-        
+
         if not self.available:
             return
-            
+
         self._initialize_config(None, None)
         self._driver_config.base_url = "https://api.cerebras.ai/v1"
 
@@ -72,11 +74,11 @@ class CerebrasProvider(LLMProvider):
             # Set context length
             if hasattr(model_spec, "context") and model_spec.context:
                 self._driver_config.context_length = model_spec.context
-            
+
             # Set max tokens based on model spec
             if hasattr(model_spec, "max_response") and model_spec.max_response:
                 self._driver_config.max_tokens = model_spec.max_response
-            
+
             # Set max completion tokens if thinking is supported
             if getattr(model_spec, "thinking_supported", False):
                 max_cot = getattr(model_spec, "max_cot", None)
@@ -130,10 +132,10 @@ class CerebrasProvider(LLMProvider):
                 name: model_info.to_dict()
                 for name, model_info in self.MODEL_SPECS.items()
             }
-        
+
         if model_name in self.MODEL_SPECS:
             return self.MODEL_SPECS[model_name].to_dict()
-        
+
         return None
 
     def execute_tool(self, tool_name: str, event_bus, *args, **kwargs):

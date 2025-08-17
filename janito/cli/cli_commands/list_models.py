@@ -30,10 +30,10 @@ def handle_list_models(args, provider_instance):
             # Fallback for simple string model lists
             from rich.table import Table
             from janito.cli.console import shared_console
-            
+
             table = Table(title=f"Supported models for provider '{provider_name}'")
             table.add_column("Model Name", style="cyan")
-            
+
             for m in models:
                 table.add_row(str(m))
             if sys.stdout.isatty():

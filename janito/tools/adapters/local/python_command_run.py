@@ -32,7 +32,8 @@ class PythonCommandRunTool(ToolBase):
             return tr("Warning: Empty code provided. Operation skipped.")
         if not silent:
             self.report_action(
-                tr("🐍 Running: python -c ...\n{code}\n", code=code), ReportAction.EXECUTE
+                tr("🐍 Running: python -c ...\n{code}\n", code=code),
+                ReportAction.EXECUTE,
             )
             self.report_stdout("\n")
         else:

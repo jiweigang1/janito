@@ -8,7 +8,7 @@ from janito.cli.cli_commands.ping_providers import handle_ping_providers
 
 def handle_list_providers(args=None):
     # Check if ping flag is set
-    if args and getattr(args, 'ping', False):
+    if args and getattr(args, "ping", False):
         handle_ping_providers(args)
     else:
         list_providers()

@@ -150,11 +150,17 @@ class ToolsAdapterBase:
             unexpected = [k for k in arguments.keys() if k not in params]
             if unexpected:
                 # Build detailed error message with received arguments
-                error_parts = ["Unexpected argument(s): " + ", ".join(sorted(unexpected))]
-                error_parts.append("Valid parameters: " + ", ".join(sorted(params.keys())))
+                error_parts = [
+                    "Unexpected argument(s): " + ", ".join(sorted(unexpected))
+                ]
+                error_parts.append(
+                    "Valid parameters: " + ", ".join(sorted(params.keys()))
+                )
                 error_parts.append("Arguments received:")
                 for key, value in arguments.items():
-                    error_parts.append(f"  {key}: {repr(value)} ({type(value).__name__})")
+                    error_parts.append(
+                        f"  {key}: {repr(value)} ({type(value).__name__})"
+                    )
                 return "\n".join(error_parts)
 
         # Check for missing required arguments (ignoring *args / **kwargs / self)
@@ -172,11 +178,15 @@ class ToolsAdapterBase:
         missing = [name for name in required_params if name not in arguments]
         if missing:
             # Build detailed error message with received arguments
-            error_parts = ["Missing required argument(s): " + ", ".join(sorted(missing))]
+            error_parts = [
+                "Missing required argument(s): " + ", ".join(sorted(missing))
+            ]
             error_parts.append("Arguments received:")
             if isinstance(arguments, dict):
                 for key, value in arguments.items():
-                    error_parts.append(f"  {key}: {repr(value)} ({type(value).__name__})")
+                    error_parts.append(
+                        f"  {key}: {repr(value)} ({type(value).__name__})"
+                    )
             elif arguments is not None:
                 error_parts.append(f"  {repr(arguments)} ({type(arguments).__name__})")
             else:

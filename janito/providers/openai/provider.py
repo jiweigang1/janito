@@ -17,7 +17,9 @@ class OpenAIProvider(LLMProvider):
     NAME = "openai"
     MAINTAINER = "João Pinto <janito@ikignosis.org>"
     MODEL_SPECS = MODEL_SPECS
-    DEFAULT_MODEL = "gpt-5"  # Options: gpt-4.1, gpt-4o, o3-mini, o4-mini, gpt-5, gpt-5-nano
+    DEFAULT_MODEL = (
+        "gpt-5"  # Options: gpt-4.1, gpt-4o, o3-mini, o4-mini, gpt-5, gpt-5-nano
+    )
 
     def __init__(
         self, auth_manager: LLMAuthManager = None, config: LLMDriverConfig = None

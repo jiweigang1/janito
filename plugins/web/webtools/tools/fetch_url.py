@@ -68,19 +68,21 @@ class FetchUrlTool(ToolBase):
             {}
         )  # In-memory session cache - lifetime matches tool instance
         self._load_cache()
-        
+
         # Browser-like session with cookies and headers
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'DNT': '1',
-            'Connection': 'keep-alive',
-            'Upgrade-Insecure-Requests': '1',
-        })
-        
+        self.session.headers.update(
+            {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5",
+                "Accept-Encoding": "gzip, deflate, br",
+                "DNT": "1",
+                "Connection": "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+            }
+        )
+
         # Load cookies from disk if they exist
         self.cookies_file = self.cache_dir / "cookies.json"
         self._load_cookies()
@@ -120,12 +122,14 @@ class FetchUrlTool(ToolBase):
         try:
             cookies_data = []
             for cookie in self.session.cookies:
-                cookies_data.append({
-                    'name': cookie.name,
-                    'value': cookie.value,
-                    'domain': cookie.domain,
-                    'path': cookie.path
-                })
+                cookies_data.append(
+                    {
+                        "name": cookie.name,
+                        "value": cookie.value,
+                        "domain": cookie.domain,
+                        "path": cookie.path,
+                    }
+                )
             with open(self.cookies_file, "w", encoding="utf-8") as f:
                 json.dump(cookies_data, f, indent=2)
         except IOError:
@@ -170,8 +174,14 @@ class FetchUrlTool(ToolBase):
         }
         self._save_cache()
 
-    def _fetch_url_content(self, url: str, timeout: int = 10, headers: Optional[Dict[str, str]] = None, 
-                          cookies: Optional[Dict[str, str]] = None, follow_redirects: bool = True) -> str:
+    def _fetch_url_content(
+        self,
+        url: str,
+        timeout: int = 10,
+        headers: Optional[Dict[str, str]] = None,
+        cookies: Optional[Dict[str, str]] = None,
+        follow_redirects: bool = True,
+    ) -> str:
         """Fetch URL content and handle HTTP errors.
 
         Implements two-tier caching:
@@ -224,23 +234,23 @@ class FetchUrlTool(ToolBase):
             request_headers = self.session.headers.copy()
             if headers:
                 request_headers.update(headers)
-            
+
             # Merge custom cookies
             if cookies:
                 self.session.cookies.update(cookies)
 
             response = self.session.get(
-                url, 
-                timeout=timeout, 
+                url,
+                timeout=timeout,
                 headers=request_headers,
-                allow_redirects=follow_redirects
+                allow_redirects=follow_redirects,
             )
             response.raise_for_status()
             content = response.text
-            
+
             # Save cookies after successful request
             self._save_cookies()
-            
+
             # Cache successful responses in session cache
             self.session_cache[url] = content
             return content
@@ -354,8 +364,11 @@ class FetchUrlTool(ToolBase):
         # Check if we should save to file
         if save_to_file:
             html_content = self._fetch_url_content(
-                url, timeout=timeout, headers=headers, cookies=cookies, 
-                follow_redirects=follow_redirects
+                url,
+                timeout=timeout,
+                headers=headers,
+                cookies=cookies,
+                follow_redirects=follow_redirects,
             )
             if html_content.startswith("Warning:"):
                 return html_content
@@ -380,8 +393,11 @@ class FetchUrlTool(ToolBase):
 
         # Normal processing path
         html_content = self._fetch_url_content(
-            url, timeout=timeout, headers=headers, cookies=cookies, 
-            follow_redirects=follow_redirects
+            url,
+            timeout=timeout,
+            headers=headers,
+            cookies=cookies,
+            follow_redirects=follow_redirects,
         )
         if html_content.startswith("Warning:"):
             return html_content

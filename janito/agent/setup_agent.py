@@ -53,38 +53,48 @@ def _load_template_content(profile, templates_dir):
             return file.read(), user_template_path
 
     # If nothing matched, list available profiles and raise an informative error
-    from janito.cli.cli_commands.list_profiles import _gather_default_profiles, _gather_user_profiles
-    
+    from janito.cli.cli_commands.list_profiles import (
+        _gather_default_profiles,
+        _gather_user_profiles,
+    )
+
     default_profiles = _gather_default_profiles()
     user_profiles = _gather_user_profiles()
-    
+
     available_profiles = []
     if default_profiles:
         available_profiles.extend([(p, "default") for p in default_profiles])
     if user_profiles:
         available_profiles.extend([(p, "user") for p in user_profiles])
-    
+
     # Normalize the input profile for better matching suggestions
     normalized_input = re.sub(r"\s+", " ", profile.strip().lower())
-    
+
     if available_profiles:
-        profile_list = "\n".join([f"  - {name} ({source})" for name, source in available_profiles])
-        
+        profile_list = "\n".join(
+            [f"  - {name} ({source})" for name, source in available_profiles]
+        )
+
         # Find close matches
         close_matches = []
         for name, source in available_profiles:
             normalized_name = name.lower()
-            if normalized_input in normalized_name or normalized_name in normalized_input:
+            if (
+                normalized_input in normalized_name
+                or normalized_name in normalized_input
+            ):
                 close_matches.append(name)
-        
+
         suggestion = ""
         if close_matches:
             suggestion = f"\nDid you mean: {', '.join(close_matches)}?"
-        
+
         error_msg = f"[janito] Could not find profile '{profile}'. Available profiles:\n{profile_list}{suggestion}"
     else:
-        error_msg = f"[janito] Could not find profile '{profile}'. No profiles available."
-    
+        error_msg = (
+            f"[janito] Could not find profile '{profile}'. No profiles available."
+        )
+
     raise FileNotFoundError(error_msg)
     # Replace spaces in profile name with underscores for filename resolution
     sanitized_profile = re.sub(r"\\s+", "_", profile.strip()) if profile else profile
@@ -144,20 +154,23 @@ def _prepare_template_context(role, profile, allowed_permissions):
         context["platform"] = pd.get_platform_name()
         context["python_version"] = pd.get_python_version()
         context["shell_info"] = pd.detect_shell()
-    
+
     # Add allowed sites for market analyst profile
     if profile == "market-analyst":
         from janito.tools.url_whitelist import get_url_whitelist_manager
+
         whitelist_manager = get_url_whitelist_manager()
         allowed_sites = whitelist_manager.get_allowed_sites()
         context["allowed_sites"] = allowed_sites
-        
+
         # Add market data sources documentation
         if not allowed_sites:
-            context["allowed_sites_info"] = "No whitelist restrictions - all sites allowed"
+            context["allowed_sites_info"] = (
+                "No whitelist restrictions - all sites allowed"
+            )
         else:
             context["allowed_sites_info"] = f"Restricted to: {', '.join(allowed_sites)}"
-    
+
     return context
 
 

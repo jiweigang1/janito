@@ -19,76 +19,101 @@ def _print_models_table(models, provider_name):
 
     # Get default model for this provider
     from janito.providers.registry import LLMProviderRegistry
+
     try:
         provider_class = LLMProviderRegistry.get(provider_name)
         default_model = getattr(provider_class, "DEFAULT_MODEL", None)
     except:
         default_model = None
-    
+
     for m in models:
         name = str(m.get("name", ""))
-        
+
         # Highlight default model with different color
         if name == default_model:
             name = f"[bold green]⭐ {name}[/bold green]"
-        
-        vendor = "Open" if m.get("open") is True or m.get("open") == "Open" else "Locked"
-        
+
+        vendor = (
+            "Open" if m.get("open") is True or m.get("open") == "Open" else "Locked"
+        )
+
         context = _format_context(m.get("context", ""))
         max_input = _format_k(m.get("max_input", ""))
         max_cot = _format_k(m.get("max_cot", ""))
         max_response = _format_k(m.get("max_response", ""))
-        
+
         # Determine thinking indicators
-        thinking_supported = m.get("thinking_supported") is True or m.get("thinking_supported") == "True"
+        thinking_supported = (
+            m.get("thinking_supported") is True or m.get("thinking_supported") == "True"
+        )
         cot_value = m.get("max_cot", "")
-        
+
         thinking_icon = "📖" if thinking_supported and m.get("thinking", False) else ""
         # Only show CoT value if it's a valid number and thinking is supported
         cot_display = ""
         if thinking_supported and cot_value and str(cot_value).lower() != "n/a":
             cot_display = _format_k(cot_value)
-        
+
         driver = _format_driver(m.get("driver", ""))
-        
-        table.add_row(name, vendor, context, max_input, cot_display, max_response, thinking_icon, driver)
+
+        table.add_row(
+            name,
+            vendor,
+            context,
+            max_input,
+            cot_display,
+            max_response,
+            thinking_icon,
+            driver,
+        )
 
     import sys
+
     if sys.stdout.isatty():
         shared_console.print(table)
     else:
         # ASCII-friendly fallback table when output is redirected
         print(f"Supported models for provider '{provider_name}'")
-        print("Model Name | Vendor | Context | Max Input | CoT | Max Response | Thinking | Driver")
-        
+        print(
+            "Model Name | Vendor | Context | Max Input | CoT | Max Response | Thinking | Driver"
+        )
+
         # Get default model for fallback
         from janito.providers.registry import LLMProviderRegistry
+
         try:
             provider_class = LLMProviderRegistry.get(provider_name)
             default_model = getattr(provider_class, "DEFAULT_MODEL", None)
         except:
             default_model = None
-            
+
         for m in models:
             name = str(m.get("name", ""))
             if name == default_model:
                 name = f"⭐ {name} (default)"
-            
-            vendor = "Open" if m.get("open") is True or m.get("open") == "Open" else "Locked"
+
+            vendor = (
+                "Open" if m.get("open") is True or m.get("open") == "Open" else "Locked"
+            )
             context = _format_context(m.get("context", ""))
             max_input = _format_k(m.get("max_input", ""))
             max_cot = _format_k(m.get("max_cot", ""))
             max_response = _format_k(m.get("max_response", ""))
-            thinking_supported = m.get("thinking_supported") is True or m.get("thinking_supported") == "True"
+            thinking_supported = (
+                m.get("thinking_supported") is True
+                or m.get("thinking_supported") == "True"
+            )
             cot_value = m.get("max_cot", "")
-            
+
             thinking = "Y" if thinking_supported and m.get("thinking", False) else ""
             cot_display = ""
             if thinking_supported and cot_value and str(cot_value).lower() != "n/a":
                 cot_display = _format_k(cot_value)
-            
+
             driver = _format_driver(m.get("driver", ""))
-            print(f"{name} | {vendor} | {context} | {max_input} | {cot_display} | {max_response} | {thinking} | {driver}")
+            print(
+                f"{name} | {vendor} | {context} | {max_input} | {cot_display} | {max_response} | {thinking} | {driver}"
+            )
 
 
 def _format_k(val):

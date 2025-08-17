@@ -35,6 +35,7 @@ def get_current_provider():
     """Get the current provider from the global config."""
     return global_config.get("provider", "none")
 
+
 def handle_getter(args, config_mgr=None):
     provider_instance = None
     if getattr(args, "list_models", False):

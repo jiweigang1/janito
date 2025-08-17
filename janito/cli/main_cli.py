@@ -134,7 +134,10 @@ definition = [
     ),
     (
         ["--ping"],
-        {"action": "store_true", "help": "Ping/test connectivity for all providers (use with --list-providers)"},
+        {
+            "action": "store_true",
+            "help": "Ping/test connectivity for all providers (use with --list-providers)",
+        },
     ),
     (
         ["--list-drivers"],
@@ -157,7 +160,6 @@ definition = [
             "help": "List all providers with their regional API information",
         },
     ),
-
     (
         ["-l", "--list-models"],
         {"action": "store_true", "help": "List all supported models"},
@@ -232,7 +234,10 @@ definition = [
     ),
     (
         ["--list-resources"],
-        {"action": "store_true", "help": "List all resources (tools, commands, config) from loaded plugins"},
+        {
+            "action": "store_true",
+            "help": "List all resources (tools, commands, config) from loaded plugins",
+        },
     ),
 ]
 
@@ -294,7 +299,6 @@ class JanitoCLI:
             description="Janito CLI - A tool for running LLM-powered workflows from the command line."
             "\n\nExample usage: janito -p moonshot -m kimi-k1-8k 'Your prompt here'\n\n"
             "Use -m or --model to set the model for the session.",
-
         )
         self._define_args()
         self.args = self.parser.parse_args()
@@ -346,8 +350,6 @@ class JanitoCLI:
 
                 argkwargs["version"] = f"Janito {janito_version}"
             self.parser.add_argument(*argnames, **argkwargs)
-        
-
 
     def _set_all_arg_defaults(self):
         # Gather all possible keys from definition, MODIFIER_KEYS, SETTER_KEYS, GETTER_KEYS
@@ -412,20 +414,21 @@ class JanitoCLI:
             handle_getter(self.args)
             return
         # Handle /rwx prefix for enabling all permissions
-        if self.args.user_prompt and self.args.user_prompt[0] == '/rwx':
+        if self.args.user_prompt and self.args.user_prompt[0] == "/rwx":
             self.args.read = True
             self.args.write = True
             self.args.exec = True
             # Remove the /rwx prefix from the prompt
             self.args.user_prompt = self.args.user_prompt[1:]
-        elif self.args.user_prompt and self.args.user_prompt[0].startswith('/'):
+        elif self.args.user_prompt and self.args.user_prompt[0].startswith("/"):
             # Skip LLM processing for other commands that start with /
             return
-            
+
         # If running in single shot mode and --profile is not provided, default to 'developer' profile
         # Skip profile selection for list commands that don't need it
-        if (get_prompt_mode(self.args) == "single_shot" and 
-            not getattr(self.args, "profile", None)):
+        if get_prompt_mode(self.args) == "single_shot" and not getattr(
+            self.args, "profile", None
+        ):
             self.args.profile = "developer"
         provider = self._get_provider_or_default()
         if provider is None:

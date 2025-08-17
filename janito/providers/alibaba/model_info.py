@@ -12,7 +12,7 @@ MODEL_SPECS = {
         max_cot=8192,
     ),
     "qwen-plus": LLMModelInfo(
-        name="qwen-plus", 
+        name="qwen-plus",
         context=131072,
         max_response=8192,
         category="Alibaba Qwen Plus Model (OpenAI-compatible)",
@@ -23,7 +23,7 @@ MODEL_SPECS = {
     ),
     "qwen-max": LLMModelInfo(
         name="qwen-max",
-        context=32768, 
+        context=32768,
         max_response=8192,
         category="Alibaba Qwen Max Model (OpenAI-compatible)",
         driver="OpenAIModelDriver",
@@ -31,7 +31,6 @@ MODEL_SPECS = {
         thinking=False,
         max_cot=8192,
     ),
-
     "qwen3-coder-plus": LLMModelInfo(
         name="qwen3-coder-plus",
         context=1048576,
@@ -52,7 +51,6 @@ MODEL_SPECS = {
         thinking=False,
         max_cot=65536,
     ),
-    
     # Qwen3 1M context models (July 2025 update)
     "qwen3-235b-a22b-thinking-2507": LLMModelInfo(
         name="qwen3-235b-a22b-thinking-2507",

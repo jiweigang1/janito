@@ -12,14 +12,14 @@ def handle_ping_providers(args):
     try:
         # Get all providers
         providers = list_providers()
-        
+
         # Create table for results
         table = Table(title="Provider Connectivity Test")
         table.add_column("Provider", style="cyan")
         table.add_column("Status", style="magenta")
         table.add_column("Time", style="green")
         table.add_column("Details", style="yellow")
-        
+
         # Test each provider
         for provider_name in providers:
             start_time = time.time()
@@ -27,7 +27,7 @@ def handle_ping_providers(args):
                 # Get provider class
                 provider_class = LLMProviderRegistry.get(provider_name)
                 provider = provider_class()
-                
+
                 # Test the provider (simplified - just check if we can instantiate and get models)
                 models = provider.get_models()
                 if models:
@@ -36,20 +36,20 @@ def handle_ping_providers(args):
                 else:
                     status = "⚠ No models"
                     details = "Provider reachable but no models returned"
-                
+
             except Exception as e:
                 status = "✗ Failed"
                 details = str(e)
-                
+
             end_time = time.time()
             elapsed = f"{(end_time - start_time)*1000:.0f}ms"
-            
+
             table.add_row(provider_name, status, elapsed, details)
-        
+
         # Print results
         shared_console.print(table)
-        
+
     except Exception as e:
         print(f"Error testing provider connectivity: {e}")
-    
+
     return

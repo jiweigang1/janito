@@ -12,6 +12,6 @@ from .discovery import discover_plugins
 __all__ = [
     "PluginManager",
     "Plugin",
-    "PluginMetadata", 
+    "PluginMetadata",
     "discover_plugins",
 ]

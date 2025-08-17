@@ -25,7 +25,7 @@ class CreateFileTool(ToolBase):
             - "✅ Successfully created the file at ..."
 
     Note: Syntax validation is automatically performed after this operation.
-    
+
     Security: This tool includes loop protection to prevent excessive file creation operations.
     Maximum 5 calls per 10 seconds for the same file path.
     """

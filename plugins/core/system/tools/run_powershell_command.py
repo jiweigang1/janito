@@ -43,7 +43,7 @@ class RunPowershellCommandTool(ToolBase):
         if require_confirmation:
             self.report_warning(
                 tr("⚠️ Confirmation requested, but no handler (auto-confirmed)."),
-                ReportAction.EXECUTE
+                ReportAction.EXECUTE,
             )
             return True  # Auto-confirm for now
         return True

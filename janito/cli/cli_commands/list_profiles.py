@@ -19,13 +19,13 @@ def _extract_profile_name(filename: str) -> str:
         filename = filename[len(_PREFIX) :]
     if filename.endswith(_SUFFIX):
         filename = filename[: -len(_SUFFIX)]
-    
+
     # Convert to title case for consistent capitalization, but handle common acronyms
     name = filename.replace("_", " ")
-    
+
     # Convert to proper title case with consistent capitalization
     name = filename.replace("_", " ")
-    
+
     # Handle special cases and acronyms
     special_cases = {
         "python": "Python",
@@ -35,9 +35,9 @@ def _extract_profile_name(filename: str) -> str:
         "developer": "Developer",
         "analyst": "Analyst",
         "conversation": "Conversation",
-        "without": "Without"
+        "without": "Without",
     }
-    
+
     words = name.split()
     capitalized_words = []
     for word in words:
@@ -46,7 +46,7 @@ def _extract_profile_name(filename: str) -> str:
             capitalized_words.append(special_cases[lower_word])
         else:
             capitalized_words.append(word.capitalize())
-    
+
     return " ".join(capitalized_words)
 
 

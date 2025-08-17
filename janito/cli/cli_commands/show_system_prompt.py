@@ -64,6 +64,7 @@ def _load_template(profile, templates_dir):
             # Also check user profiles directory
             from pathlib import Path
             import os
+
             user_profiles_dir = Path(os.path.expanduser("~/.janito/profiles"))
             user_template_path = user_profiles_dir / template_filename
             if user_template_path.exists():
@@ -116,11 +117,11 @@ def handle_show_system_prompt(args):
         Path(__file__).parent.parent.parent / "agent" / "templates" / "profiles"
     )
     profile = getattr(args, "profile", None)
-    
+
     # Handle --market flag mapping to Market Analyst profile
     if profile is None and getattr(args, "market", False):
         profile = "Market Analyst"
-    
+
     if not profile:
         print(
             "[janito] No profile specified. The main agent runs without a system prompt template.\n"
@@ -134,11 +135,17 @@ def handle_show_system_prompt(args):
     if not template_content:
         # Try to load directly from package resources as fallback
         try:
-            template_content = resources.files("janito.agent.templates.profiles").joinpath(
-                f"system_prompt_template_{profile.lower().replace(' ', '_')}.txt.j2"
-            ).read_text(encoding="utf-8")
+            template_content = (
+                resources.files("janito.agent.templates.profiles")
+                .joinpath(
+                    f"system_prompt_template_{profile.lower().replace(' ', '_')}.txt.j2"
+                )
+                .read_text(encoding="utf-8")
+            )
         except (FileNotFoundError, ModuleNotFoundError, AttributeError):
-            print(f"[janito] Could not find profile '{profile}'. This may be a configuration issue.")
+            print(
+                f"[janito] Could not find profile '{profile}'. This may be a configuration issue."
+            )
             return
 
     template = Template(template_content)

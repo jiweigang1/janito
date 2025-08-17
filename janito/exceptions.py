@@ -9,11 +9,11 @@ class ToolCallException(Exception):
         self.error = error
         self.arguments = arguments
         self.original_exception = exception
-        
+
         # Build detailed error message
         details = []
         details.append(f"ToolCallException: {tool_name}: {error}")
-        
+
         if arguments is not None:
             details.append(f"Arguments received: {arguments}")
             if isinstance(arguments, dict):
@@ -25,8 +25,10 @@ class ToolCallException(Exception):
                 for i, value in enumerate(arguments):
                     details.append(f"  [{i}]: {repr(value)} ({type(value).__name__})")
             else:
-                details.append(f"Single argument: {repr(arguments)} ({type(arguments).__name__})")
-        
+                details.append(
+                    f"Single argument: {repr(arguments)} ({type(arguments).__name__})"
+                )
+
         super().__init__("\n".join(details))
 
 

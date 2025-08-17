@@ -116,7 +116,9 @@ class ChatSession:
     def _select_profile_and_role(self, args, role):
         profile = getattr(args, "profile", None) if args is not None else None
         role_arg = getattr(args, "role", None) if args is not None else None
-        python_profile = getattr(args, "developer", False) if args is not None else False
+        python_profile = (
+            getattr(args, "developer", False) if args is not None else False
+        )
         market_profile = getattr(args, "market", False) if args is not None else False
         profile_system_prompt = None
         no_tools_mode = False
@@ -129,10 +131,15 @@ class ChatSession:
         if market_profile and profile is None and role_arg is None:
             profile = "Market Analyst"
 
-        if profile is None and role_arg is None and not python_profile and not market_profile:
+        if (
+            profile is None
+            and role_arg is None
+            and not python_profile
+            and not market_profile
+        ):
             # Skip interactive profile selection for list commands
             from janito.cli.core.getters import GETTER_KEYS
-            
+
             # Check if any getter command is active - these don't need interactive mode
             skip_profile_selection = False
             if args is not None:
@@ -140,12 +147,14 @@ class ChatSession:
                     if getattr(args, key, False):
                         skip_profile_selection = True
                         break
-            
+
             if skip_profile_selection:
                 profile = "Developer with Python Tools"  # Default for non-interactive commands
             else:
                 try:
-                    from janito.cli.chat_mode.session_profile_select import select_profile
+                    from janito.cli.chat_mode.session_profile_select import (
+                        select_profile,
+                    )
 
                     result = select_profile()
                     if isinstance(result, dict):
@@ -338,6 +347,7 @@ class ChatSession:
             if top_base:
                 candidates.append(top_base)
             from urllib.parse import urlparse
+
             for candidate in candidates:
                 try:
                     if not candidate:

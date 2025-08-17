@@ -9,8 +9,10 @@ class HelpShellHandler(ShellCmdHandler):
     def run(self):
         # Ensure /provider command is registered before showing help
         from janito.cli.chat_mode.shell.commands import COMMAND_HANDLERS
+
         if "/provider" not in COMMAND_HANDLERS:
             from janito.cli.chat_mode.shell.commands.provider import ProviderCmdHandler
+
             COMMAND_HANDLERS["/provider"] = ProviderCmdHandler
 
         from ._priv_check import user_has_any_privileges

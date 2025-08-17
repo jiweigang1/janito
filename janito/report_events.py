@@ -14,7 +14,6 @@ class ReportSubtype(Enum):
     PROGRESS = "progress"
 
 
-
 class ReportAction(Enum):
     READ = "READ"
     CREATE = "CREATE"

@@ -71,8 +71,8 @@ def _dispatch_set_key(key, value):
         return True
     if key == "allowed_sites":
         from janito.tools.url_whitelist import get_url_whitelist_manager
-        
-        sites = [site.strip() for site in value.split(',') if site.strip()]
+
+        sites = [site.strip() for site in value.split(",") if site.strip()]
         whitelist_manager = get_url_whitelist_manager()
         whitelist_manager.set_allowed_sites(sites)
         global_config.file_set("allowed_sites", value)
@@ -103,20 +103,23 @@ def _handle_set_base_url(value):
 
 def set_provider(value):
     """Set the current provider.
-    
+
     Args:
         value (str): The provider name to set
-        
+
     Raises:
         ValueError: If the provider is not supported
     """
     try:
         supported = ProviderRegistry().get_provider(value)
     except Exception:
-        raise ValueError(f"Provider '{value}' is not supported. Run '--list-providers' to see the supported list.")
+        raise ValueError(
+            f"Provider '{value}' is not supported. Run '--list-providers' to see the supported list."
+        )
     from janito.provider_config import set_config_provider
+
     set_config_provider(value)
-    
+
 
 def _handle_set_config_provider(value):
     try:

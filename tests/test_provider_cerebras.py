@@ -90,4 +90,4 @@ class TestCerebrasProvider:
             provider = CerebrasProvider()
             driver = provider.driver
             assert driver is not None
-            assert hasattr(driver, 'chat_complete')
+            assert hasattr(driver, "chat_complete")

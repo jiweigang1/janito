@@ -13,13 +13,15 @@ def handle_set_api_key(args):
     if not provider:
         print("Error: --set-api-key requires -p/--provider to be specified.")
         return
-    
+
     # Validate provider name
     if provider not in LLMProviderRegistry.list_providers():
         valid_providers = LLMProviderRegistry.list_providers()
-        print(f"Error: Unknown provider '{provider}'. Valid providers are: {', '.join(valid_providers)}")
+        print(
+            f"Error: Unknown provider '{provider}'. Valid providers are: {', '.join(valid_providers)}"
+        )
         return
-        
+
     try:
         set_api_key(provider, api_key)
         auth_manager = LLMAuthManager()

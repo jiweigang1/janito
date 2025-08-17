@@ -15,18 +15,20 @@ from .ui import userinterface
 
 # Plugin registry
 PLUGINS = {
-    'core.filemanager': filemanager,
-    'core.codeanalyzer': codeanalyzer,
-    'core.system': system,
-    'web.webtools': webtools,
-    'dev.pythondev': pythondev,
-    'dev.visualization': visualization,
-    'ui.userinterface': userinterface,
+    "core.filemanager": filemanager,
+    "core.codeanalyzer": codeanalyzer,
+    "core.system": system,
+    "web.webtools": webtools,
+    "dev.pythondev": pythondev,
+    "dev.visualization": visualization,
+    "ui.userinterface": userinterface,
 }
+
 
 def list_plugins():
     """Return all available plugins"""
     return list(PLUGINS.keys())
+
 
 def get_plugin(name):
     """Get a specific plugin by name"""

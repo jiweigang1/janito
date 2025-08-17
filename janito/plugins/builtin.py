@@ -12,24 +12,24 @@ from janito.plugins.base import Plugin
 
 class BuiltinPluginRegistry:
     """Registry for builtin plugins that come packaged with janito."""
-    
+
     _plugins: Dict[str, Type[Plugin]] = {}
-    
+
     @classmethod
     def register(cls, name: str, plugin_class: Type[Plugin]) -> None:
         """Register a builtin plugin."""
         cls._plugins[name] = plugin_class
-    
+
     @classmethod
     def get_plugin_class(cls, name: str) -> Optional[Type[Plugin]]:
         """Get the plugin class for a builtin plugin."""
         return cls._plugins.get(name)
-    
+
     @classmethod
     def list_builtin_plugins(cls) -> List[str]:
         """List all registered builtin plugins."""
         return list(cls._plugins.keys())
-    
+
     @classmethod
     def is_builtin(cls, name: str) -> bool:
         """Check if a plugin is builtin."""
@@ -38,9 +38,11 @@ class BuiltinPluginRegistry:
 
 def register_builtin_plugin(name: str):
     """Decorator to register a plugin as builtin."""
+
     def decorator(plugin_class: Type[Plugin]) -> Type[Plugin]:
         BuiltinPluginRegistry.register(name, plugin_class)
         return plugin_class
+
     return decorator
 
 
@@ -66,7 +68,7 @@ try:
         SecurityScannerPlugin,
         DocumentationGeneratorPlugin,
     )
-    
+
     # Register all janito-coder plugins as builtin
     BuiltinPluginRegistry.register("git_analyzer", GitAnalyzerPlugin)
     BuiltinPluginRegistry.register("code_navigator", CodeNavigatorPlugin)
@@ -77,8 +79,10 @@ try:
     BuiltinPluginRegistry.register("debugger", DebuggerPlugin)
     BuiltinPluginRegistry.register("performance_profiler", PerformanceProfilerPlugin)
     BuiltinPluginRegistry.register("security_scanner", SecurityScannerPlugin)
-    BuiltinPluginRegistry.register("documentation_generator", DocumentationGeneratorPlugin)
-    
+    BuiltinPluginRegistry.register(
+        "documentation_generator", DocumentationGeneratorPlugin
+    )
+
 except ImportError:
     # janito-coder not available, skip registration
     pass
