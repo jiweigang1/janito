@@ -120,7 +120,7 @@ Janito includes powerful built-in tools for:
 Use predefined system prompts:
 ```bash
 janito --profile developer "Create a REST API"
-janito --role python-expert "Optimize this algorithm"
+
 ```
 
 ### Environment Variables

@@ -119,9 +119,7 @@ class ChatSession:
         profile_system_prompt = None
         no_tools_mode = False
 
-        profile = self._determine_profile(
-            profile, role_arg, python_profile, market_profile
-        )
+        profile = self._determine_profile(profile, python_profile, market_profile)
 
         if (
             profile is None
@@ -136,31 +134,8 @@ class ChatSession:
             if skip_profile_selection:
                 profile = "Developer with Python Tools"  # Default for non-interactive commands
             else:
-                try:
-                    from janito.cli.chat_mode.session_profile_select import (
-                        select_profile,
-                    )
-
-                    result = select_profile()
-                    if isinstance(result, dict):
-                        profile = result.get("profile")
-                        profile_system_prompt = result.get("profile_system_prompt")
-                        no_tools_mode = result.get("no_tools_mode", False)
-                    elif isinstance(result, str) and result.startswith("role:"):
-                        role = result[len("role:") :].strip()
-                        profile = "Developer with Python Tools"
-                    else:
-                        profile = (
-                            "Developer with Python Tools"
-                            if result == "Developer"
-                            else result
-                        )
-                except ImportError:
-                    profile = "Raw Model Session (no tools, no context)"
-        if role_arg is not None:
-            role = role_arg
-            if profile is None:
                 profile = "Developer with Python Tools"
+
         return profile, role, profile_system_prompt, no_tools_mode
 
     def _create_conversation_history(self):
@@ -337,18 +312,18 @@ class ChatSession:
     def _extract_args(self, args):
         """Extract profile and role arguments from args."""
         profile = getattr(args, "profile", None) if args is not None else None
-        role_arg = getattr(args, "role", None) if args is not None else None
+        role_arg = None
         python_profile = (
             getattr(args, "developer", False) if args is not None else False
         )
         market_profile = getattr(args, "market", False) if args is not None else False
         return profile, role_arg, python_profile, market_profile
 
-    def _determine_profile(self, profile, role_arg, python_profile, market_profile):
+    def _determine_profile(self, profile, python_profile, market_profile):
         """Determine the profile based on flags and arguments."""
-        if python_profile and profile is None and role_arg is None:
+        if python_profile and profile is None:
             return "Developer with Python Tools"
-        if market_profile and profile is None and role_arg is None:
+        if market_profile and profile is None:
             return "Market Analyst"
         return profile
 

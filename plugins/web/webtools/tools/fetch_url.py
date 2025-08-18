@@ -205,10 +205,6 @@ class FetchUrlTool(ToolBase):
 
         # Check session cache first
         if url in self.session_cache:
-            self.report_warning(
-                tr("ℹ️ Using session cache"),
-                ReportAction.READ,
-            )
             return self.session_cache[url]
 
         # Check persistent cache for known errors
