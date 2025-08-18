@@ -46,4 +46,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-For detailed information about profiles and their usage, see [docs/PROFILES.md](docs/PROFILES.md).
+For detailed information about profiles and their usage, see [PROFILES.md](PROFILES.md).
