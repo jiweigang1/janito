@@ -3,6 +3,7 @@
 Test script to verify the improved market prompt functionality
 """
 
+
 import subprocess
 import sys
 import time
