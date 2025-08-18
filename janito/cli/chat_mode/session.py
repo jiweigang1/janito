@@ -63,6 +63,7 @@ class ChatSession:
         allowed_permissions=None,
     ):
         self.console = console
+        self.session_start_time = time.time()
         self.user_input_history = UserInputHistory()
         self.input_dicts = self.user_input_history.load()
         self.mem_history = InMemoryHistory()
@@ -414,7 +415,25 @@ class ChatSession:
         else:
             try:
                 cmd_input = session.prompt(HTML("<inputline>💬 </inputline>"))
-            except (KeyboardInterrupt, EOFError):
+            except KeyboardInterrupt:
+                # Ask for confirmation on Ctrl+C
+                from prompt_toolkit import prompt
+
+                try:
+                    confirm = prompt(
+                        "Are you sure you want to exit? (y/n): ",
+                        style=self._create_prompt_session().style,
+                    )
+                    if confirm.lower() == "y":
+                        self._handle_exit()
+                        return None
+                    else:
+                        return ""  # Return empty string to continue
+                except (KeyboardInterrupt, EOFError):
+                    # Handle second Ctrl+C or Ctrl+D as immediate exit
+                    self._handle_exit()
+                    return None
+            except EOFError:
                 self._handle_exit()
                 return None
         sanitized = cmd_input.strip()
@@ -428,7 +447,27 @@ class ChatSession:
         return sanitized
 
     def _handle_exit(self):
-        self.console.print("[bold yellow]Exiting chat. Goodbye![/bold yellow]")
+        session_duration = time.time() - self.session_start_time
+
+        # Get total token usage from performance collector
+        from janito.perf_singleton import performance_collector
+
+        total_tokens = performance_collector.get_token_usage().get("total_tokens", 0)
+
+        # Format session duration
+        if session_duration < 60:
+            duration_str = f"{session_duration:.1f}s"
+        elif session_duration < 3600:
+            duration_str = f"{session_duration/60:.1f}m"
+        else:
+            duration_str = f"{session_duration/3600:.1f}h"
+
+        self.console.print(f"[bold yellow]Session completed![/bold yellow]")
+        self.console.print(
+            f"[dim]Session time: {duration_str} | Total tokens: {total_tokens:,}[/dim]"
+        )
+        self.console.print("[bold yellow]Goodbye![/bold yellow]")
+
         if hasattr(self, "agent") and hasattr(self.agent, "join_driver"):
             if (
                 hasattr(self.agent, "input_queue")
