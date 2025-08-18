@@ -13,7 +13,7 @@ from janito.tools.loop_protection_decorator import protect_against_loops
 
 from janito.tools.adapters.local.adapter import register_local_tool as register_tool
 
-
+# query 是从大模型返回的值？
 @register_tool
 class SearchTextTool(ToolBase):
     """
