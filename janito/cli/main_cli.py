@@ -205,6 +205,13 @@ definition = [
             "help": "Set the reasoning effort for models that support it (low, medium, high, none)",
         },
     ),
+    (
+        ["--emoji"],
+        {
+            "action": "store_true",
+            "help": "Enable emoji usage in responses to make output more engaging and expressive",
+        },
+    ),
     (["user_prompt"], {"nargs": argparse.REMAINDER, "help": "Prompt to submit"}),
     (
         ["-e", "--event-log"],
@@ -257,6 +264,7 @@ MODIFIER_KEYS = [
     "exec",
     "read",
     "write",
+    "emoji",
 ]
 SETTER_KEYS = ["set", "set_provider", "set_api_key", "unset"]
 GETTER_KEYS = [
@@ -420,9 +428,6 @@ class JanitoCLI:
             self.args.exec = True
             # Remove the /rwx prefix from the prompt
             self.args.user_prompt = self.args.user_prompt[1:]
-        elif self.args.user_prompt and self.args.user_prompt[0].startswith("/"):
-            # Skip LLM processing for other commands that start with /
-            return
 
         # If running in single shot mode and --profile is not provided, default to 'developer' profile
         # Skip profile selection for list commands that don't need it
