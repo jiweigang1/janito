@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updated documentation to reflect removal of role argument
-- Added comprehensive profile documentation in `docs/PROFILES.md`
+- Added comprehensive profile documentation in `PROFILES.md`
 - Simplified profile selection to use explicit flags only
 
 ## [Previous Versions]
