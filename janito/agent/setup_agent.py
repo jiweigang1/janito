@@ -323,11 +323,11 @@ def create_configured_agent(
     output_queue = None
     driver = None
     if hasattr(provider_instance, "create_driver"):
-        driver = provider_instance.create_driver()
+        driver = provider_instance.create_driver() #创建 diver ，负责模型底层处理
         # Ensure no tools are passed to the driver when --no-tools flag is active
         if no_tools_mode:
             driver.tools_adapter = None
-        driver.start()  # Ensure the driver background thread is started
+        driver.start()  # Ensure the driver background thread is started 启动线程
         input_queue = getattr(driver, "input_queue", None)
         output_queue = getattr(driver, "output_queue", None)
 

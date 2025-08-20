@@ -4,6 +4,7 @@ import attr
 class MessagePart:
     """
     Base class for all driver message parts.
+    所有大模型请求消息体，抽象结构
     """
 
     type: str

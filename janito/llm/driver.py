@@ -38,6 +38,25 @@ class LLMDriver(ABC):
       - Put DriverEvents on output_queue.
       - Use start() to launch worker loop in a thread.
     The driver automatically creates its own input/output queues, accessible via .input_queue and .output_queue.
+    
+    LLM 驱动的抽象基类（基于线程和队列）。
+        子类必须实现：
+
+        _call_api：使用 DriverInput 调用提供商的 API。
+
+        _convert_completion_message_to_parts：将提供商返回的消息转换为 MessagePart 对象。
+
+        convert_history_to_api_messages：将 LLMConversationHistory 转换为提供商 API 所需的专用消息格式。
+
+        工作流程：
+
+        通过 input_queue 接收 DriverInput。
+
+        将 DriverEvents 放入 output_queue。
+
+        使用 start() 在一个线程中启动工作循环。
+
+        驱动会自动创建自己的输入/输出队列，可以通过 .input_queue 和 .output_queue 访问
     """
 
     available = True
@@ -50,7 +69,7 @@ class LLMDriver(ABC):
         self.tools_adapter = tools_adapter
         self.provider_name = provider_name
 
-    def start(self):
+    def start(self):# 启动后台线程处理请求
         """Validate tool schemas (if any) and launch the driver's background thread to process DriverInput objects."""
         # Validate all tool schemas before starting the thread
         if self.tools_adapter is not None:
@@ -64,6 +83,9 @@ class LLMDriver(ABC):
         self._thread.start()
 
     def _run(self):
+        ''''''
+        用户的请求放入到队列中，后台线程不停的从队列中获取请求信息，把结果存储到结果的事件当中。
+        ''''''
         while True:
             driver_input = self.input_queue.get()
             if driver_input is None:
@@ -71,7 +93,7 @@ class LLMDriver(ABC):
             try:
                 # Only process if driver_input is a DriverInput instance
                 if isinstance(driver_input, DriverInput):
-                    self.process_driver_input(driver_input)
+                    self.process_driver_input(driver_input) #后台线程中执行大模型请求
                 else:
                     # Optionally log or handle unexpected input types
                     pass
@@ -100,7 +122,7 @@ class LLMDriver(ABC):
                 traceback=None,
             )
         )
-
+    # 
     def emit_response_received(
         self, driver_name, request_id, result, parts, timestamp=None, metadata=None
     ):
@@ -125,7 +147,9 @@ class LLMDriver(ABC):
             )
 
     def process_driver_input(self, driver_input: DriverInput):
-
+        ''''
+         会发送大模型请求，并且把请求结果封装成事件，放入到结果队列中
+        ''''
         config = driver_input.config
         request_id = getattr(config, "request_id", None)
         if not self.available:
@@ -144,7 +168,7 @@ class LLMDriver(ABC):
                 payload=payload,
             )
         )
-        # Check for cancel_event before starting
+        # Check for cancel_event before starting 如果取消事件，直接返回
         if (
             hasattr(driver_input, "cancel_event")
             and driver_input.cancel_event is not None
@@ -160,7 +184,7 @@ class LLMDriver(ABC):
             )
             return
         try:
-            result = self._call_api(driver_input)
+            result = self._call_api(driver_input) # 执行大模型调用
             # If result is None and cancel_event is set, treat as cancelled
             if (
                 hasattr(driver_input, "cancel_event")
@@ -172,7 +196,7 @@ class LLMDriver(ABC):
                         driver_name=self.__class__.__name__,
                         request_id=request_id,
                         status=RequestStatus.CANCELLED,
-                        reason="Cancelled during processing (post-API)",
+                        reason="Cancelled during processing (post-API)", # 发送请求后处理被取消了
                     )
                 )
                 return
@@ -205,7 +229,7 @@ class LLMDriver(ABC):
             )
             timestamp = getattr(result, "created", None)
             metadata = {"usage": getattr(result, "usage", None), "raw_response": result}
-            self.emit_response_received(
+            self.emit_response_received(# 触发收到请求结果事件
                 self.__class__.__name__, request_id, result, parts, timestamp, metadata
             )
         except Exception as ex:

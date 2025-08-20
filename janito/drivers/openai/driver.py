@@ -95,17 +95,17 @@ class OpenAIModelDriver(LLMDriver):
         # OpenAI Python SDK expects a **mapping** – passing *None* will raise
         # ``TypeError: argument after ** must be a mapping, not NoneType``.
         return api_kwargs
-
+    #执行大模型请求 openai 的实现类，不同的模型有不同的实现类
     def _call_api(self, driver_input: DriverInput):
         """Call the OpenAI-compatible chat completion endpoint with retry and error handling."""
         cancel_event = getattr(driver_input, "cancel_event", None)
         config = driver_input.config
-        conversation = self.convert_history_to_api_messages(
+        conversation = self.convert_history_to_api_messages( # 转换成 大模型调用的消息 
             driver_input.conversation_history
         )
         request_id = getattr(config, "request_id", None)
         self._print_api_call_start(config)
-        client = self._instantiate_openai_client(config)
+        client = self._instantiate_openai_client(config) # 初始化调用端
         api_kwargs = self._prepare_api_kwargs(config, conversation)
         max_retries = getattr(config, "max_retries", 3)
         attempt = 1
@@ -114,10 +114,10 @@ class OpenAIModelDriver(LLMDriver):
                 self._print_api_attempt(config, attempt, max_retries, api_kwargs)
                 if self._check_cancel(cancel_event, request_id, before_call=True):
                     return None
-                result = client.chat.completions.create(**api_kwargs)
+                result = client.chat.completions.create(**api_kwargs) # 执行行大模型调用
                 if self._check_cancel(cancel_event, request_id, before_call=False):
                     return None
-                self._handle_api_success(config, result, request_id)
+                self._handle_api_success(config, result, request_id) # 处理请求结果
                 return result
             except Exception as e:
                 if self._handle_api_exception(
@@ -149,7 +149,7 @@ class OpenAIModelDriver(LLMDriver):
                 f"[OpenAI] API CALL (attempt {attempt}/{max_retries}): chat.completions.create(**{api_kwargs})",
                 flush=True,
             )
-
+    #处理 API 调用成功
     def _handle_api_success(self, config, result, request_id):
         self._print_verbose_result(config, result)
         usage_dict = self._extract_usage(result)
@@ -158,7 +158,7 @@ class OpenAIModelDriver(LLMDriver):
                 f"[OpenAI][DEBUG] Attaching usage info to RequestFinished: {usage_dict}",
                 flush=True,
             )
-        self.output_queue.put(
+        self.output_queue.put( # 相应结果放入队列中
             RequestFinished(
                 driver_name=self.__class__.__name__,
                 request_id=request_id,

@@ -207,7 +207,9 @@ class PromptHandler:
         """
         try:
             self._print_verbose_debug("Calling agent.chat()...")
+            
             final_event = self.agent.chat(prompt=user_prompt)
+
             if hasattr(self.agent, "set_latest_event"):
                 self.agent.set_latest_event(final_event)
             self.agent.last_event = final_event

@@ -52,7 +52,7 @@ class LLMAgent:
         self._event_lock = threading.Lock()
         self._latest_event = None
         self.verbose_agent = verbose_agent
-        self.driver = None  # Will be set by setup_agent if available
+        self.driver = None  # Will be set by setup_agent if available 负责请求大模型
 
     def get_provider_name(self):
         # Try to get provider name from driver, fallback to llm_provider, else '?'
@@ -158,6 +158,10 @@ class LLMAgent:
                 pass  # Add detailed logging here if needed
 
     def _handle_event_type(self, event):
+        ''''
+        如果是 ResponseReceived 大模型返回结果事件，处理结果检查是否有 tools 调用
+        其他事件直接返回
+        ''''
         event_class = getattr(event, "__class__", None)
         if event_class is not None and event_class.__name__ == "ResponseReceived":
             added_tool_results = self._handle_response_received(event)
@@ -185,12 +189,13 @@ class LLMAgent:
         if getattr(self, "verbose_agent", False):
             print("[agent] [DEBUG] Waiting for event from output_queue...")
         # Let KeyboardInterrupt propagate to caller
+        #处理请求的事件，如果是相应结果事件，就会处理结果事件
         return self._poll_for_event(poll_timeout, max_wait_time)
 
     def _poll_for_event(self, poll_timeout, max_wait_time):
         elapsed = 0.0
         while True:
-            event = self._get_event_from_output_queue(poll_timeout)
+            event = self._get_event_from_output_queue(poll_timeout) # 获取请教结果返回队列
             if event is None:
                 elapsed += poll_timeout
                 if elapsed >= max_wait_time:
@@ -205,7 +210,7 @@ class LLMAgent:
             self._log_event_verbose(event)
             event_class = getattr(event, "__class__", None)
             event_name = event_class.__name__ if event_class else None
-            if event_name == "ResponseReceived":
+            if event_name == "ResponseReceived": # 处理大模型请求结果
                 result = self._handle_event_type(event)
                 return result
             elif event_name == "RequestFinished" and getattr(event, "status", None) in [
@@ -217,14 +222,15 @@ class LLMAgent:
 
     def _get_event_from_output_queue(self, poll_timeout):
         try:
-            return self.output_queue.get(timeout=poll_timeout)
+            return self.output_queue.get(timeout=poll_timeout) # 什么时候把请求放进去的？
         except Empty:
             return None
-
+   
     def _handle_response_received(self, event) -> bool:
         """
         Handle a ResponseReceived event: execute tool calls if present, update history.
         Returns True if the agent loop should continue (tool calls found), False otherwise.
+        处理大模型返回事件，并且会调用 tool，拼装 tool和 tool 结果到历史消息中
         """
         if getattr(self, "verbose_agent", False):
             print("[agent] [INFO] Handling ResponseReceived event.")
@@ -292,11 +298,12 @@ class LLMAgent:
                 )
             # Add assistant tool_calls message
             import json
-
+            #添加调用的工具信息
             self.conversation_history.add_message(
                 "tool_calls", json.dumps(tool_calls_list)
             )
             # Add tool_results message
+            #添加工具调用的结果信息
             self.conversation_history.add_message(
                 "tool_results", json.dumps(tool_results_list)
             )
@@ -304,8 +311,8 @@ class LLMAgent:
         else:
             return False  # No tool calls, return event
 
-    def chat(
-        self,
+    def chat( #执行大模型对话
+        self, 
         prompt: str = None,
         messages: Optional[List[dict]] = None,
         role: str = "user",
@@ -323,12 +330,13 @@ class LLMAgent:
         import threading
 
         cancel_event = threading.Event()
-        while True:
+        while True: # 这个循环实现了一个“请求 → 响应 →（执行工具）→ 再请求”的交互式流程，直到获得最终结果或遇到退出条件为止
             self._print_verbose_chat_loop(loop_count)
-            driver_input = self._prepare_driver_input(config, cancel_event=cancel_event)
-            self.input_queue.put(driver_input)
-            try:
-                result, added_tool_results = self._process_next_response()
+            #如果有工具调用还是会循环
+            driver_input = self._prepare_driver_input(config, cancel_event=cancel_event) 
+            self.input_queue.put(driver_input) # 请求数据放入请求的队列中，处理请求的时候会消费这个队列西信息
+            try: #处理相应结果
+                result, added_tool_results = self._process_next_response() # added_tool_results  boolean 是否添加了工具结果数据
             except KeyboardInterrupt:
                 cancel_event.set()
                 raise
@@ -342,19 +350,19 @@ class LLMAgent:
 
     def _clear_driver_queues(self):
         if hasattr(self, "driver") and self.driver:
-            if hasattr(self.driver, "clear_output_queue"):
+            if hasattr(self.driver, "clear_output_queue 
                 self.driver.clear_output_queue()
             if hasattr(self.driver, "clear_input_queue"):
                 self.driver.clear_input_queue()
-
+    #判断是否应该推出请求循环 
     def _should_exit_chat_loop(self, result, added_tool_results):
-        if result is None:
+        if result is None: # 如果请求为空可以退出循环
             if getattr(self, "verbose_agent", False):
                 print(
                     "[agent] [INFO] Exiting chat loop: _process_next_response returned None result (likely timeout or error). Returning (None, False)."
                 )
             return True
-        if not added_tool_results:
+        if not added_tool_results:# 如果返回结果中没有工具调用，可以退出 
             if getattr(self, "verbose_agent", False):
                 print(
                     f"[agent] [INFO] Exiting chat loop: _process_next_response returned added_tool_results=False (final response or no more tool calls). Returning result: {result}"
