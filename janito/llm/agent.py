@@ -123,7 +123,7 @@ class LLMAgent:
                 self.conversation_history.add_message(
                     msg.get("role", role), msg.get("content", "")
                 )
-
+    # 添加系统 promot
     def _ensure_system_prompt(self):
         if self.system_prompt and (
             not self.conversation_history._history
@@ -132,7 +132,8 @@ class LLMAgent:
             self.conversation_history._history.insert(
                 0, {"role": "system", "content": self.system_prompt}
             )
-
+    
+    #添加历史聊天记录
     def _validate_and_update_history(
         self,
         prompt: str = None,
@@ -311,7 +312,10 @@ class LLMAgent:
         config=None,
     ):
         self._clear_driver_queues()
+        
+        # 添加历史聊天记录
         self._validate_and_update_history(prompt, messages, role)
+        # 添加系统 prompt
         self._ensure_system_prompt()
         if config is None:
             config = self.llm_provider.driver_config

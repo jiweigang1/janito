@@ -60,6 +60,7 @@ definition = [
         },
     ),
     (
+        #打印和模型交互的日志
         ["--verbose-api"],
         {
             "action": "store_true",
@@ -289,7 +290,7 @@ class RunMode(enum.Enum):
     SET = "set"
     RUN = "run"
 
-
+#项目主入口文件
 class JanitoCLI:
     def __init__(self):
         import janito.tools
@@ -443,7 +444,7 @@ class JanitoCLI:
         if run_mode == RunMode.RUN:
             self._maybe_print_verbose_run_mode()
             # DEBUG: Print exec_enabled propagation at main_cli
-
+            # 执行模型调用
             handle_runner(
                 self.args,
                 provider,

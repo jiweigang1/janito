@@ -9,7 +9,7 @@ import janito.tools  # Ensure all tools are registered
 from janito.cli.console import shared_console
 import time
 
-
+#执行单次模型调用
 class PromptHandler:
     def __init__(
         self,
@@ -95,8 +95,9 @@ class PromptHandler:
                     f"[bold blue]Model: {model_name} ({provider_name}) | Backend: {backend_hostname}[/bold blue]"
                 )
             )
-
+            #执行模型调用
             self.generic_handler.handle_prompt(
+                #prompt 语句  
                 sanitized,
                 args=self.args,
                 print_header=True,

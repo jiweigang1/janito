@@ -196,6 +196,8 @@ def handle_runner(
         from janito.cli.core.getters import handle_getter
 
         handle_getter(args)
+    
+    #单次执行模型调用
     elif mode == "single_shot":
         from janito.cli.single_shot_mode.handler import (
             PromptHandler as SingleShotPromptHandler,
