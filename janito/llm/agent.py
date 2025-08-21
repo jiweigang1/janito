@@ -337,7 +337,7 @@ class LLMAgent:
             self.input_queue.put(driver_input) # 请求数据放入请求的队列中，处理请求的时候会消费这个队列西信息
             try: #处理相应结果
                 result, added_tool_results = self._process_next_response() # added_tool_results  boolean 是否添加了工具结果数据
-            except KeyboardInterrupt:
+            except KeyboardInterrupt: #如果键盘 ctrl c 退出设置退出
                 cancel_event.set()
                 raise
             if getattr(self, "verbose_agent", False):
